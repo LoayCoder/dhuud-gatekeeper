@@ -1,56 +1,36 @@
 
-المشكلة واضحة من الكود الحالي:
 
-- الشرط الذي يفتح/يغلق الـ Photo Gate هو:
-  `!!worker.photo_path && !!worker.photo_verified_at`
-- الصورة عندك موجودة فعلًا، لذلك المعاينة تظهر.
-- لكن `photo_verified_at` غالبًا ما تزال `null`، لذلك النظام ما زال يعتبر العامل “غير موثّق الصورة”.
+# Fix WhatsApp Notification for Representatives
 
-سبب ذلك في المسار الحالي:
-- `WorkerPhotoGate` فقط هو الذي يستدعي `useVerifyWorkerPhoto` ويكتب:
-  `photo_verified_at` + `photo_verified_by`
-- أما رفع الصورة من نماذج التعديل/الإضافة العادية فيكتب `photo_path` فقط، بدون التوثيق.
-- لذلك النتيجة الحالية هي: “الصورة موجودة” لكن “غير Verified”.
+## Problem
+`send-contractor-notification` looks up the passed ID only in `contractor_workers`. When a Representative ID is passed, the query returns no rows and WhatsApp is never sent.
 
-خطة الإصلاح:
+## Fix
 
-1. توحيد منطق الصورة في جميع مسارات تحديث العامل
-- تعديل مسارات تحديث `contractor_workers` بحيث عند حفظ صورة من واجهات الإدارة الموثوقة يتم أيضًا حفظ:
-  - `photo_verified_at`
-  - `photo_verified_by`
-- وعند إزالة الصورة يتم تصفير حقول التوثيق أيضًا.
-- أهم الملفات:
-  - `src/features/contractors/hooks/use-update-contractor-worker.ts`
-  - `src/features/contractors/hooks/use-sync-personnel-to-workers.ts`
+**File:** `supabase/functions/send-contractor-notification/index.ts`
 
-2. إبقاء `useVerifyWorkerPhoto` للمسار المباشر داخل الـ gate
-- لن أزيله، لكن لن يكون هو المسار الوحيد الذي يجعل العامل ينجح في شرط الصورة.
-- بهذا تصبح كل من:
-  - الرفع من شاشة التعديل
-  - الرفع من شاشة الـ Photo Gate
-  تعملان بنفس النتيجة المنطقية.
+Add a fallback lookup: if the ID is not found in `contractor_workers`, query `contractor_representatives` to get `company_id` and `mobile_number`. Use that data to send the WhatsApp message.
 
-3. إصلاح مشكلة الـ stale data داخل الـ dialog
-- `WorkerDetailDialog` يستقبل نسخة snapshot من العامل عبر `selectedWorker`.
-- حتى بعد invalidation قد يبقى الـ dialog يعرض بيانات قديمة.
-- سأحوّل الفتح ليعتمد على `selectedWorkerId` مع جلب أحدث سجل، أو تحديث الكاش محليًا، بدل الاعتماد على `window.location.reload()`.
-- الملفات المتأثرة:
-  - `src/features/contractors/components/WorkerDetailDialog.tsx`
-  - `src/features/contractors/components/WorkerListTable.tsx`
+```text
+Current flow:
+  workerId → contractor_workers → company_id → find reps → send WhatsApp
+  (fails if workerId is actually a representative ID)
 
-4. إصلاح side-effect صغير في `WorkerPhotoUpload`
-- يوجد استخدام غير صحيح لـ `useState(() => { ...fetchPhotoUrl })` بدل `useEffect`.
-- سأصححه حتى تتحدث المعاينة بشكل صحيح عند تغير `photoPath`.
-- الملف:
-  - `src/features/contractors/components/WorkerPhotoUpload.tsx`
+New flow:
+  workerId → contractor_workers → company_id → find reps → send WhatsApp
+       ↓ (not found)
+  workerId → contractor_representatives → get mobile_number + company_id → send WhatsApp directly
+```
 
-5. معالجة البيانات الحالية الموجودة بالفعل
-- لأن عندك عمال لديهم `photo_path` موجود لكن `photo_verified_at` فارغ، سأضيف معالجة آمنة لبياناتهم الحالية.
-- الهدف: أي عامل نشط لديه صورة بالفعل ولا يملك توثيق صورة، يتم استكمال حالة التوثيق له بدل أن يبقى عالقًا.
-- لا يحتاج هذا لتغيير schema لأن الأعمدة موجودة أصلًا؛ فقط تحديث بيانات موجودة.
+## Steps
 
-التحقق بعد التنفيذ:
-- رفع صورة من تعديل العامل يجب أن يزيل رسالة “Photo Required”.
-- رفع صورة من داخل الـ Photo Gate يجب أن ينجح بدون reload كامل.
-- عامل قديم لديه صورة مسبقًا يجب أن يتوقف عن إظهار التحذير بعد معالجة البيانات.
-- حذف الصورة أو استبدالها يجب أن يبقي حالة التوثيق متسقة.
+1. After the existing worker lookup fails (returns null), add a second query to `contractor_representatives` filtering by `id = workerId` and `deleted_at IS NULL`
+2. If found, use the representative's own `mobile_number` for WhatsApp delivery and their `company_id` for context
+3. Deploy the updated edge function
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `supabase/functions/send-contractor-notification/index.ts` | Add representative fallback lookup |
+
