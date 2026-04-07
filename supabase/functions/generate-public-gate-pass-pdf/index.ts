@@ -38,7 +38,7 @@ serve(async (req) => {
     // Get tenant
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
-      .select('id, name, slug, logo_url, brand_color')
+      .select('id, name, slug, logo_light_url, brand_color')
       .eq('slug', tenantSlug)
       .single();
 
@@ -47,6 +47,22 @@ serve(async (req) => {
         JSON.stringify({ error: 'Tenant not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Convert logo URL to base64 data URL for pdfMake
+    let logoDataUrl: string | null = null;
+    if (tenant.logo_light_url) {
+      try {
+        const logoResponse = await fetch(tenant.logo_light_url);
+        if (logoResponse.ok) {
+          const logoBuffer = await logoResponse.arrayBuffer();
+          const contentType = logoResponse.headers.get('content-type') || 'image/png';
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(logoBuffer)));
+          logoDataUrl = `data:${contentType};base64,${base64}`;
+        }
+      } catch (e) {
+        console.warn('[generate-public-gate-pass-pdf] Failed to fetch logo:', e);
+      }
     }
 
     // Get gate pass by token
@@ -114,8 +130,8 @@ serve(async (req) => {
         // Header with tenant branding
         {
           columns: [
-            tenant.logo_url
-              ? { image: tenant.logo_url, width: 100 }
+            logoDataUrl
+              ? { image: logoDataUrl, width: 100 }
               : { text: tenant.name, style: 'tenantName' },
             {
               text: 'MATERIAL GATE PASS',
