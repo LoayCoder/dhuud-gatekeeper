@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { ShieldAlert, Info, AlertCircle } from "lucide-react";
+import { ShieldAlert, Info, AlertCircle, Upload, HeartPulse } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,7 @@ import { NATIONALITIES } from "@/lib/nationalities";
 import { DhuudPhoneInput } from "@/components/ui/phone-input";
 import { WorkerPhotoUpload } from "@/features/contractors/components/WorkerPhotoUpload";
 import { useState, useCallback, useRef, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const workerSchema = z.object({
   full_name: z.string().min(2, "Name is required"),
@@ -32,11 +33,26 @@ const workerSchema = z.object({
   emergency_contact_phone: z.string().optional(),
   worker_role: z.string().min(1, "Role is required"),
   preferred_language: z.string().default("ar"),
-  fitness_to_work: z.string().optional(),
+  fitness_to_work: z.string().min(1, "Fitness to work status is required"),
+  fitness_acknowledged: z.boolean().default(false),
+  medical_check_date: z.string().optional(),
+  fitness_expiry_date: z.string().optional(),
   training_certifications: z.array(z.string()).default([]),
   project_id: z.string().min(1, "Project assignment is required"),
   expiry_date: z.string().optional(),
-});
+}).refine(
+  (data) => {
+    // If "fit", acknowledgment must be checked
+    if (data.fitness_to_work === "fit" && !data.fitness_acknowledged) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "You must confirm the medical fitness acknowledgment",
+    path: ["fitness_acknowledged"],
+  }
+);
 
 type WorkerFormData = z.infer<typeof workerSchema>;
 
@@ -71,10 +87,9 @@ const WORKER_ROLES = [
 ];
 
 const FITNESS_OPTIONS = [
-  { value: "yes", labelKey: "common.yes", fallback: "Yes" },
-  { value: "no", labelKey: "common.no", fallback: "No" },
-  { value: "optional", labelKey: "common.optional", fallback: "Optional" },
-  { value: "ptw", labelKey: "contractors.workers.ptw", fallback: "PTW" },
+  { value: "fit", labelKey: "contractors.workers.fitness.fit", fallback: "Fit to Work – Medical Check Completed" },
+  { value: "not_fit", labelKey: "contractors.workers.fitness.notFit", fallback: "Not Fit to Work" },
+  { value: "pending_medical", labelKey: "contractors.workers.fitness.pending", fallback: "Pending Medical Check" },
 ];
 
 const TRAINING_CERTS = [
@@ -95,9 +110,12 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
   const createWorker = useContractorPortalCreateWorker();
   const isRTL = i18n.dir() === 'rtl';
   const [photoPath, setPhotoPath] = useState<string | null>(null);
+  const [medicalCertPath, setMedicalCertPath] = useState<string | null>(null);
   const [isDuplicate, setIsDuplicate] = useState(false);
+  const [uploadingCert, setUploadingCert] = useState(false);
   const checkDuplicate = useCheckDuplicateNationalId();
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const certInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch projects filtered by company
   const { data: projects, isLoading: projectsLoading } = useContractorPortalProjects(companyId);
@@ -110,7 +128,9 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
       gender: "", nationality: "", mobile_number: "", email: "",
       emergency_contact_name: "", emergency_contact_phone: "",
       worker_role: "laborer", preferred_language: "ar",
-      fitness_to_work: "", training_certifications: [],
+      fitness_to_work: "", fitness_acknowledged: false,
+      medical_check_date: "", fitness_expiry_date: "",
+      training_certifications: [],
       project_id: "", expiry_date: "",
     },
   });
@@ -118,8 +138,18 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
   const watchedNationalId = form.watch("national_id");
   const watchedCerts = form.watch("training_certifications");
   const watchedProjectId = form.watch("project_id");
+  const watchedFitness = form.watch("fitness_to_work");
   const isBlacklisted = blacklistedIds?.has(watchedNationalId) ?? false;
   const hasPTW = watchedCerts?.includes("ptw");
+  const isFit = watchedFitness === "fit";
+  const isNotFitOrPending = watchedFitness === "not_fit" || watchedFitness === "pending_medical";
+
+  // Reset acknowledgment when fitness status changes away from "fit"
+  useEffect(() => {
+    if (!isFit) {
+      form.setValue("fitness_acknowledged", false);
+    }
+  }, [isFit, form]);
 
   // Debounced duplicate national ID check
   const handleNationalIdCheck = useCallback((value: string) => {
@@ -150,6 +180,32 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
     }
   }, [watchedProjectId, projects, form]);
 
+  // Medical certificate upload handler
+  const handleMedicalCertUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      return;
+    }
+
+    setUploadingCert(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `medical-certificates/${companyId}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("contractor-documents")
+        .upload(path, file, { upsert: true });
+      
+      if (!error) {
+        setMedicalCertPath(path);
+      }
+    } finally {
+      setUploadingCert(false);
+    }
+  };
+
   const onSubmit = async (data: WorkerFormData) => {
     if (blacklistedIds?.has(data.national_id) || isDuplicate) return;
     await createWorker.mutateAsync({
@@ -167,6 +223,10 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
       worker_role: data.worker_role,
       preferred_language: data.preferred_language,
       fitness_to_work: data.fitness_to_work || null,
+      fitness_acknowledged: data.fitness_acknowledged,
+      medical_check_date: data.medical_check_date || null,
+      fitness_expiry_date: data.fitness_expiry_date || null,
+      medical_certificate_path: medicalCertPath,
       training_certifications: data.training_certifications,
       photo_path: photoPath,
       project_id: data.project_id,
@@ -174,6 +234,7 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
     });
     form.reset();
     setPhotoPath(null);
+    setMedicalCertPath(null);
     setIsDuplicate(false);
     onOpenChange(false);
   };
@@ -394,12 +455,26 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
                       <FormMessage />
                     </FormItem>
                   )} />
+                </div>
+              </div>
 
+              <Separator />
+
+              {/* ── Section 4: Fitness to Work (Acknowledgment-Based) ── */}
+              <div>
+                <SectionTitle>
+                  <span className="flex items-center gap-2">
+                    <HeartPulse className="h-4 w-4 text-primary" />
+                    {t("contractors.workers.sections.fitness", "Fitness to Work")} *
+                  </span>
+                </SectionTitle>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField control={form.control} name="fitness_to_work" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("contractors.workers.fitnessToWork", "Fitness to Work")}</FormLabel>
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>{t("contractors.workers.fitnessStatus", "Fitness Status")} *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder={t("common.select", "Select")} /></SelectTrigger></FormControl>
+                        <FormControl><SelectTrigger><SelectValue placeholder={t("common.select", "Select status")} /></SelectTrigger></FormControl>
                         <SelectContent>
                           {FITNESS_OPTIONS.map(opt => (
                             <SelectItem key={opt.value} value={opt.value}>{t(opt.labelKey, opt.fallback)}</SelectItem>
@@ -409,12 +484,111 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
                       <FormMessage />
                     </FormItem>
                   )} />
+
+                  {/* Acknowledgment checkbox — only when "Fit to Work" is selected */}
+                  {isFit && (
+                    <FormField control={form.control} name="fitness_acknowledged" render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <div className="rounded-md border border-primary/30 bg-primary/5 p-4">
+                          <div className="flex items-start gap-3">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="mt-0.5"
+                              />
+                            </FormControl>
+                            <FormLabel className="text-sm font-normal leading-relaxed cursor-pointer">
+                              {t(
+                                "contractors.workers.fitnessAcknowledgment",
+                                "I confirm that the worker has undergone a medical check-up and is medically fit to perform the assigned duties. The medical examination results are valid and compliant with HSSE requirements."
+                              )}
+                            </FormLabel>
+                          </div>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  )}
+
+                  {/* Warning for Not Fit / Pending */}
+                  {isNotFitOrPending && (
+                    <div className="md:col-span-2">
+                      <Alert variant="destructive" className="border-destructive/30">
+                        <ShieldAlert className="h-4 w-4" />
+                        <AlertDescription className="text-sm">
+                          {watchedFitness === "not_fit"
+                            ? t("contractors.workers.notFitWarning", "This worker is not medically fit. They will be flagged as high risk and restricted from PTW and high-risk task assignments.")
+                            : t("contractors.workers.pendingMedicalWarning", "This worker has a pending medical check. Worker activation will be restricted until medical clearance is confirmed.")
+                          }
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  )}
+
+                  {/* Supporting fields — Medical Check Date & Fitness Expiry */}
+                  {isFit && (
+                    <>
+                      <FormField control={form.control} name="medical_check_date" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("contractors.workers.medicalCheckDate", "Medical Check Date")}</FormLabel>
+                          <FormControl><Input type="date" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+
+                      <FormField control={form.control} name="fitness_expiry_date" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("contractors.workers.fitnessExpiryDate", "Fitness Expiry Date")}</FormLabel>
+                          <FormControl><Input type="date" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+
+                      {/* Medical Certificate Upload */}
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium">
+                          {t("contractors.workers.medicalCertificate", "Medical Certificate")}
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            ref={certInputRef}
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={handleMedicalCertUpload}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={uploadingCert}
+                            onClick={() => certInputRef.current?.click()}
+                            className="gap-2"
+                          >
+                            <Upload className="h-4 w-4" />
+                            {uploadingCert
+                              ? t("common.uploading", "Uploading...")
+                              : medicalCertPath
+                                ? t("contractors.workers.certificateUploaded", "Certificate Uploaded ✓")
+                                : t("contractors.workers.uploadCertificate", "Upload Certificate")
+                            }
+                          </Button>
+                          {medicalCertPath && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {t("contractors.workers.certificateReady", "Medical certificate has been attached")}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
               <Separator />
 
-              {/* ── Section 4: Training & Certifications ── */}
+              {/* ── Section 5: Training & Certifications ── */}
               <div>
                 <SectionTitle>{t("contractors.workers.sections.certifications", "Training & Certifications")}</SectionTitle>
                 <FormField control={form.control} name="training_certifications" render={() => (
@@ -452,7 +626,17 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
                   </FormItem>
                 )} />
 
-                {hasPTW && (
+                {/* PTW restriction warning if not fit */}
+                {hasPTW && isNotFitOrPending && (
+                  <Alert variant="destructive" className="mt-3 border-destructive/30">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      {t("contractors.workers.ptwFitnessRestriction", "PTW access cannot be requested while the worker is not medically cleared. Medical fitness is required for PTW eligibility.")}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {hasPTW && !isNotFitOrPending && (
                   <Alert className="mt-3 border-primary/30 bg-primary/5">
                     <Info className="h-4 w-4 text-primary" />
                     <AlertDescription className="text-sm">
