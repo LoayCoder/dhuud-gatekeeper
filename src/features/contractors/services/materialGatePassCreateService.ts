@@ -135,7 +135,10 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
                     .from("gate_pass_item_photos")
                     .insert(photoRecords);
 
-                if (photosError) console.error("Item photos insert error:", photosError);
+                if (photosError) {
+                    console.error("Item photos insert error:", photosError);
+                    toast.error(`Failed to save photo records for item "${data.items[i].item_name}"`);
+                }
             }
         }
     }
