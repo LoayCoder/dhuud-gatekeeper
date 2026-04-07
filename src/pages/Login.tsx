@@ -503,10 +503,88 @@ export default function Login() {
         try {
           const { data: existingProfile } = await supabase
             .from('profiles')
-            .select('id')
+            .select('id, email, full_name')
             .eq('user_id', user.id)
+            .is('deleted_at', null)
             .limit(1)
             .maybeSingle();
+
+          // Helper: fetch full representative data for profile enrichment
+          const fetchRepresentativeData = async (representativeId: string) => {
+            try {
+              const { data: repData } = await supabase
+                .from('contractor_representatives')
+                .select('full_name, mobile_number, email, photo_path, company_id')
+                .eq('id', representativeId)
+                .maybeSingle();
+              if (!repData) return null;
+
+              // Get assigned_branch_id from the company
+              let assignedBranchId: string | null = null;
+              if (repData.company_id) {
+                const { data: companyData } = await supabase
+                  .from('contractor_companies')
+                  .select('assigned_branch_id')
+                  .eq('id', repData.company_id)
+                  .maybeSingle();
+                assignedBranchId = companyData?.assigned_branch_id || null;
+              }
+
+              return {
+                full_name: repData.full_name,
+                mobile_number: repData.mobile_number,
+                email: repData.email,
+                photo_path: repData.photo_path,
+                assigned_branch_id: assignedBranchId,
+              };
+            } catch (e) {
+              logger.warn('Failed to fetch representative data:', e);
+              return null;
+            }
+          };
+
+          // Repair path: existing profile with missing critical fields
+          if (existingProfile && (!existingProfile.email || !existingProfile.full_name)) {
+            logger.debug('Profile exists but missing critical fields, attempting repair...');
+            const userEmail = user.email || '';
+            if (userEmail) {
+              // Find invitation (used or unused) for this email
+              const { data: repairInvite } = await supabase
+                .from('invitations')
+                .select('metadata')
+                .ilike('email', userEmail)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+              if (repairInvite?.metadata) {
+                const repairMeta = repairInvite.metadata as Record<string, any>;
+                if (repairMeta.type === 'contractor_representative' && repairMeta.representative_id) {
+                  const repInfo = await fetchRepresentativeData(repairMeta.representative_id);
+                  if (repInfo) {
+                    const updateData: Record<string, any> = {};
+                    if (!existingProfile.full_name && repInfo.full_name) updateData.full_name = repInfo.full_name;
+                    if (!existingProfile.email) updateData.email = repInfo.email || userEmail;
+                    if (repInfo.mobile_number) updateData.phone_number = repInfo.mobile_number;
+                    if (repInfo.photo_path) updateData.avatar_url = repInfo.photo_path;
+                    if (repInfo.assigned_branch_id) updateData.assigned_branch_id = repInfo.assigned_branch_id;
+
+                    if (Object.keys(updateData).length > 0) {
+                      const { error: repairError } = await supabase
+                        .from('profiles')
+                        .update(updateData)
+                        .eq('id', existingProfile.id);
+                      if (repairError) {
+                        logger.error('Profile repair failed:', repairError);
+                      } else {
+                        logger.debug('Profile repaired successfully with representative data');
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
 
           if (!existingProfile) {
             // User exists in auth but has no profile — try invitation data
@@ -553,38 +631,31 @@ export default function Login() {
               const metadata = inviteData.metadata || {};
               const isContractorRep = metadata.type === 'contractor_representative';
 
-              // Fetch phone number from representative record if missing
-              let phoneNumber = metadata.phone_number || null;
-              if (!phoneNumber && metadata.representative_id) {
-                try {
-                  const { data: repData } = await supabase
-                    .from('contractor_representatives')
-                    .select('mobile_number')
-                    .eq('id', metadata.representative_id)
-                    .maybeSingle();
-                  if (repData?.mobile_number) {
-                    phoneNumber = repData.mobile_number;
-                  }
-                } catch (e) {
-                  logger.warn('Failed to fetch representative phone:', e);
-                }
+              // Fetch full representative data for enrichment
+              let repInfo: Awaited<ReturnType<typeof fetchRepresentativeData>> = null;
+              if (metadata.representative_id) {
+                repInfo = await fetchRepresentativeData(metadata.representative_id);
               }
 
-              // Create profile
+              // Fallback phone from metadata if rep data unavailable
+              const phoneNumber = repInfo?.mobile_number || metadata.phone_number || null;
+
+              // Create profile enriched with representative data
               const profileData = {
                 id: user.id,
                 user_id: user.id,
                 tenant_id: inviteData.tenant_id,
-                email: invitationEmail,
+                email: invitationEmail || repInfo?.email || user.email || null,
                 has_login: true,
                 is_active: true,
-                full_name: metadata.full_name || null,
+                full_name: repInfo?.full_name || metadata.full_name || null,
                 phone_number: phoneNumber,
+                avatar_url: repInfo?.photo_path || null,
                 user_type: metadata.user_type || null,
                 employee_id: metadata.employee_id || null,
                 job_title: metadata.job_title || null,
                 has_full_branch_access: metadata.has_full_branch_access ?? false,
-                assigned_branch_id: metadata.assigned_branch_id || null,
+                assigned_branch_id: repInfo?.assigned_branch_id || metadata.assigned_branch_id || null,
                 assigned_division_id: metadata.assigned_division_id || null,
                 assigned_department_id: metadata.assigned_department_id || null,
                 assigned_section_id: metadata.assigned_section_id || null,
