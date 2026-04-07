@@ -1,59 +1,56 @@
 
+المشكلة واضحة من الكود الحالي:
 
-# Update ID Card Design — Logo + Colored Header Bar
+- الشرط الذي يفتح/يغلق الـ Photo Gate هو:
+  `!!worker.photo_path && !!worker.photo_verified_at`
+- الصورة عندك موجودة فعلًا، لذلك المعاينة تظهر.
+- لكن `photo_verified_at` غالبًا ما تزال `null`، لذلك النظام ما زال يعتبر العامل “غير موثّق الصورة”.
 
-## Overview
+سبب ذلك في المسار الحالي:
+- `WorkerPhotoGate` فقط هو الذي يستدعي `useVerifyWorkerPhoto` ويكتب:
+  `photo_verified_at` + `photo_verified_by`
+- أما رفع الصورة من نماذج التعديل/الإضافة العادية فيكتب `photo_path` فقط، بدون التوثيق.
+- لذلك النتيجة الحالية هي: “الصورة موجودة” لكن “غير Verified”.
 
-Redesign the ID card front layouts (both Portrait and Landscape) to match the new design: a light header with the tenant logo on one side and a colored bar (no text) on the other, with card-type-specific accent colors.
+خطة الإصلاح:
 
-## Design Changes
+1. توحيد منطق الصورة في جميع مسارات تحديث العامل
+- تعديل مسارات تحديث `contractor_workers` بحيث عند حفظ صورة من واجهات الإدارة الموثوقة يتم أيضًا حفظ:
+  - `photo_verified_at`
+  - `photo_verified_by`
+- وعند إزالة الصورة يتم تصفير حقول التوثيق أيضًا.
+- أهم الملفات:
+  - `src/features/contractors/hooks/use-update-contractor-worker.ts`
+  - `src/features/contractors/hooks/use-sync-personnel-to-workers.ts`
 
-```text
-Current Header:
-┌──────────────────────────────────────────┐
-│ [Logo] [Tenant Name] [CARD TYPE BADGE]   │  ← Fully colored background
-└──────────────────────────────────────────┘
+2. إبقاء `useVerifyWorkerPhoto` للمسار المباشر داخل الـ gate
+- لن أزيله، لكن لن يكون هو المسار الوحيد الذي يجعل العامل ينجح في شرط الصورة.
+- بهذا تصبح كل من:
+  - الرفع من شاشة التعديل
+  - الرفع من شاشة الـ Photo Gate
+  تعملان بنفس النتيجة المنطقية.
 
-New Header:
-┌──────────────────────────────────────────┐
-│ [Logo]  [═══════ Color Bar ═══════]      │  ← Light bg, color bar only
-└──────────────────────────────────────────┘
-```
+3. إصلاح مشكلة الـ stale data داخل الـ dialog
+- `WorkerDetailDialog` يستقبل نسخة snapshot من العامل عبر `selectedWorker`.
+- حتى بعد invalidation قد يبقى الـ dialog يعرض بيانات قديمة.
+- سأحوّل الفتح ليعتمد على `selectedWorkerId` مع جلب أحدث سجل، أو تحديث الكاش محليًا، بدل الاعتماد على `window.location.reload()`.
+- الملفات المتأثرة:
+  - `src/features/contractors/components/WorkerDetailDialog.tsx`
+  - `src/features/contractors/components/WorkerListTable.tsx`
 
-## Card Type Color Map
+4. إصلاح side-effect صغير في `WorkerPhotoUpload`
+- يوجد استخدام غير صحيح لـ `useState(() => { ...fetchPhotoUrl })` بدل `useEffect`.
+- سأصححه حتى تتحدث المعاينة بشكل صحيح عند تغير `photoPath`.
+- الملف:
+  - `src/features/contractors/components/WorkerPhotoUpload.tsx`
 
-| Type | Color | Hex |
-|------|-------|-----|
-| Contractor (`contractor_rep`) | Orange | `#FFA21A` |
-| Employee (`employee`) | Blue | `#2B64E3` |
-| Visitor (`visitor`) | Gray | `#3F434C` |
-| VIP Visitor (`visitor_vip`) | Gray | `#3F434C` |
-| Worker (`worker`) | Red | `#C43718` |
+5. معالجة البيانات الحالية الموجودة بالفعل
+- لأن عندك عمال لديهم `photo_path` موجود لكن `photo_verified_at` فارغ، سأضيف معالجة آمنة لبياناتهم الحالية.
+- الهدف: أي عامل نشط لديه صورة بالفعل ولا يملك توثيق صورة، يتم استكمال حالة التوثيق له بدل أن يبقى عالقًا.
+- لا يحتاج هذا لتغيير schema لأن الأعمدة موجودة أصلًا؛ فقط تحديث بيانات موجودة.
 
-## Files Changed
-
-| File | Change |
-|------|--------|
-| `src/features/admin/components/id-cards/IDCardTemplate/layouts/PortraitFrontLayout.tsx` | Redesign header: light background, logo left, color bar fills remaining space. Remove tenant name text and card type badge from header. Keep photo, name (Arabic primary), fields, and QR sections with the same structure but using card-type color for borders/accents. |
-| `src/features/admin/components/id-cards/IDCardTemplate/layouts/LandscapeFrontLayout.tsx` | Same header redesign for landscape orientation. |
-| `src/features/admin/components/id-cards/IDCardTemplate/utils.ts` | Add `CARD_TYPE_COLORS` map for the 5 card types. |
-| `src/features/admin/components/id-cards/IDCardTemplate/types.ts` | No change needed — `LayoutProps` already has `cardType` for color lookup. |
-| `src/types/id-card.types.ts` | Update `DEFAULT_CARD_SETTINGS` accent colors to match new color map. |
-
-## Header Layout Detail
-
-- Background: `#f5f5f5` (light gray)
-- Bottom border: `2px solid #e0e0e0`
-- Logo: 32px height, auto width
-- Gap: 12px between logo and bar
-- Color Bar: `flex: 1`, height 32px, border-radius 4px, filled with card-type color
-- No text in header (tenant name and badge removed from header area)
-
-## Body Layout (unchanged structure)
-
-- Photo with colored border (card-type color)
-- Arabic name prominent, English name secondary
-- Field rows: Company, Role, Valid Until (label–value pairs)
-- QR code with colored border
-- "Scan to verify" / "امسح للتحقق" footer text
-
+التحقق بعد التنفيذ:
+- رفع صورة من تعديل العامل يجب أن يزيل رسالة “Photo Required”.
+- رفع صورة من داخل الـ Photo Gate يجب أن ينجح بدون reload كامل.
+- عامل قديم لديه صورة مسبقًا يجب أن يتوقف عن إظهار التحذير بعد معالجة البيانات.
+- حذف الصورة أو استبدالها يجب أن يبقي حالة التوثيق متسقة.
