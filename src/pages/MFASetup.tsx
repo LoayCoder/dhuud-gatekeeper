@@ -188,20 +188,40 @@ export default function MFASetup() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Try profile first (use user_id not id)
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', user.id)
-        .single();
+        .eq('user_id', user.id)
+        .is('deleted_at', null)
+        .maybeSingle();
 
-      if (!profile?.tenant_id) return;
+      let tenantIdResolved = profile?.tenant_id || null;
+
+      // Fallback: sessionStorage invitation context
+      if (!tenantIdResolved) {
+        try {
+          const stored = sessionStorage.getItem('invitation_context');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            tenantIdResolved = parsed.tenantId || null;
+          }
+        } catch { /* ignore */ }
+      }
+
+      // Fallback: user metadata
+      if (!tenantIdResolved) {
+        tenantIdResolved = (user.user_metadata as any)?.tenant_id || null;
+      }
+
+      if (!tenantIdResolved) return;
 
       // Upsert the tenant MFA status
       await supabase
         .from('tenant_user_mfa_status')
         .upsert({
           user_id: user.id,
-          tenant_id: profile.tenant_id,
+          tenant_id: tenantIdResolved,
           requires_setup: false,
           mfa_verified_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -209,7 +229,7 @@ export default function MFASetup() {
           onConflict: 'user_id,tenant_id'
         });
 
-      logger.debug('Tenant MFA status recorded for:', profile.tenant_id);
+      logger.debug('Tenant MFA status recorded for:', tenantIdResolved);
     } catch (error) {
       console.error('Failed to record tenant MFA status:', error);
     }
@@ -362,24 +382,48 @@ export default function MFASetup() {
                       try {
                         const { data: { user: currentUser } } = await supabase.auth.getUser();
                         if (currentUser) {
+                          // Try multiple sources to resolve tenant_id
+                          let tenantIdResolved: string | null = null;
+
+                          // Source 1: Profile table
                           const { data: profileData } = await supabase
                             .from('profiles')
                             .select('tenant_id')
                             .eq('user_id', currentUser.id)
                             .is('deleted_at', null)
-                            .single();
+                            .maybeSingle();
                           
-                          if (profileData?.tenant_id) {
+                          tenantIdResolved = profileData?.tenant_id || null;
+
+                          // Source 2: sessionStorage invitation context
+                          if (!tenantIdResolved) {
+                            try {
+                              const stored = sessionStorage.getItem('invitation_context');
+                              if (stored) {
+                                const parsed = JSON.parse(stored);
+                                tenantIdResolved = parsed.tenantId || null;
+                              }
+                            } catch { /* ignore */ }
+                          }
+
+                          // Source 3: user metadata
+                          if (!tenantIdResolved) {
+                            tenantIdResolved = (currentUser.user_metadata as any)?.tenant_id || null;
+                          }
+
+                          if (tenantIdResolved) {
                             const graceUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
                             await supabase
                               .from('tenant_user_mfa_status')
                               .upsert({
                                 user_id: currentUser.id,
-                                tenant_id: profileData.tenant_id,
+                                tenant_id: tenantIdResolved,
                                 requires_setup: true,
                                 mfa_grace_until: graceUntil,
                                 updated_at: new Date().toISOString()
                               }, { onConflict: 'user_id,tenant_id' });
+                          } else {
+                            logger.warn('Could not resolve tenant_id for MFA grace period — no profile, no invitation context, no user metadata');
                           }
                         }
                         toast({

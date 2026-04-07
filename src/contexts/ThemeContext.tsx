@@ -156,10 +156,26 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Favicon (same for both modes)
   const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
   
-  // Invitation state
-  const [invitationEmail, setInvitationEmail] = useState<string | null>(null);
-  const [invitationCode, setInvitationCode] = useState<string | null>(null);
-  const [isCodeValidated, setIsCodeValidated] = useState(false);
+  // Invitation state — restore from sessionStorage if available
+  const [invitationEmail, setInvitationEmail] = useState<string | null>(() => {
+    try {
+      const stored = sessionStorage.getItem('invitation_context');
+      if (stored) { const parsed = JSON.parse(stored); return parsed.email || null; }
+    } catch { /* ignore */ }
+    return null;
+  });
+  const [invitationCode, setInvitationCode] = useState<string | null>(() => {
+    try {
+      const stored = sessionStorage.getItem('invitation_context');
+      if (stored) { const parsed = JSON.parse(stored); return parsed.code || null; }
+    } catch { /* ignore */ }
+    return null;
+  });
+  const [isCodeValidated, setIsCodeValidated] = useState(() => {
+    try {
+      return !!sessionStorage.getItem('invitation_context');
+    } catch { return false; }
+  });
   const [isLoading, setIsLoading] = useState(true);
   
   // Remembered tenant state (for login page branding after logout)
@@ -318,12 +334,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setInvitationCode(code);
     setTenantId(tenantIdValue);
     setIsCodeValidated(true);
+    // Persist to sessionStorage so it survives page reloads and MFA redirects
+    try {
+      sessionStorage.setItem('invitation_context', JSON.stringify({ email, code, tenantId: tenantIdValue }));
+    } catch (e) {
+      console.warn('Failed to persist invitation context to sessionStorage:', e);
+    }
   };
 
   const clearInvitationData = () => {
     setInvitationEmail(null);
     setInvitationCode(null);
     setIsCodeValidated(false);
+    try {
+      sessionStorage.removeItem('invitation_context');
+    } catch (e) {
+      console.warn('Failed to clear invitation context from sessionStorage:', e);
+    }
   };
 
   const refreshTenantData = useCallback(async () => {

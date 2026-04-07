@@ -347,12 +347,20 @@ export default function Login() {
       }
 
 
+      // Check if invitation context is available from sessionStorage as fallback
+      let hasInvitationContext = isCodeValidated;
+      if (!hasInvitationContext) {
+        try {
+          hasInvitationContext = !!sessionStorage.getItem('invitation_context');
+        } catch { /* ignore */ }
+      }
+
       // Only block if we got a definitive "not allowed" response
       if (accessValidation && accessValidation.allowed === false) {
-        // If this is an invitation flow and the reason is just "no profile yet",
+        // If this is an invitation flow (or recoverable) and the reason is just "no profile yet",
         // don't block — let the profile creation code below handle it
-        if (isCodeValidated && accessValidation.reason === 'profile_not_found') {
-          console.log('Profile not found but invitation flow active — will create profile below');
+        if (accessValidation.reason === 'profile_not_found' && (hasInvitationContext || invitationEmail || authUser?.email)) {
+          console.log('Profile not found — will attempt invitation recovery below');
         } else {
           console.warn('User access validation failed:', accessValidation.reason || accessError?.message);
           await supabase.auth.signOut();
@@ -489,7 +497,9 @@ export default function Login() {
       }
 
       // Handle invitation-based login: create profile + role if missing
-      if (isCodeValidated && invitationEmail && user) {
+      // Also handle fallback: if isCodeValidated is false, check DB for unused invitations
+      const shouldCheckInvitation = (isCodeValidated && invitationEmail) || !isCodeValidated;
+      if (shouldCheckInvitation && user) {
         try {
           const { data: existingProfile } = await supabase
             .from('profiles')
@@ -499,9 +509,39 @@ export default function Login() {
             .maybeSingle();
 
           if (!existingProfile) {
-            // User exists in auth but has no profile — create one from invitation data
-            const codeToLookup = invitationCode || '';
-            const { data: inviteResult } = await supabase.rpc('lookup_invitation', { lookup_code: codeToLookup });
+            // User exists in auth but has no profile — try invitation data
+            let codeToLookup = invitationCode || '';
+            let inviteResult: any = null;
+
+            if (codeToLookup) {
+              // Use the known invitation code
+              const { data } = await supabase.rpc('lookup_invitation', { lookup_code: codeToLookup });
+              inviteResult = data;
+            }
+
+            // Fallback: no code available, search for unused invitation by email
+            if (!inviteResult) {
+              const userEmail = invitationEmail || user.email || '';
+              if (userEmail) {
+                const { data: fallbackInvite } = await supabase
+                  .from('invitations')
+                  .select('code, email, tenant_id, metadata')
+                  .ilike('email', userEmail)
+                  .eq('used', false)
+                  .gt('expires_at', new Date().toISOString())
+                  .order('created_at', { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+
+                if (fallbackInvite) {
+                  logger.debug('Found fallback invitation for user:', userEmail);
+                  codeToLookup = fallbackInvite.code;
+                  // Re-lookup via RPC for consistent shape
+                  const { data } = await supabase.rpc('lookup_invitation', { lookup_code: codeToLookup });
+                  inviteResult = data;
+                }
+              }
+            }
 
             if (inviteResult) {
               const inviteData = inviteResult as unknown as {
