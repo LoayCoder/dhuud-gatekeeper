@@ -1,73 +1,36 @@
 
-Fix the remaining 404 by adding the missing risk assessment detail page and route.
+# Improve Risk Assessment Detail Page
 
-What I found
-- The list page intentionally navigates to `/risk-assessments/${assessment.id}` when a row is clicked.
-- A second entry point also links there from workflow tasks:
-  - `src/pages/RiskAssessments.tsx`
-  - `src/features/incidents/components/my-actions/WorkflowTaskCard.tsx`
-- But the app only defines:
-  - `/risk-assessments`
-  - `/risk-assessments/create`
-- There is no `/risk-assessments/:id` route, so every click lands on Not Found.
-- This is not a hosting issue. It is a missing app route/page.
+## Problems
+1. **Missing creator/reviewer names** — `created_by` and `approved_by` are stored as UUIDs but never resolved to human-readable names on the detail page.
+2. **No print/export button** — The `RiskAssessmentPDFExportButton` component exists but is not used on the detail page.
+3. **Print output needs full details** — The existing `PrintableRiskAssessmentSummary` already supports `createdBy`, `approvedBy`, `teamMembers`, and hazard details, but they need to be wired up with resolved names.
 
-Implementation plan
-1. Add a new detail page
-- Create a dedicated page for `/risk-assessments/:id`.
-- Read the route param with `useParams`.
-- Load the main assessment using existing `useRiskAssessment(id)`.
-- Load hazards using existing `useRiskAssessmentDetails(id)`.
-- Load team/signatures using existing `useRiskAssessmentTeam(id)`.
+## Plan
 
-2. Add the missing route
-- Register `risk-assessments/:id` in `src/routes/incident.routes.tsx` under the HSSE-protected risk routes.
-- Add the same route to the route registry as a hidden dynamic route so routing and menu metadata stay aligned.
+### 1. Resolve creator and reviewer names in the service layer
+**File: `src/services/risk-assessment/riskAssessmentService.ts`**
+- Update `getRiskAssessment()` to join `profiles` for both `created_by` and `approved_by` fields, returning `created_by_profile: { full_name }` and `approved_by_profile: { full_name }`.
+- Alternatively, if the generated types don't support the join cleanly, do a secondary query to fetch both profile names by UUID.
 
-3. Build a first useful detail screen
-- Show the assessment header:
-  - assessment number
-  - activity name
-  - status
-  - risk rating
-  - location
-  - dates
-- Show hazard list from `risk_assessment_details`.
-- Show team/signature section from `risk_assessment_team`.
-- Add back navigation to `/risk-assessments`.
-- Reuse existing risk components where practical instead of inventing new patterns.
+### 2. Display creator and reviewer on the detail page
+**File: `src/pages/RiskAssessmentDetail.tsx`**
+- Add a "Created by" row showing the resolved full name and the creation date.
+- Add a "Reviewed/Approved by" row showing the reviewer name and approval date (when present).
+- Place these in the header card's metadata grid.
 
-4. Keep the current navigation behavior
-- Leave row click and workflow “View Details” links pointing to `/risk-assessments/:id`.
-- That preserves expected UX once the page exists.
+### 3. Add the PDF export/print button
+**File: `src/pages/RiskAssessmentDetail.tsx`**
+- Import the existing `RiskAssessmentPDFExportButton` component.
+- Place it in the header area (next to the back button or top-right).
+- Pass all required props from the loaded assessment data, hazards, and team, including the resolved creator/reviewer names.
 
-5. Empty/error states
-- If the record is missing, show a clean “not found” state with a button back to the list.
-- If loading, show a simple loading skeleton/spinner.
-- Handle optional/null fields safely so the page does not silently break on older records.
+### 4. Wire team members into the printable summary
+- Pass `teamMembers` from the `useRiskAssessmentTeam` hook result into the `RiskAssessmentPDFExportButton` so the print output includes team and signature data.
 
-Technical details
-- Files to add/update:
-  - New page: `src/pages/RiskAssessmentDetail.tsx`
-  - Update routes: `src/routes/incident.routes.tsx`
-  - Update registry: `src/config/route-registry.ts`
-- Existing hooks/services already available and should be reused:
-  - `useRiskAssessment`
-  - `useRiskAssessmentDetails`
-  - `useRiskAssessmentTeam`
-- Likely route shape:
-```text
-/risk-assessments/:id
-```
+## Files Changed
 
-Why this is the right fix
-- The current app already behaves as if a detail page should exist.
-- Redirecting clicks back to the list would avoid the 404, but it would remove expected functionality.
-- Since the data layer for details already exists, adding the missing page is the proper completion of the feature.
-
-Validation after implementation
-- Open `/risk-assessments`
-- Click any record such as `RA-2026-443692`
-- Confirm the detail page opens instead of 404
-- Confirm the same works from workflow task cards
-- Confirm back navigation returns to the list cleanly
+| File | Change |
+|------|--------|
+| `src/services/risk-assessment/riskAssessmentService.ts` | Join `profiles` table to resolve `created_by` and `approved_by` names |
+| `src/pages/RiskAssessmentDetail.tsx` | Show creator/reviewer names, add PDF export button with full data |
