@@ -217,38 +217,160 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
           </TabsList>
 
           <TabsContent value="details" className="mt-4 space-y-4">
+            {/* Compliance Flags */}
+            {(() => {
+              const complianceFlags = getComplianceFlags(worker, t);
+              return complianceFlags.length > 0 ? (
+                <div className="space-y-2">
+                  {complianceFlags.map((flag, i) => (
+                    <Alert key={i} variant={flag.level === "critical" ? "destructive" : "default"}
+                      className={flag.level === "warning" ? "border-warning bg-warning/10" : ""}>
+                      <flag.icon className="h-4 w-4" />
+                      <AlertDescription className="text-sm">{flag.message}</AlertDescription>
+                    </Alert>
+                  ))}
+                </div>
+              ) : null;
+            })()}
+
+            {/* Photo + Basic Info */}
+            <div className="flex items-start gap-4">
+              <Avatar className="h-20 w-20 border-2 border-border">
+                <AvatarImage src={photoUrl || undefined} />
+                <AvatarFallback className="text-xl">{worker.full_name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-1">
+                <h3 className="text-base font-semibold">{worker.full_name}</h3>
+                {worker.full_name_ar && (
+                  <p className="text-sm text-muted-foreground" dir="rtl">{worker.full_name_ar}</p>
+                )}
+                <p className="text-sm text-muted-foreground">{worker.company?.company_name}</p>
+                {worker.worker_role && (
+                  <Badge variant="secondary" className="mt-1">{worker.worker_role}</Badge>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Personal Info Grid */}
             <Card>
-              <CardHeader className="pb-2">
+              <CardHeader className="py-3 px-4">
                 <CardTitle className="text-sm">{t("contractors.workers.personalInfo", "Personal Information")}</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{t("contractors.workers.nationalId", "ID")}:</span>
-                  <span className="font-mono">{worker.national_id}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{t("contractors.workers.nationality", "Nationality")}:</span>
-                  <span>{worker.nationality || "-"}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{t("contractors.workers.mobile", "Mobile")}:</span>
-                  <span dir="ltr">{worker.mobile_number}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{t("contractors.workers.company", "Company")}:</span>
-                  <span>{worker.company?.company_name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{t("common.createdAt", "Created")}:</span>
-                  <span>{format(new Date(worker.created_at), "PPp")}</span>
+              <CardContent className="px-4 pb-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <DetailInfoRow icon={Shield} label={t("contractors.workers.idType", "ID Type")} value={worker.id_type || "-"} />
+                  <DetailInfoRow icon={Shield} label={t("contractors.workers.nationalId", "National ID")} value={worker.national_id} mono />
+                  <DetailInfoRow icon={Calendar} label={t("contractors.workers.dateOfBirth", "Date of Birth")}
+                    value={worker.date_of_birth ? format(new Date(worker.date_of_birth), "PP") : "-"} />
+                  <DetailInfoRow icon={User} label={t("contractors.workers.gender", "Gender")} value={worker.gender || "-"} />
+                  <DetailInfoRow icon={Globe} label={t("contractors.workers.nationality", "Nationality")} value={worker.nationality || "-"} />
+                  <DetailInfoRow icon={Phone} label={t("contractors.workers.mobile", "Mobile")} value={worker.mobile_number} dir="ltr" />
+                  <DetailInfoRow icon={Mail} label={t("common.email", "Email")} value={worker.email || "-"} />
+                  <DetailInfoRow icon={Globe} label={t("contractors.workers.language", "Language")} value={worker.preferred_language === "ar" ? "العربية" : "English"} />
                 </div>
               </CardContent>
             </Card>
+
+            {/* Emergency Contact */}
+            {(worker.emergency_contact_name || worker.emergency_contact_phone) && (
+              <Card>
+                <CardHeader className="py-3 px-4">
+                  <CardTitle className="text-sm">{t("contractors.workers.emergencyContact", "Emergency Contact")}</CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4 text-sm">
+                  <div className="grid grid-cols-2 gap-3">
+                    <DetailInfoRow icon={User} label={t("common.name", "Name")} value={worker.emergency_contact_name || "-"} />
+                    <DetailInfoRow icon={Phone} label={t("common.phone", "Phone")} value={worker.emergency_contact_phone || "-"} dir="ltr" />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Fitness to Work */}
+            <Card>
+              <CardHeader className="py-3 px-4">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <HeartPulse className="h-4 w-4" />
+                  {t("contractors.workers.fitnessToWork", "Fitness to Work")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4 text-sm space-y-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-muted-foreground">{t("common.status", "Status")}</span>
+                    <div className="mt-1">
+                      <DetailFitnessBadge status={worker.fitness_to_work} />
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">{t("contractors.workers.acknowledged", "Acknowledged")}</span>
+                    <div className="mt-1">
+                      {worker.fitness_acknowledged ? (
+                        <Badge variant="outline" className="text-success border-success/30">
+                          <Check className="h-3 w-3 me-1" /> {t("common.yes", "Yes")}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-warning border-warning/30">
+                          <X className="h-3 w-3 me-1" /> {t("common.no", "No")}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <DetailInfoRow icon={Calendar} label={t("contractors.workers.medicalCheckDate", "Medical Check")}
+                    value={worker.medical_check_date ? format(new Date(worker.medical_check_date), "PP") : "-"} />
+                  <DetailInfoRow icon={Calendar} label={t("contractors.workers.fitnessExpiry", "Fitness Expiry")}
+                    value={worker.fitness_expiry_date ? format(new Date(worker.fitness_expiry_date), "PP") : "-"} />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Assigned Project */}
+            {(() => {
+              const projData = projectAssignment?.project as { project_name: string; status: string } | null;
+              return (
+                <Card>
+                  <CardHeader className="py-3 px-4">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      {t("contractors.projects.assignedProject", "Assigned Project")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-4 text-sm">
+                    {projData ? (
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{projData.project_name}</span>
+                        <Badge variant="outline">{projData.status}</Badge>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">
+                        {t("contractors.workers.noProjectAssigned", "No project assigned yet")}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
+            {/* Training Certifications */}
+            {worker.training_certifications && worker.training_certifications.length > 0 && (
+              <Card>
+                <CardHeader className="py-3 px-4">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4" />
+                    {t("contractors.workers.trainingCertifications", "Training Certifications")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="flex flex-wrap gap-2">
+                    {worker.training_certifications.map((cert, i) => (
+                      <Badge key={i} variant="secondary">{cert}</Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {worker.rejection_reason && (
               <Card className="border-destructive">
@@ -262,6 +384,10 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                 </CardContent>
               </Card>
             )}
+
+            <p className="text-xs text-muted-foreground">
+              {t("common.submitted", "Submitted")}: {format(new Date(worker.created_at), "PPp")}
+            </p>
           </TabsContent>
 
           <TabsContent value="documents" className="mt-4">
