@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const workerSchema = z.object({
   full_name: z.string().min(2, "Name is required"),
+  full_name_ar: z.string().optional(),
   id_type: z.string().default("national_id"),
   national_id: z.string().min(5, "ID number is required"),
   date_of_birth: z.string().optional(),
@@ -43,7 +44,6 @@ const workerSchema = z.object({
   expiry_date: z.string().optional(),
 }).refine(
   (data) => {
-    // If "fit", acknowledgment must be checked
     if (data.fitness_to_work === "fit" && !data.fitness_acknowledged) {
       return false;
     }
@@ -86,7 +86,7 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
   const form = useForm<WorkerFormData>({
     resolver: zodResolver(workerSchema),
     defaultValues: {
-      full_name: "", id_type: "national_id", national_id: "", date_of_birth: "",
+      full_name: "", full_name_ar: "", id_type: "national_id", national_id: "", date_of_birth: "",
       gender: "", nationality: "", mobile_number: "", email: "",
       emergency_contact_name: "", emergency_contact_phone: "",
       worker_role: "laborer", preferred_language: "ar",
