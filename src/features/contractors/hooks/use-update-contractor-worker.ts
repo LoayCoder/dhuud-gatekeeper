@@ -81,6 +81,7 @@ export function useUpdateContractorWorker() {
         fitness_expiry_date: data.fitness_expiry_date || null,
         training_certifications: data.training_certifications || [],
         photo_path: data.photo_path,
+        medical_certificate_path: data.medical_certificate_path ?? null,
       };
 
       // Auto-verify photo when admin uploads/changes it
