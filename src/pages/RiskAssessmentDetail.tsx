@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRiskAssessment } from "@/features/risk-assessment/hooks/use-risk-assessments";
 import { useRiskAssessmentDetails } from "@/features/risk-assessment/hooks/use-risk-assessment-details";
-import { useRiskAssessmentTeam } from "@/features/risk-assessment/hooks/use-risk-assessment-team";
+import { useRiskAssessmentTeam, type RiskAssessmentTeamMember } from "@/features/risk-assessment/hooks/use-risk-assessment-team";
 import { format } from "date-fns";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
