@@ -503,20 +503,68 @@ export default function Login() {
         try {
           const { data: existingProfile } = await supabase
             .from('profiles')
-            .select('id, email, full_name')
+            .select('id, email, full_name, phone_number, avatar_url, assigned_branch_id')
             .eq('user_id', user.id)
             .is('deleted_at', null)
             .limit(1)
             .maybeSingle();
 
+          const isBlankValue = (value?: string | null) => !value || value.trim().length === 0;
+          const hasInvalidFullName = (value?: string | null) => !value || value.trim().length < 2;
+
           // Helper: fetch full representative data for profile enrichment
-          const fetchRepresentativeData = async (representativeId: string) => {
+          const fetchRepresentativeData = async ({
+            representativeId,
+            userId,
+            email: representativeEmail,
+          }: {
+            representativeId?: string | null;
+            userId?: string;
+            email?: string | null;
+          }) => {
             try {
-              const { data: repData } = await supabase
-                .from('contractor_representatives')
-                .select('full_name, mobile_number, email, photo_path, company_id')
-                .eq('id', representativeId)
-                .maybeSingle();
+              const selectColumns = 'id, full_name, mobile_number, phone, email, photo_path, company_id';
+              let repData: {
+                id: string;
+                full_name: string | null;
+                mobile_number: string | null;
+                phone: string | null;
+                email: string | null;
+                photo_path: string | null;
+                company_id: string | null;
+              } | null = null;
+
+              if (representativeId) {
+                const { data } = await supabase
+                  .from('contractor_representatives')
+                  .select(selectColumns)
+                  .eq('id', representativeId)
+                  .maybeSingle();
+                repData = data;
+              }
+
+              if (!repData && userId) {
+                const { data } = await supabase
+                  .from('contractor_representatives')
+                  .select(selectColumns)
+                  .eq('user_id', userId)
+                  .order('updated_at', { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+                repData = data;
+              }
+
+              if (!repData && representativeEmail) {
+                const { data } = await supabase
+                  .from('contractor_representatives')
+                  .select(selectColumns)
+                  .ilike('email', representativeEmail)
+                  .order('updated_at', { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+                repData = data;
+              }
+
               if (!repData) return null;
 
               // Get assigned_branch_id from the company
@@ -531,8 +579,9 @@ export default function Login() {
               }
 
               return {
+                representative_id: repData.id,
                 full_name: repData.full_name,
-                mobile_number: repData.mobile_number,
+                phone_number: repData.mobile_number || repData.phone || null,
                 email: repData.email,
                 photo_path: repData.photo_path,
                 assigned_branch_id: assignedBranchId,
@@ -544,43 +593,59 @@ export default function Login() {
           };
 
           // Repair path: existing profile with missing critical fields
-          if (existingProfile && (!existingProfile.email || !existingProfile.full_name)) {
+          if (
+            existingProfile && (
+              isBlankValue(existingProfile.email) ||
+              hasInvalidFullName(existingProfile.full_name) ||
+              isBlankValue(existingProfile.phone_number) ||
+              !existingProfile.assigned_branch_id
+            )
+          ) {
             logger.debug('Profile exists but missing critical fields, attempting repair...');
             const userEmail = user.email || '';
-            if (userEmail) {
-              // Find invitation (used or unused) for this email
-              const { data: repairInvite } = await supabase
-                .from('invitations')
-                .select('metadata')
-                .ilike('email', userEmail)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
+            // Find invitation (used or unused) for this email to recover representative_id if available
+            const { data: repairInvite } = await supabase
+              .from('invitations')
+              .select('metadata')
+              .ilike('email', userEmail)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
 
-              if (repairInvite?.metadata) {
-                const repairMeta = repairInvite.metadata as Record<string, any>;
-                if (repairMeta.type === 'contractor_representative' && repairMeta.representative_id) {
-                  const repInfo = await fetchRepresentativeData(repairMeta.representative_id);
-                  if (repInfo) {
-                    const updateData: Record<string, any> = {};
-                    if (!existingProfile.full_name && repInfo.full_name) updateData.full_name = repInfo.full_name;
-                    if (!existingProfile.email) updateData.email = repInfo.email || userEmail;
-                    if (repInfo.mobile_number) updateData.phone_number = repInfo.mobile_number;
-                    if (repInfo.photo_path) updateData.avatar_url = repInfo.photo_path;
-                    if (repInfo.assigned_branch_id) updateData.assigned_branch_id = repInfo.assigned_branch_id;
+            const repairMeta = repairInvite?.metadata as Record<string, any> | undefined;
+            const repInfo = await fetchRepresentativeData({
+              representativeId: repairMeta?.representative_id,
+              userId: user.id,
+              email: userEmail,
+            });
 
-                    if (Object.keys(updateData).length > 0) {
-                      const { error: repairError } = await supabase
-                        .from('profiles')
-                        .update(updateData)
-                        .eq('id', existingProfile.id);
-                      if (repairError) {
-                        logger.error('Profile repair failed:', repairError);
-                      } else {
-                        logger.debug('Profile repaired successfully with representative data');
-                      }
-                    }
-                  }
+            if (repInfo) {
+              const updateData: Record<string, any> = {};
+              if (hasInvalidFullName(existingProfile.full_name) && repInfo.full_name) {
+                updateData.full_name = repInfo.full_name;
+              }
+              if (isBlankValue(existingProfile.email)) {
+                updateData.email = repInfo.email || userEmail;
+              }
+              if (isBlankValue(existingProfile.phone_number) && repInfo.phone_number) {
+                updateData.phone_number = repInfo.phone_number;
+              }
+              if (isBlankValue(existingProfile.avatar_url) && repInfo.photo_path) {
+                updateData.avatar_url = repInfo.photo_path;
+              }
+              if (!existingProfile.assigned_branch_id && repInfo.assigned_branch_id) {
+                updateData.assigned_branch_id = repInfo.assigned_branch_id;
+              }
+
+              if (Object.keys(updateData).length > 0) {
+                const { error: repairError } = await supabase
+                  .from('profiles')
+                  .update(updateData)
+                  .eq('id', existingProfile.id);
+                if (repairError) {
+                  logger.error('Profile repair failed:', repairError);
+                } else {
+                  logger.debug('Profile repaired successfully with representative data');
                 }
               }
             }
@@ -633,12 +698,14 @@ export default function Login() {
 
               // Fetch full representative data for enrichment
               let repInfo: Awaited<ReturnType<typeof fetchRepresentativeData>> = null;
-              if (metadata.representative_id) {
-                repInfo = await fetchRepresentativeData(metadata.representative_id);
-              }
+              repInfo = await fetchRepresentativeData({
+                representativeId: metadata.representative_id,
+                userId: user.id,
+                email: inviteData.email || user.email || invitationEmail,
+              });
 
               // Fallback phone from metadata if rep data unavailable
-              const phoneNumber = repInfo?.mobile_number || metadata.phone_number || null;
+              const phoneNumber = repInfo?.phone_number || metadata.phone_number || null;
 
               // Create profile enriched with representative data
               const profileData = {
