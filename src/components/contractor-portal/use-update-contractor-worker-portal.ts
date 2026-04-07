@@ -11,6 +11,7 @@ interface UpdateWorkerData {
   mobile_number: string;
   nationality?: string | null;
   preferred_language: string;
+  photo_path?: string | null;
 }
 
 /**
