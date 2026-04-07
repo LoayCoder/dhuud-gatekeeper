@@ -176,11 +176,11 @@ export function WorkerApprovalDetailDialog({
                           <span className="text-muted-foreground">{t("contractors.workers.acknowledged", "Acknowledged")}</span>
                           <div className="mt-1">
                             {worker.fitness_acknowledged ? (
-                              <Badge variant="outline" className="text-green-600 border-green-300">
+                              <Badge variant="outline" className="text-success border-success/30">
                                 <Check className="h-3 w-3 me-1" /> {t("common.yes", "Yes")}
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="text-amber-600 border-amber-300">
+                              <Badge variant="outline" className="text-warning border-warning/30">
                                 <X className="h-3 w-3 me-1" /> {t("common.no", "No")}
                               </Badge>
                             )}
