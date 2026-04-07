@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { ShieldAlert, Info } from "lucide-react";
+import { ShieldAlert, Info, AlertCircle } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
@@ -12,11 +12,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { useContractorPortalCreateWorker } from "@/features/contractors/hooks/use-contractor-portal";
+import { useContractorPortalCreateWorker, useContractorPortalProjects } from "@/features/contractors/hooks/use-contractor-portal";
+import { useCheckDuplicateNationalId } from "@/features/contractors/hooks/use-contractor-workers";
 import { NATIONALITIES } from "@/lib/nationalities";
 import { DhuudPhoneInput } from "@/components/ui/phone-input";
 import { WorkerPhotoUpload } from "@/features/contractors/components/WorkerPhotoUpload";
-import { useState } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 const workerSchema = z.object({
   full_name: z.string().min(2, "Name is required"),
@@ -29,10 +30,12 @@ const workerSchema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   emergency_contact_name: z.string().optional(),
   emergency_contact_phone: z.string().optional(),
-  worker_role: z.string().default("laborer"),
+  worker_role: z.string().min(1, "Role is required"),
   preferred_language: z.string().default("ar"),
   fitness_to_work: z.string().optional(),
   training_certifications: z.array(z.string()).default([]),
+  project_id: z.string().min(1, "Project assignment is required"),
+  expiry_date: z.string().optional(),
 });
 
 type WorkerFormData = z.infer<typeof workerSchema>;
@@ -92,6 +95,13 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
   const createWorker = useContractorPortalCreateWorker();
   const isRTL = i18n.dir() === 'rtl';
   const [photoPath, setPhotoPath] = useState<string | null>(null);
+  const [isDuplicate, setIsDuplicate] = useState(false);
+  const checkDuplicate = useCheckDuplicateNationalId();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Fetch projects filtered by company
+  const { data: projects, isLoading: projectsLoading } = useContractorPortalProjects(companyId);
+  const activeProjects = projects?.filter(p => ["active", "planned", "in_progress"].includes(p.status)) || [];
 
   const form = useForm<WorkerFormData>({
     resolver: zodResolver(workerSchema),
@@ -101,16 +111,47 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
       emergency_contact_name: "", emergency_contact_phone: "",
       worker_role: "laborer", preferred_language: "ar",
       fitness_to_work: "", training_certifications: [],
+      project_id: "", expiry_date: "",
     },
   });
 
   const watchedNationalId = form.watch("national_id");
   const watchedCerts = form.watch("training_certifications");
+  const watchedProjectId = form.watch("project_id");
   const isBlacklisted = blacklistedIds?.has(watchedNationalId) ?? false;
   const hasPTW = watchedCerts?.includes("ptw");
 
+  // Debounced duplicate national ID check
+  const handleNationalIdCheck = useCallback((value: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!value || value.length < 5) {
+      setIsDuplicate(false);
+      return;
+    }
+    debounceRef.current = setTimeout(async () => {
+      const exists = await checkDuplicate(value);
+      setIsDuplicate(exists);
+    }, 500);
+  }, [checkDuplicate]);
+
+  // Watch national_id changes for duplicate check
+  useEffect(() => {
+    handleNationalIdCheck(watchedNationalId);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [watchedNationalId, handleNationalIdCheck]);
+
+  // Auto-set expiry_date from selected project's end_date
+  useEffect(() => {
+    if (watchedProjectId && projects) {
+      const selectedProject = projects.find(p => p.id === watchedProjectId);
+      if (selectedProject?.end_date) {
+        form.setValue("expiry_date", selectedProject.end_date);
+      }
+    }
+  }, [watchedProjectId, projects, form]);
+
   const onSubmit = async (data: WorkerFormData) => {
-    if (blacklistedIds?.has(data.national_id)) return;
+    if (blacklistedIds?.has(data.national_id) || isDuplicate) return;
     await createWorker.mutateAsync({
       company_id: companyId,
       full_name: data.full_name,
@@ -128,9 +169,12 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
       fitness_to_work: data.fitness_to_work || null,
       training_certifications: data.training_certifications,
       photo_path: photoPath,
+      project_id: data.project_id,
+      expiry_date: data.expiry_date || null,
     });
     form.reset();
     setPhotoPath(null);
+    setIsDuplicate(false);
     onOpenChange(false);
   };
 
@@ -187,6 +231,12 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
                         <p className="text-sm text-destructive flex items-center gap-1 mt-1">
                           <ShieldAlert className="h-4 w-4" />
                           {t("contractors.workers.blacklistedError", "This worker is on the security blacklist and cannot be added")}
+                        </p>
+                      )}
+                      {isDuplicate && !isBlacklisted && (
+                        <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+                          <AlertCircle className="h-4 w-4" />
+                          {t("contractors.workers.duplicateIdError", "A worker with this ID already exists")}
                         </p>
                       )}
                       <FormMessage />
@@ -278,6 +328,34 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
               <div>
                 <SectionTitle>{t("contractors.workers.sections.work", "Work Details")}</SectionTitle>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Project Assignment - company-filtered */}
+                  <FormField control={form.control} name="project_id" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("contractors.workers.projectAssignment", "Project Assignment")} *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={projectsLoading ? t("common.loading", "Loading...") : t("contractors.workers.selectProject", "Select project")} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {activeProjects.length === 0 ? (
+                            <SelectItem value="_none" disabled>
+                              {t("contractors.workers.noProjects", "No active projects for this company")}
+                            </SelectItem>
+                          ) : (
+                            activeProjects.map(p => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.project_code} — {isRTL && p.project_name_ar ? p.project_name_ar : p.project_name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+
                   <FormField control={form.control} name="worker_role" render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("contractors.workers.role", "Role")} *</FormLabel>
@@ -300,6 +378,19 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>{LANGUAGES.map(lang => <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>)}</SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+
+                  <FormField control={form.control} name="expiry_date" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("contractors.workers.expiryDate", "Expiry Date")}</FormLabel>
+                      <FormControl><Input type="date" {...field} /></FormControl>
+                      {watchedProjectId && (
+                        <p className="text-xs text-muted-foreground">
+                          {t("contractors.workers.expiryAutoSet", "Auto-set from project end date")}
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -376,7 +467,7 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   {t("common.cancel", "Cancel")}
                 </Button>
-                <Button type="submit" disabled={createWorker.isPending || isBlacklisted}>
+                <Button type="submit" disabled={createWorker.isPending || isBlacklisted || isDuplicate}>
                   {createWorker.isPending ? t("common.saving", "Saving...") : t("common.save", "Save")}
                 </Button>
               </div>

@@ -241,21 +241,42 @@ export function useContractorPortalCreateWorker() {
       fitness_to_work?: string | null;
       training_certifications?: string[];
       photo_path?: string | null;
+      project_id?: string;
+      expiry_date?: string | null;
     }) => {
       if (!profile?.tenant_id) throw new Error("No tenant");
+
+      const { project_id, ...insertData } = data;
 
       const { data: result, error } = await supabase
         .from("contractor_workers")
         .insert({
-          ...data,
+          ...insertData,
+          project_id: project_id || null,
+          expiry_date: data.expiry_date || null,
           tenant_id: profile.tenant_id,
           approval_status: "pending",
-        })
+        } as any)
         .select()
         .single()
         .throwOnError();
 
       if (error) throw error;
+
+      // Auto-create project_worker_assignments link
+      if (project_id && result) {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase
+          .from("project_worker_assignments")
+          .insert({
+            project_id,
+            worker_id: result.id,
+            tenant_id: profile.tenant_id,
+            created_by: user?.id || profile.id,
+            status: "active",
+          })
+          .throwOnError();
+      }
 
       // Auto-create PTW access request if worker has PTW certification
       if (data.training_certifications?.includes("ptw") && result) {
@@ -271,13 +292,12 @@ export function useContractorPortalCreateWorker() {
           })
           .throwOnError();
 
-        // Update worker ptw_access_status
         await supabase
           .from("contractor_workers")
           .update({
             ptw_access_status: "pending",
             ptw_access_requested_at: new Date().toISOString(),
-          })
+          } as any)
           .eq("id", result.id)
           .throwOnError();
       }
