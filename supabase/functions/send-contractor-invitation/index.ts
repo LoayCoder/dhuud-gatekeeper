@@ -112,6 +112,7 @@ Deno.serve(async (req) => {
         code: invitationCode,
         email: rep.email,
         full_name: rep.full_name || null,
+        phone_number: rep.mobile_number || null,
         tenant_id,
         expires_at: expiresAt.toISOString(),
         metadata: {

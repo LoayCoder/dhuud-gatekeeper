@@ -65,33 +65,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    // --- Authentication: Require valid JWT ---
+    // --- Authentication: Optional JWT (invitation flow is anonymous) ---
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-    // Verify the caller's JWT
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
-    const { data: { user: callerUser }, error: claimsError } = await supabaseAuth.auth.getUser();
-    if (claimsError || !callerUser?.id) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // If a JWT is present, verify it (but don't block if absent)
+    if (authHeader?.startsWith('Bearer ')) {
+      const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { data: { user: callerUser }, error: claimsError } = await supabaseAuth.auth.getUser();
+      if (claimsError) {
+        console.warn('JWT provided but invalid, proceeding without auth:', claimsError.message);
+      }
     }
-    // --- End authentication ---
+    // --- End authentication (anonymous access allowed for /invite flow) ---
 
     const body: CheckUserRequest = await req.json();
     const { email, tenant_id } = body;
