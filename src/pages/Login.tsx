@@ -35,7 +35,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/';
-  const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData, isRememberedTenant, clearRememberedTenant } = useTheme();
+  const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, invitationCode, clearInvitationData, refreshTenantData, isRememberedTenant, clearRememberedTenant } = useTheme();
   const { resolvedTheme } = useNextTheme();
   const { checkPassword } = usePasswordBreachCheck();
   const { checkTrustedDevice } = useTrustedDevice();
@@ -480,6 +480,102 @@ export default function Login() {
               verifyDevice(user.id, profile.tenant_id);
             }
           });
+      }
+
+      // Handle invitation-based login: create profile + role if missing
+      if (isCodeValidated && invitationEmail && user) {
+        try {
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(1)
+            .maybeSingle();
+
+          if (!existingProfile) {
+            // User exists in auth but has no profile — create one from invitation data
+            const codeToLookup = invitationCode || '';
+            const { data: inviteResult } = await supabase.rpc('lookup_invitation', { lookup_code: codeToLookup });
+
+            if (inviteResult) {
+              const inviteData = inviteResult as unknown as {
+                email: string;
+                tenant_id: string;
+                role: string;
+                metadata?: Record<string, any>;
+              };
+              const metadata = inviteData.metadata || {};
+              const isContractorRep = metadata.type === 'contractor_representative';
+
+              // Create profile
+              const profileData = {
+                id: user.id,
+                user_id: user.id,
+                tenant_id: inviteData.tenant_id,
+                email: invitationEmail,
+                has_login: true,
+                is_active: true,
+                full_name: metadata.full_name || null,
+                phone_number: metadata.phone_number || null,
+                user_type: metadata.user_type || null,
+                employee_id: metadata.employee_id || null,
+                job_title: metadata.job_title || null,
+                has_full_branch_access: metadata.has_full_branch_access ?? false,
+                assigned_branch_id: metadata.assigned_branch_id || null,
+                assigned_division_id: metadata.assigned_division_id || null,
+                assigned_department_id: metadata.assigned_department_id || null,
+                assigned_section_id: metadata.assigned_section_id || null,
+              };
+
+              const { error: profileError } = await supabase
+                .from('profiles')
+                .insert([profileData]);
+
+              if (profileError) {
+                logger.error('Failed to create profile for existing auth user:', profileError);
+              } else {
+                // Assign roles
+                if (isContractorRep) {
+                  if (metadata.representative_id) {
+                    await supabase
+                      .from('contractor_representatives')
+                      .update({ user_id: user.id })
+                      .eq('id', metadata.representative_id);
+                  }
+                  const { data: roleData } = await supabase
+                    .from('roles')
+                    .select('id')
+                    .eq('code', 'contractor_site_rep')
+                    .single();
+                  if (roleData?.id) {
+                    await supabase.from('user_role_assignments').insert({
+                      user_id: user.id,
+                      role_id: roleData.id,
+                      tenant_id: inviteData.tenant_id,
+                    });
+                  }
+                } else if (metadata.role_ids?.length) {
+                  const roleAssignments = metadata.role_ids.map((roleId: string) => ({
+                    user_id: user.id,
+                    role_id: roleId,
+                    tenant_id: inviteData.tenant_id,
+                  }));
+                  await supabase.from('user_role_assignments').insert(roleAssignments);
+                }
+
+                // Mark invitation as used
+                await supabase
+                  .from('invitations')
+                  .update({ used: true })
+                  .eq('code', codeToLookup);
+
+                logger.debug('Profile and roles created for existing auth user via invitation');
+              }
+            }
+          }
+        } catch (invErr) {
+          logger.error('Error handling invitation profile creation on login:', invErr);
+        }
       }
 
       clearInvitationData();
