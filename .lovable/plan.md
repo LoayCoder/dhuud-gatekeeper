@@ -1,48 +1,49 @@
 
 
-# Unify Admin & Portal Worker Forms — Complete Parity
+# Fix: Worker Fitness Data Not Showing & Medical Certificate Upload Failing
 
-## Problem
+## Root Causes Found
 
-The admin form (`WorkerFormDialog.tsx` at `/contractors/workers`) is missing several features that the portal form (`ContractorWorkerForm.tsx` at `/contractor-portal/workers`) has:
+### Bug 1: Missing fitness fields in main worker query
+The `useContractorWorkers` query (lines 19-28 of `use-contractor-worker-queries.ts`) does **not** select `fitness_to_work`, `fitness_acknowledged`, `medical_check_date`, `fitness_expiry_date`, `medical_certificate_path`, or `training_certifications`. These fields come back as `undefined`, so the compliance flags show false warnings like "Fitness to work not acknowledged" and "No medical check on record" even though the database has `fitness_acknowledged: true` and `medical_check_date: 2026-04-08`.
 
-| Feature | Admin Form | Portal Form |
-|---------|-----------|-------------|
-| Full Name (Arabic) | Yes | No |
-| Project Assignment | No | Yes |
-| Duplicate National ID check | No | Yes |
-| Blacklist check | No | Yes |
-| Medical Certificate upload | No | Yes |
-| Access End Date (auto-computed) | No | Yes |
-| Not Fit / Pending Medical warnings | No | Yes |
-| PTW restriction warnings | No | Yes |
-| DhuudPhoneInput for mobile | No | Yes |
-| User Type display | N/A (admin) | Yes |
+**Fix:** Add the missing columns to the main SELECT in `useContractorWorkers`.
 
-Both forms also define their own schema instead of sharing one.
+### Bug 2: Medical certificate upload fails silently — missing INSERT storage policy
+The `contractor-documents` bucket has SELECT, UPDATE, and DELETE RLS policies, but **no INSERT policy**. Every upload attempt is blocked by RLS and fails silently (the code catches the error but doesn't show a toast).
 
-## Plan
+**Fix:** Add an INSERT policy on the `contractor-documents` storage bucket.
 
-### 1. Expand shared schema — `WorkerFormSchema.ts`
-Add `expiry_date` field (optional string). The portal form's local schema can be removed in favor of this shared one.
+### Bug 3: Wrong folder path breaks existing RLS policies
+The RLS policies expect the **first folder** in the path to be the `tenant_id`. But the upload code uses:
+```
+medical-certificates/${companyId}/${timestamp}.ext
+```
+This should be:
+```
+${tenant_id}/medical-certificates/${timestamp}.ext
+```
 
-### 2. Add missing features to admin form — `WorkerFormDialog.tsx`
-- Add **project selection** field (fetch projects for selected company using existing hooks)
-- Add **duplicate national ID** check (reuse `useCheckDuplicateNationalId`)
-- Add **medical certificate upload** section (same logic as portal form)
-- Add **access end date** auto-computation from project selection
-- Add **not fit / pending medical warnings** (alert when fitness status is not_fit or pending_medical)
-- Add **PTW restriction warning** when PTW cert selected but worker not fit
-- Use **DhuudPhoneInput** for mobile and emergency phone fields
-- Add `full_name_ar` field to portal form (currently missing there)
+**Fix:** Update the upload path in all 3 locations (`WorkerFormDialog.tsx`, `ContractorWorkerForm.tsx`, `ContractorWorkerEditForm.tsx`) to use `tenant_id` as the first folder segment.
 
-### 3. Update portal form — `ContractorWorkerForm.tsx`
-- Import and use the shared `workerFormSchema` from `WorkerFormSchema.ts` instead of local schema
-- Add **Full Name (Arabic)** field (missing from portal)
-- Remove the duplicated local schema definition
+### Bug 4: No error toast on upload failure
+The `handleMedicalCertUpload` function in `WorkerFormDialog.tsx` silently catches errors without user feedback.
 
-### 4. Ensure mutation parity — `useCreateContractorWorker`
-Verify the admin create mutation passes all fields (project_id, expiry_date, medical_certificate_path, access dates) that the portal mutation already sends.
+**Fix:** Add `toast.error()` on upload failure.
 
-**Files to modify:** `WorkerFormSchema.ts`, `WorkerFormDialog.tsx`, `ContractorWorkerForm.tsx`
+### Bug 5: Medical certificate not shown in detail/overview views
+The `WorkerFitnessCard` shared component doesn't display the medical certificate or offer a download link.
+
+**Fix:** Add a medical certificate row to `WorkerFitnessCard` with a download link when available.
+
+## Files to Change
+
+| File | Change |
+|------|--------|
+| `use-contractor-worker-queries.ts` | Add 6 missing columns to main SELECT |
+| Database migration | Add INSERT policy on `contractor-documents` bucket |
+| `WorkerFormDialog.tsx` | Fix upload path to use `tenant_id`, add error toast |
+| `ContractorWorkerForm.tsx` | Fix upload path to use `tenant_id` |
+| `ContractorWorkerEditForm.tsx` | Fix upload path to use `tenant_id` |
+| `WorkerFitnessCard.tsx` | Show medical certificate download link |
 
