@@ -5697,6 +5697,7 @@ export type Database = {
           photo_verified_at: string | null
           photo_verified_by: string | null
           preferred_language: string
+          project_id: string | null
           ptw_access_approved_at: string | null
           ptw_access_approved_by: string | null
           ptw_access_requested_at: string | null
@@ -5746,6 +5747,7 @@ export type Database = {
           photo_verified_at?: string | null
           photo_verified_by?: string | null
           preferred_language?: string
+          project_id?: string | null
           ptw_access_approved_at?: string | null
           ptw_access_approved_by?: string | null
           ptw_access_requested_at?: string | null
@@ -5795,6 +5797,7 @@ export type Database = {
           photo_verified_at?: string | null
           photo_verified_by?: string | null
           preferred_language?: string
+          project_id?: string | null
           ptw_access_approved_at?: string | null
           ptw_access_approved_by?: string | null
           ptw_access_requested_at?: string | null
@@ -5845,6 +5848,13 @@ export type Database = {
             columns: ["photo_verified_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
             referencedColumns: ["id"]
           },
           {
