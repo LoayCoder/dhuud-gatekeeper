@@ -525,6 +525,7 @@ export default function PublicRequestPage() {
                         {isRTL ? "اسم الشركة مطلوب" : String(form.formState.errors.requesterCompany.message)}
                       </p>
                     )}
+                  </div>
                 </div>
                 {branches && branches.length > 0 && (
                   <div className="space-y-2">
