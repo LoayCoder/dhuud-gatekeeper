@@ -359,7 +359,7 @@ export default function Login() {
       if (accessValidation && accessValidation.allowed === false) {
         // If this is an invitation flow (or recoverable) and the reason is just "no profile yet",
         // don't block — let the profile creation code below handle it
-        if (accessValidation.reason === 'profile_not_found' && (hasInvitationContext || invitationEmail || user?.email)) {
+        if (accessValidation.reason === 'profile_not_found' && (hasInvitationContext || invitationEmail || authUser?.email)) {
           console.log('Profile not found — will attempt invitation recovery below');
         } else {
           console.warn('User access validation failed:', accessValidation.reason || accessError?.message);
@@ -525,7 +525,7 @@ export default function Login() {
               if (userEmail) {
                 const { data: fallbackInvite } = await supabase
                   .from('invitations')
-                  .select('code, email, tenant_id, role, metadata')
+                  .select('code, email, tenant_id, metadata')
                   .ilike('email', userEmail)
                   .eq('used', false)
                   .gt('expires_at', new Date().toISOString())
