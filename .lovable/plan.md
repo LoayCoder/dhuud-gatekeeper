@@ -1,42 +1,30 @@
 
 
-# Enhance Public Gate Pass Item Form
+# Fix RLS Policy for Public Gate Pass Access by Authenticated Users
 
-## Overview
+## Problem
+The `tenants` table has an RLS policy "Allow anon read public tenant info" that only applies to the `anon` role. Authenticated users from a different tenant cannot view public gate pass tenant info, forcing them to use incognito mode.
 
-Align the public gate pass item form (`PublicGatePassItemForm.tsx`) with the internal form's improved item handling. The public form already has structured vehicle plate and driver phone validation — the gap is in the items section.
+## Solution
+Add a new SELECT policy on the `tenants` table that allows **authenticated** users to read tenant rows where `allow_public_gate_pass_requests = true`. This mirrors the existing anon policy but for the `authenticated` role.
 
-## Current State vs Target
+## Technical Details
 
-| Feature | Public Form (Current) | Internal Form (Target) |
-|---------|----------------------|----------------------|
-| Label | "Item Name / Material" | "Item Description" |
-| Qty validation | `type="number"`, no required error | `type="text" inputMode="decimal"`, numeric-only sanitization, required with error |
-| Unit validation | No required error shown | Required with error highlighting |
-| Unit options | 10 options (PCS, BOX, KG...) | 11 options including Bags, Tons, Pallets |
-| Qty/Unit errors | Not shown | Per-field destructive border + error text |
+### Migration: Add RLS policy
 
-## Changes
+```sql
+CREATE POLICY "Allow authenticated read public gate pass tenant info"
+ON public.tenants
+FOR SELECT
+TO authenticated
+USING (allow_public_gate_pass_requests = true);
+```
 
-### 1. Update `PublicGatePassItemForm.tsx`
+This is safe because:
+- It only exposes tenants that have explicitly enabled public gate passes
+- It's read-only (SELECT only)
+- The existing "Tenant users can view their tenant" policy already covers same-tenant access — this just adds cross-tenant visibility for public gate pass tenants
 
-- Rename label "Item Name / Material" → "Item Description"
-- Change Qty input from `type="number"` to `type="text" inputMode="decimal"` with numeric sanitization (digits + decimal only, no multiple dots)
-- Add `hasQtyError` and `hasUnitError` flags based on `showValidation`
-- Add destructive border + error text for Qty and Unit when invalid
-- Expand unit dropdown to match internal form options (add Bags, Tons, Pallets)
-- Update item completeness check in card border color
-
-### 2. Update `publicRequestSchema.ts`
-
-- Make `quantity` required with min(1) instead of optional string
-- Make `unit` required with min(1) instead of optional string
-- This ensures step 3 validation catches incomplete items
-
-### Files Modified
-
-| File | Change |
-|------|--------|
-| `src/pages/public-gate-pass/components/PublicGatePassItemForm.tsx` | Rename label, fix qty input, add validation errors, expand units |
-| `src/pages/public-gate-pass/publicRequestSchema.ts` | Make quantity and unit required in schema |
+### No code changes needed
+The frontend query in `use-tenant-by-slug.ts` already selects only safe, non-PII columns (name, slug, logo, brand_color, instructions). No application code changes required.
 
