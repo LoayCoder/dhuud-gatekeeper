@@ -43,6 +43,7 @@ interface AuthContextType {
   validateTenantAccess: () => Promise<boolean>; // NEW: Validate access for current tenant
   isUsingCachedSession: boolean; // NEW: Indicates if using cached session (offline mode)
   refreshSession: () => Promise<boolean>; // NEW: Force refresh session from server
+  setMfaGracePeriod: (until: Date) => void; // NEW: Direct grace period setter
 }
 
 // Create context outside of component to ensure singleton across HMR
@@ -447,6 +448,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     validateTenantAccess,
     isUsingCachedSession,
     refreshSession,
+    setMfaGracePeriod: (until: Date) => setMfaGraceUntil(until),
   };
 
   // Watch for email changes from admin actions
