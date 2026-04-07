@@ -1,30 +1,34 @@
 
 
-# Fix RLS Policy for Public Gate Pass Access by Authenticated Users
+# Fix: Authenticated Users Cannot Upload Photos to Public Gate Pass
 
-## Problem
-The `tenants` table has an RLS policy "Allow anon read public tenant info" that only applies to the `anon` role. Authenticated users from a different tenant cannot view public gate pass tenant info, forcing them to use incognito mode.
+## Root Cause
 
-## Solution
-Add a new SELECT policy on the `tenants` table that allows **authenticated** users to read tenant rows where `allow_public_gate_pass_requests = true`. This mirrors the existing anon policy but for the `authenticated` role.
+The storage RLS policies have a gap:
+- **Anon users** can upload to `public-gate-pass-photos` ✅
+- **Authenticated users** can only upload to `gate-pass-photos` (the internal bucket) ❌
 
-## Technical Details
+When you're logged in and use the public gate pass form at `/{tenantSlug}/request`, your session is `authenticated`, not `anon`. The upload to `public-gate-pass-photos` is rejected by RLS.
 
-### Migration: Add RLS policy
+## Fix
+
+Add a single RLS policy allowing authenticated users to INSERT into the `public-gate-pass-photos` bucket.
+
+### Migration SQL
 
 ```sql
-CREATE POLICY "Allow authenticated read public gate pass tenant info"
-ON public.tenants
-FOR SELECT
+CREATE POLICY "Authenticated can upload public gate pass photos"
+ON storage.objects
+FOR INSERT
 TO authenticated
-USING (allow_public_gate_pass_requests = true);
+WITH CHECK (bucket_id = 'public-gate-pass-photos');
 ```
 
-This is safe because:
-- It only exposes tenants that have explicitly enabled public gate passes
-- It's read-only (SELECT only)
-- The existing "Tenant users can view their tenant" policy already covers same-tenant access — this just adds cross-tenant visibility for public gate pass tenants
-
 ### No code changes needed
-The frontend query in `use-tenant-by-slug.ts` already selects only safe, non-PII columns (name, slug, logo, brand_color, instructions). No application code changes required.
+The frontend upload logic in `PublicRequestPage.tsx` is correct — it targets the right bucket (`public-gate-pass-photos`) with the right path structure. Only the storage policy is missing.
+
+## Impact
+- Safe: read-only SELECT policy already exists for both roles
+- This only adds INSERT permission for authenticated users on the public bucket
+- Does not affect any other bucket or policy
 
