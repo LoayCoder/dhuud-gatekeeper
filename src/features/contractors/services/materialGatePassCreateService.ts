@@ -71,63 +71,69 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
     if (error) throw error;
 
     if (data.items.length > 0) {
-        const itemsToInsert = data.items.map((item) => ({
-            gate_pass_id: result.id,
-            item_name: item.item_name,
-            description: item.description || null,
-            quantity: item.quantity || null,
-            unit: item.unit || null,
-            tenant_id: tenantId,
-        }));
+        // Insert items one-by-one to guarantee order mapping for photo uploads
+        const insertedItemIds: string[] = [];
+        for (const item of data.items) {
+            const { data: inserted, error: itemError } = await supabase
+                .from("gate_pass_items")
+                .insert({
+                    gate_pass_id: result.id,
+                    item_name: item.item_name,
+                    description: item.description || null,
+                    quantity: item.quantity || null,
+                    unit: item.unit || null,
+                    tenant_id: tenantId,
+                })
+                .select("id")
+                .single();
 
-        const { data: insertedItems, error: itemsError } = await supabase
-            .from("gate_pass_items")
-            .insert(itemsToInsert)
-            .select("id");
+            if (itemError) {
+                console.error("Item insert error:", itemError);
+                insertedItemIds.push('');
+            } else {
+                insertedItemIds.push(inserted.id);
+            }
+        }
 
-        if (itemsError) {
-            console.error("Items insert error:", itemsError);
-        } else if (insertedItems) {
-            for (let i = 0; i < data.items.length; i++) {
-                const item = data.items[i];
-                const insertedItem = insertedItems[i];
+        // Upload photos for each item using the guaranteed-order IDs
+        for (let i = 0; i < data.items.length; i++) {
+            const item = data.items[i];
+            const insertedItemId = insertedItemIds[i];
 
-                if (item.photos && item.photos.length > 0 && insertedItem) {
-                    const photoRecords = [];
+            if (!insertedItemId || !item.photos || item.photos.length === 0) continue;
 
-                    for (const photo of item.photos) {
-                        const compressedPhoto = await compressImage(photo, 1280, 0.75);
-                        const fileName = `${tenantId}/${result.id}/${insertedItem.id}/${crypto.randomUUID()}-${photo.name}`;
+            const photoRecords = [];
+            for (const photo of item.photos) {
+                const compressedPhoto = await compressImage(photo, 1280, 0.75);
+                const fileName = `${tenantId}/${result.id}/${insertedItemId}/${crypto.randomUUID()}-${photo.name}`;
 
-                        const { error: uploadError } = await supabase.storage
-                            .from("gate-pass-photos")
-                            .upload(fileName, compressedPhoto);
+                const { error: uploadError } = await supabase.storage
+                    .from("gate-pass-photos")
+                    .upload(fileName, compressedPhoto);
 
-                        if (uploadError) {
-                            console.error("Item photo upload error:", uploadError);
-                            continue;
-                        }
-
-                        photoRecords.push({
-                            item_id: insertedItem.id,
-                            gate_pass_id: result.id,
-                            storage_path: fileName,
-                            file_name: photo.name,
-                            file_size: compressedPhoto.size,
-                            mime_type: compressedPhoto.type,
-                            uploaded_by: userId,
-                            tenant_id: tenantId,
-                        });
-                    }
-
-                    if (photoRecords.length > 0) {
-                        const { error: photosError } = await supabase
-                            .from("gate_pass_item_photos")
-                            .insert(photoRecords);
-
-                        if (photosError) console.error("Item photos insert error:", photosError);
-                    }
+                if (uploadError) {
+                    console.error("Item photo upload error:", uploadError);
+                    continue;
                 }
+
+                photoRecords.push({
+                    item_id: insertedItemId,
+                    gate_pass_id: result.id,
+                    storage_path: fileName,
+                    file_name: photo.name,
+                    file_size: compressedPhoto.size,
+                    mime_type: compressedPhoto.type,
+                    uploaded_by: userId,
+                    tenant_id: tenantId,
+                });
+            }
+
+            if (photoRecords.length > 0) {
+                const { error: photosError } = await supabase
+                    .from("gate_pass_item_photos")
+                    .insert(photoRecords);
+
+                if (photosError) console.error("Item photos insert error:", photosError);
             }
         }
     }
