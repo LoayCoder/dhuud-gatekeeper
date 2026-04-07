@@ -1,29 +1,31 @@
 
 
-# Fix: Remove Invalid Column References on `project_worker_assignments`
+# Upgrade Contractor Portal Worker Edit Form
 
 ## Problem
-The `project_worker_assignments` table has these columns: `id, tenant_id, project_id, worker_id, assigned_at, removed_at, removal_reason, is_active, created_by, created_at, updated_at, deleted_at`.
+The contractor portal uses an outdated `ContractorWorkerEditForm` with a plain layout (no photo upload, no RTL-aware nationality list, no success alert). The admin-side `WorkerFormDialog` has a richer UX with photo upload, scroll area, grid layout, and proper RTL support.
 
-Two files reference columns that **do not exist**:
+## Plan
 
-1. **`src/features/contractors/hooks/use-contractor-portal.ts` (line 283)**: Inserts `status: "active"` — no `status` column exists. This is the direct cause of the runtime error.
-2. **`supabase/functions/revoke-worker-access/index.ts` (lines 103, 123)**: Updates `removed_by: user.id` — no `removed_by` column exists. This silently fails on worker access revocation.
+### Update `ContractorWorkerEditForm.tsx`
+Align the portal edit form with the admin `WorkerFormDialog` while keeping portal-specific logic (re-approval warning, portal update hook):
 
-## Fix
+1. **Add photo upload** — integrate `WorkerPhotoUpload` component at the top of the form (using `Controller` like the admin form)
+2. **Add `full_name_ar` field** — keep this portal-specific field (admin form doesn't have it)
+3. **Improve layout** — use `ScrollArea` for overflow, grid layout for National ID + Mobile row
+4. **RTL-aware nationality list** — show `nat.name_ar` in RTL mode with `ScrollArea` inside `SelectContent`
+5. **Add preferred_language field** — keep existing
+6. **Add success alert** — show green success banner briefly before closing, like admin form
+7. **Keep re-approval warning** — retain the amber warning for approved workers
+8. **Wrap in `DialogDescription`** for accessibility
+9. **Add `photo_path` to schema and update hook** — extend `editWorkerSchema` with optional `photo_path`, pass it through to the update mutation
 
-### 1. `use-contractor-portal.ts` — Remove `status` from insert
-Remove `status: "active"` from the `project_worker_assignments` insert at line 283. The table uses `is_active` (which defaults to `true`), so no replacement is needed.
+### Update `use-update-contractor-worker-portal.ts`
+Add `photo_path` to the `UpdateWorkerData` interface and include it in the update payload so portal users can update worker photos.
 
-### 2. `revoke-worker-access/index.ts` — Remove `removed_by` from update
-Remove `removed_by: user.id` from both update calls (lines 103 and 123). The table has no `removed_by` column — only `removal_reason` and `removed_at`.
-
-## Summary
-
-| File | Line(s) | Bad Column | Fix |
-|------|---------|------------|-----|
-| `use-contractor-portal.ts` | 283 | `status` | Remove from insert |
-| `revoke-worker-access/index.ts` | 103, 123 | `removed_by` | Remove from update |
-
-Two file edits, no database migration needed.
+### Summary
+| File | Change |
+|------|--------|
+| `ContractorWorkerEditForm.tsx` | Add photo upload, grid layout, ScrollArea, RTL nationality, success alert |
+| `use-update-contractor-worker-portal.ts` | Add `photo_path` to data interface and update payload |
 
