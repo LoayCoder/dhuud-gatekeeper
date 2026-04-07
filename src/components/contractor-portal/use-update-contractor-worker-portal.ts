@@ -7,10 +7,23 @@ import { useTranslation } from "react-i18next";
 interface UpdateWorkerData {
   full_name: string;
   full_name_ar?: string | null;
+  id_type?: string;
   national_id: string;
+  date_of_birth?: string | null;
+  gender?: string | null;
   mobile_number: string;
+  email?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
   nationality?: string | null;
+  worker_role?: string;
   preferred_language: string;
+  fitness_to_work?: string | null;
+  fitness_acknowledged?: boolean;
+  medical_check_date?: string | null;
+  fitness_expiry_date?: string | null;
+  medical_certificate_path?: string | null;
+  training_certifications?: string[];
   photo_path?: string | null;
 }
 
@@ -55,10 +68,23 @@ export function useUpdateContractorWorker() {
         .update({
           full_name: data.full_name,
           full_name_ar: data.full_name_ar,
+          id_type: data.id_type,
           national_id: data.national_id,
+          date_of_birth: data.date_of_birth,
+          gender: data.gender,
           mobile_number: data.mobile_number,
+          email: data.email,
+          emergency_contact_name: data.emergency_contact_name,
+          emergency_contact_phone: data.emergency_contact_phone,
           nationality: data.nationality,
+          worker_role: data.worker_role,
           preferred_language: data.preferred_language,
+          fitness_to_work: data.fitness_to_work,
+          fitness_acknowledged: data.fitness_acknowledged,
+          medical_check_date: data.medical_check_date,
+          fitness_expiry_date: data.fitness_expiry_date,
+          medical_certificate_path: data.medical_certificate_path,
+          training_certifications: data.training_certifications,
           photo_path: data.photo_path,
           // Note: edited_by and edited_at are set by DB trigger
         })

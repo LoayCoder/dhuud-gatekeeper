@@ -98,8 +98,11 @@ export function useContractorPortalWorkers(companyId: string | undefined) {
       const { data, error } = await supabase
         .from("contractor_workers")
         .select(`
-          id, full_name, full_name_ar, national_id, nationality, mobile_number,
-          preferred_language, approval_status, approved_at, created_at,
+          id, full_name, full_name_ar, id_type, national_id, date_of_birth, gender,
+          nationality, mobile_number, email, emergency_contact_name, emergency_contact_phone,
+          worker_role, preferred_language, approval_status, approved_at, created_at,
+          photo_path, fitness_to_work, fitness_acknowledged, medical_check_date,
+          fitness_expiry_date, medical_certificate_path, training_certifications,
           edit_pending_approval, edited_by, edited_at
         `)
         .eq("company_id", companyId)
