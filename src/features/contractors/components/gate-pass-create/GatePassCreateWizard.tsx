@@ -210,7 +210,11 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
     setShowConfirmDialog(true);
   };
 
+  const submittingRef = useRef(false);
+
   const handleConfirmedSubmit = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setShowConfirmDialog(false);
     setIsSubmitting(true);
     try {
@@ -240,10 +244,10 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
       });
 
       if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-      toast.success(t("myGatePasses.createSuccess", "Gate pass request created successfully"));
       onSuccess?.();
       navigate("/my-gate-passes");
     } catch (error: unknown) {
+      submittingRef.current = false;
       const errorMessage = error instanceof Error ? error.message : t("common.error", "An error occurred");
       toast.error(errorMessage);
     } finally {
@@ -790,7 +794,8 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel", "Cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmedSubmit} className="bg-success hover:bg-success/90">
+            <AlertDialogAction onClick={handleConfirmedSubmit} disabled={isSubmitting} className="bg-success hover:bg-success/90">
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : null}
               {t("gatePasses.wizard.submit", "Submit Request")}
             </AlertDialogAction>
           </AlertDialogFooter>
