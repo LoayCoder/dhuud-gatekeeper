@@ -163,16 +163,16 @@ export default function AccessControlDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         {statCards.map((stat) => (
           <Card
             key={stat.label}
             className={cn(
-              "overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border-s-4", // Changed border-l to border-s for RTL
+              "overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border-s-4",
               stat.color.includes('destructive') ? 'border-s-destructive' :
                 stat.color.includes('primary') ? 'border-s-primary' :
                   stat.color.includes('blue') ? 'border-s-blue-500' :
-                    'border-s-amber-500' // Changed border-l to border-s for RTL
+                    'border-s-amber-500'
             )}
             onClick={() => {
               if (stat.label === t('accessControl.pendingApprovals', 'Pending Approvals')) {
@@ -182,30 +182,23 @@ export default function AccessControlDashboard() {
               }
             }}
           >
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{stat.label}</p>
                   {statsLoading ? (
-                    <Skeleton className="h-8 w-16 mt-2" />
+                    <Skeleton className="h-7 w-12 mt-1" />
                   ) : (
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
-                      {/* Trend indicator placeholder */}
-                      <span className="text-xs font-medium text-muted-foreground flex items-center">
-                        {t('accessControl.trends.fromYesterday', 'from yesterday')}
-                      </span>
-                    </div>
+                    <p className="text-2xl sm:text-3xl font-bold tracking-tight mt-0.5">{stat.value}</p>
                   )}
                 </div>
-                <div className={cn('p-2.5 rounded-xl', stat.bgColor)}>
-                  <stat.icon className={cn('h-5 w-5', stat.color,
+                <div className={cn('p-2 sm:p-2.5 rounded-xl flex-shrink-0', stat.bgColor)}>
+                  <stat.icon className={cn('h-4 w-4 sm:h-5 sm:w-5', stat.color,
                     stat.label === t('accessControl.pendingApprovals', 'Pending Approvals') && stat.value > 0 ? "animate-pulse" : ""
                   )} />
                 </div>
               </div>
             </CardContent>
-            {/* Progress bar placeholder at bottom */}
             {stat.label === t('accessControl.pendingApprovals', 'Pending Approvals') && stat.value > 0 && (
               <div className="h-1 w-full bg-destructive/20">
                 <div className="h-full bg-destructive w-[45%]" />
@@ -275,27 +268,27 @@ export default function AccessControlDashboard() {
         {/* On Site Tab */}
         <TabsContent value="overview" className="space-y-4 mt-4">
           <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    {t('accessControl.currentlyOnSite', 'Currently On Site')}
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <span>{t('accessControl.currentlyOnSite', 'Currently On Site')}</span>
                     <Badge variant="secondary">{onSiteEntries.length}</Badge>
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
                     {t('accessControl.onSiteDescription', 'All visitors and workers currently checked in')}
                   </CardDescription>
                 </div>
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="self-start sm:self-auto">
                   <Link to="/visitors/register" className="gap-2">
                     <UserPlus className="h-4 w-4" />
-                    {t('accessControl.preRegister', 'Pre-Register')}
+                    <span className="text-xs sm:text-sm">{t('accessControl.preRegister', 'Pre-Register')}</span>
                   </Link>
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6 overflow-x-auto">
               <UnifiedAccessLogTable
                 entries={onSiteEntries}
                 isLoading={onSiteLoading}
@@ -312,32 +305,32 @@ export default function AccessControlDashboard() {
           <div className="grid gap-4 lg:grid-cols-2">
             {/* Visitor Approvals */}
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Users className="h-5 w-5 text-blue-600" />
-                  {t('accessControl.visitorApprovals', 'Visitor Approvals')}
+              <CardHeader className="pb-3 px-3 sm:px-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Users className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                  <span className="truncate">{t('accessControl.visitorApprovals', 'Visitor Approvals')}</span>
                   {pendingVisitorApprovals.length > 0 && (
-                    <Badge variant="destructive">{pendingVisitorApprovals.length}</Badge>
+                    <Badge variant="destructive" className="flex-shrink-0">{pendingVisitorApprovals.length}</Badge>
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-3 sm:px-6">
                 <VisitorApprovalQueue />
               </CardContent>
             </Card>
 
             {/* Worker Approvals (Stage 1) */}
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <HardHat className="h-5 w-5 text-amber-600" />
-                  {t('accessControl.workerApprovals', 'Worker Approvals')}
+              <CardHeader className="pb-3 px-3 sm:px-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <HardHat className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                  <span className="truncate">{t('accessControl.workerApprovals', 'Worker Approvals')}</span>
                   {pendingWorkerApprovals.length > 0 && (
-                    <Badge variant="destructive">{pendingWorkerApprovals.length}</Badge>
+                    <Badge variant="destructive" className="flex-shrink-0">{pendingWorkerApprovals.length}</Badge>
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-3 sm:px-6">
                 <WorkerApprovalQueue workers={pendingWorkerApprovals} />
               </CardContent>
             </Card>
@@ -345,32 +338,32 @@ export default function AccessControlDashboard() {
 
           {/* Security Approvals (Stage 2) */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Shield className="h-5 w-5 text-primary" />
-                {t('accessControl.securityApprovals', 'Security Approvals')}
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Shield className="h-5 w-5 text-primary flex-shrink-0" />
+                <span className="truncate">{t('accessControl.securityApprovals', 'Security Approvals')}</span>
                 {pendingSecurityApprovals.length > 0 && (
-                  <Badge variant="default">{pendingSecurityApprovals.length}</Badge>
+                  <Badge variant="default" className="flex-shrink-0">{pendingSecurityApprovals.length}</Badge>
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6">
               <WorkerSecurityApprovalQueue />
             </CardContent>
           </Card>
 
           {/* Gate Pass Approvals */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Package className="h-5 w-5 text-green-600" />
-                {t('accessControl.gatePassApprovals', 'Gate Pass Approvals')}
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Package className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <span className="truncate">{t('accessControl.gatePassApprovals', 'Gate Pass Approvals')}</span>
                 {pendingGatePassApprovals.length > 0 && (
-                  <Badge variant="destructive">{pendingGatePassApprovals.length}</Badge>
+                  <Badge variant="destructive" className="flex-shrink-0">{pendingGatePassApprovals.length}</Badge>
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6">
               <GatePassApprovalQueue passes={pendingGatePassApprovals} />
             </CardContent>
           </Card>
@@ -379,33 +372,36 @@ export default function AccessControlDashboard() {
         {/* Gate Passes Tab - Dedicated tab for Security Supervisor */}
         <TabsContent value="gatepasses" className="space-y-4 mt-4">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Package className="h-5 w-5 text-green-600" />
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Package className="h-5 w-5 text-green-600 flex-shrink-0" />
                 {t('accessControl.gatePassApprovals', 'Gate Pass Approvals')}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 {t('accessControl.gatePassDescription', 'Material gate passes pending your security approval')}
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
-              {/* Sub-tabs for Pending and History */}
+            <CardContent className="pt-0 px-3 sm:px-6">
               <Tabs value={gatePassSubTab} onValueChange={setGatePassSubTab}>
-                <TabsList className="mb-4">
-                  <TabsTrigger value="pending" className="gap-2">
-                    <ClipboardCheck className="h-4 w-4" />
-                    {t('contractorPortal.gatePasses.pendingApprovals', 'Pending Approvals')}
-                    {pendingGatePassApprovals.length > 0 && (
-                      <Badge variant="destructive" className="ms-1">
-                        {pendingGatePassApprovals.length}
-                      </Badge>
-                    )}
-                  </TabsTrigger>
-                  <TabsTrigger value="history" className="gap-2">
-                    <History className="h-4 w-4" />
-                    {t('contractorPortal.gatePasses.tabs.approvalHistory', 'Approval History')}
-                  </TabsTrigger>
-                </TabsList>
+                <div className="overflow-x-auto -mx-1 px-1 pb-1">
+                  <TabsList className="mb-4 inline-flex w-max sm:w-auto">
+                    <TabsTrigger value="pending" className="gap-1.5 text-xs sm:text-sm">
+                      <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">{t('contractorPortal.gatePasses.pendingApprovals', 'Pending Approvals')}</span>
+                      <span className="sm:hidden">{t('contractorPortal.gatePasses.mobileTabs.pending', 'Pending')}</span>
+                      {pendingGatePassApprovals.length > 0 && (
+                        <Badge variant="destructive" className="ms-1 text-[10px] h-5 px-1.5">
+                          {pendingGatePassApprovals.length}
+                        </Badge>
+                      )}
+                    </TabsTrigger>
+                    <TabsTrigger value="history" className="gap-1.5 text-xs sm:text-sm">
+                      <History className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">{t('contractorPortal.gatePasses.tabs.approvalHistory', 'Approval History')}</span>
+                      <span className="sm:hidden">{t('contractorPortal.gatePasses.mobileTabs.history', 'History')}</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
                 <TabsContent value="pending">
                   <GatePassApprovalQueue passes={pendingGatePassApprovals} />
@@ -422,16 +418,16 @@ export default function AccessControlDashboard() {
         {/* Visitors Tab */}
         <TabsContent value="visitors" className="space-y-4 mt-4">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-600" />
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Users className="h-5 w-5 text-blue-600 flex-shrink-0" />
                 {t('accessControl.visitorAccess', 'Visitor Access')}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 {t('accessControl.visitorAccessDescription', 'Recent visitor entries and exits')}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6 overflow-x-auto">
               <UnifiedAccessLogTable
                 entries={accessLogs.filter(e => e.entity_type === 'visitor')}
                 isLoading={logsLoading}
@@ -444,16 +440,16 @@ export default function AccessControlDashboard() {
         {/* Workers Tab */}
         <TabsContent value="workers" className="space-y-4 mt-4">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <HardHat className="h-5 w-5 text-amber-600" />
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <HardHat className="h-5 w-5 text-amber-600 flex-shrink-0" />
                 {t('accessControl.workerAccess', 'Worker Access')}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 {t('accessControl.workerAccessDescription', 'Recent contractor worker entries and exits')}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6 overflow-x-auto">
               <UnifiedAccessLogTable
                 entries={accessLogs.filter(e => e.entity_type === 'worker' || e.entity_type === 'contractor')}
                 isLoading={logsLoading}
@@ -466,48 +462,50 @@ export default function AccessControlDashboard() {
         {/* History Tab */}
         <TabsContent value="history" className="space-y-4 mt-4">
           <Card>
-            <CardHeader className="pb-3">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <div className="flex flex-col gap-3">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <History className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <History className="h-5 w-5 flex-shrink-0" />
                     {t('accessControl.accessHistory', 'Access History')}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">
                     {t('accessControl.accessHistoryDescription', 'Complete log of all entries and exits')}
                   </CardDescription>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     placeholder={t('common.search', 'Search...')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full sm:w-48"
+                    className="w-full sm:w-48 h-9"
                   />
-                  <Select value={entityFilter} onValueChange={(v) => setEntityFilter(v as EntityType | 'all')}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
-                      <SelectItem value="visitor">{t('accessControl.entityTypes.visitor', 'Visitors')}</SelectItem>
-                      <SelectItem value="worker">{t('accessControl.entityTypes.worker', 'Workers')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={dateFilter} onValueChange={(v) => setDateFilter(v as 'today' | '7days' | '30days')}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="today">{t('common.today', 'Today')}</SelectItem>
-                      <SelectItem value="7days">{t('common.last7Days', 'Last 7 Days')}</SelectItem>
-                      <SelectItem value="30days">{t('common.last30Days', 'Last 30 Days')}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select value={entityFilter} onValueChange={(v) => setEntityFilter(v as EntityType | 'all')}>
+                      <SelectTrigger className="flex-1 sm:w-32 h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
+                        <SelectItem value="visitor">{t('accessControl.entityTypes.visitor', 'Visitors')}</SelectItem>
+                        <SelectItem value="worker">{t('accessControl.entityTypes.worker', 'Workers')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={dateFilter} onValueChange={(v) => setDateFilter(v as 'today' | '7days' | '30days')}>
+                      <SelectTrigger className="flex-1 sm:w-32 h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="today">{t('common.today', 'Today')}</SelectItem>
+                        <SelectItem value="7days">{t('common.last7Days', 'Last 7 Days')}</SelectItem>
+                        <SelectItem value="30days">{t('common.last30Days', 'Last 30 Days')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6 overflow-x-auto">
               <UnifiedAccessLogTable
                 entries={accessLogs}
                 isLoading={logsLoading}
@@ -516,43 +514,45 @@ export default function AccessControlDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="analytics" className="space-y-4 mt-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-4 mt-4">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">{t('accessControl.analytics.approvalVelocity', 'Approval Velocity')}</CardTitle>
+              <CardHeader className="pb-2 px-3 sm:px-6">
+                <CardTitle className="text-xs sm:text-sm font-medium">{t('accessControl.analytics.approvalVelocity', 'Approval Velocity')}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">12/hr</div>
-                <p className="text-xs text-muted-foreground">{t('accessControl.trends.fromLastMonth', '+20.1% from last month')}</p>
+              <CardContent className="px-3 sm:px-6">
+                <div className="text-xl sm:text-2xl font-bold">12/hr</div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">{t('accessControl.trends.fromLastMonth', '+20.1% from last month')}</p>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">{t('accessControl.analytics.avgProcessTime', 'Avg Process Time')}</CardTitle>
+              <CardHeader className="pb-2 px-3 sm:px-6">
+                <CardTitle className="text-xs sm:text-sm font-medium">{t('accessControl.analytics.avgProcessTime', 'Avg Process Time')}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">4m 30s</div>
-                <p className="text-xs text-muted-foreground">{t('accessControl.trends.fromLastMonth', '-1m from last month')}</p>
+              <CardContent className="px-3 sm:px-6">
+                <div className="text-xl sm:text-2xl font-bold">4m 30s</div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">{t('accessControl.trends.fromLastMonth', '-1m from last month')}</p>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">{t('accessControl.analytics.rejectionRate', 'Rejection Rate')}</CardTitle>
+              <CardHeader className="pb-2 px-3 sm:px-6">
+                <CardTitle className="text-xs sm:text-sm font-medium">{t('accessControl.analytics.rejectionRate', 'Rejection Rate')}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">8.2%</div>
-                <p className="text-xs text-muted-foreground">{t('accessControl.trends.fromLastWeek', '+2% from last week')}</p>
+              <CardContent className="px-3 sm:px-6">
+                <div className="text-xl sm:text-2xl font-bold">8.2%</div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">{t('accessControl.trends.fromLastWeek', '+2% from last week')}</p>
               </CardContent>
             </Card>
           </div>
 
-          <Card className="col-span-3">
-            <CardHeader>
-              <CardTitle>{t('accessControl.analytics.detailedAnalytics', 'Detailed Analytics')}</CardTitle>
-              <CardDescription>{t('accessControl.analytics.detailedDescription', 'Comprehensive view of security operations performance.')}</CardDescription>
+          <Card>
+            <CardHeader className="px-3 sm:px-6">
+              <CardTitle className="text-sm sm:text-base">{t('accessControl.analytics.detailedAnalytics', 'Detailed Analytics')}</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">{t('accessControl.analytics.detailedDescription', 'Comprehensive view of security operations performance.')}</CardDescription>
             </CardHeader>
-            <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground border-dashed border-2 rounded-md m-4">
+            <CardContent className="h-[200px] sm:h-[300px] flex items-center justify-center text-muted-foreground text-sm border-dashed border-2 rounded-md mx-3 sm:mx-4 mb-3 sm:mb-4">
               {t('accessControl.analytics.chartPlaceholder', 'Chart visualization would go here')}
             </CardContent>
           </Card>

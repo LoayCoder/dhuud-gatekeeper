@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ShieldCheck, CheckCircle, XCircle, Clock, Building2, Phone, CreditCard, User, ShieldAlert, Video, Eye } from "lucide-react";
+import { ShieldCheck, CheckCircle, XCircle, Building2, Phone, CreditCard, User, ShieldAlert, Video, Eye } from "lucide-react";
 import { format } from "date-fns";
 import {
   usePendingSecurityApprovals,
@@ -120,89 +120,81 @@ export function WorkerSecurityApprovalQueue() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-primary" />
-          <div>
-            <h2 className="text-xl font-semibold">
+      <div className="flex items-start sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <ShieldCheck className="h-5 w-5 text-primary flex-shrink-0" />
+          <div className="min-w-0">
+            <h2 className="text-lg sm:text-xl font-semibold truncate">
               {t("contractors.securityApprovalQueue", "Security Approval Queue")}
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {t("contractors.securityApproverRoles", "Security Supervisor / Security Manager")}
             </p>
           </div>
         </div>
-        <Badge variant="secondary" className="text-sm">
+        <Badge variant="secondary" className="text-xs sm:text-sm flex-shrink-0">
           {pendingWorkers.length} {t("contractors.pending", "pending")}
         </Badge>
       </div>
 
-      <Alert>
+      <Alert className="py-2">
         <Video className="h-4 w-4" />
-        <AlertDescription>
+        <AlertDescription className="text-xs sm:text-sm">
           {t("contractors.securityApprovalNote", "After approval, a safety induction video will be automatically sent to the worker.")}
         </AlertDescription>
       </Alert>
 
-      <p className="text-sm text-muted-foreground">
+      <p className="text-xs sm:text-sm text-muted-foreground">
         {t("contractors.securityApprovalDescription", "These workers have been pre-approved by the Contractor Admin and require final security clearance.")}
       </p>
 
-      <div className="grid gap-4">
+      <div className="grid gap-3 sm:gap-4">
         {pendingWorkers.map((worker) => (
-          <Card key={worker.id} className="border-s-4 border-s-primary">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={photoUrls[worker.id] || undefined} />
-                    <AvatarFallback>{getWorkerInitials(worker.full_name)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className="text-lg">
-                      {isRTL && worker.full_name_ar ? worker.full_name_ar : worker.full_name}
-                    </CardTitle>
-                    {worker.company?.company_name && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Building2 className="h-3 w-3" />
-                        {worker.company.company_name}
-                      </p>
-                    )}
-                  </div>
+          <Card key={worker.id} className="border-s-4 border-s-primary overflow-hidden">
+            <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 pt-3 sm:pt-6">
+              <div className="flex items-start gap-3">
+                <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+                  <AvatarImage src={photoUrls[worker.id] || undefined} />
+                  <AvatarFallback className="text-sm">{getWorkerInitials(worker.full_name)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-base sm:text-lg leading-tight break-words">
+                    {isRTL && worker.full_name_ar ? worker.full_name_ar : worker.full_name}
+                  </CardTitle>
+                  {worker.company?.company_name && (
+                    <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <Building2 className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{worker.company.company_name}</span>
+                    </p>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => setViewWorker(worker)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                    <Clock className="h-3 w-3 me-1" />
-                    {t("contractors.pendingSecurityReview", "Pending Security Review")}
-                  </Badge>
-                </div>
+                <Button variant="ghost" size="icon" className="flex-shrink-0 h-8 w-8" onClick={() => setViewWorker(worker)}>
+                  <Eye className="h-4 w-4" />
+                </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <CardContent className="space-y-3 px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
                 <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-muted-foreground" />
-                  <span>{t("contractors.nationalId", "ID")}: {worker.national_id}</span>
+                  <CreditCard className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">{t("contractors.nationalId", "ID")}: {worker.national_id}</span>
                 </div>
                 {worker.mobile_number && (
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span dir="ltr">{worker.mobile_number}</span>
+                    <Phone className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <span dir="ltr" className="text-xs sm:text-sm">{worker.mobile_number}</span>
                   </div>
                 )}
                 {worker.nationality && (
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span>{worker.nationality}</span>
+                    <User className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">{worker.nationality}</span>
                   </div>
                 )}
               </div>
 
               {worker.worker_type && worker.worker_type !== "worker" && (
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="text-xs">
                   {worker.worker_type === "site_representative"
                     ? t("contractors.siteRepresentative", "Site Representative")
                     : worker.worker_type === "safety_officer"
@@ -212,20 +204,33 @@ export function WorkerSecurityApprovalQueue() {
               )}
 
               {worker.approved_at && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   {t("contractors.preApprovedAt", "Pre-approved by Contractor Admin/Consultant")}:{" "}
                   {format(new Date(worker.approved_at), "PPp")}
                 </p>
               )}
 
-              <div className="flex items-center gap-3 pt-2">
-                <Button onClick={() => handleApprove(worker)} disabled={approveWorker.isPending} className="flex-1">
-                  <CheckCircle className="h-4 w-4 me-2" />
-                  {t("contractors.grantSecurityClearance", "Grant Security Clearance")}
+              <div className="flex items-center gap-2 sm:gap-3 pt-1">
+                <Button 
+                  size="sm"
+                  onClick={() => handleApprove(worker)} 
+                  disabled={approveWorker.isPending} 
+                  className="flex-1 h-9 sm:h-10 text-xs sm:text-sm"
+                >
+                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 me-1.5" />
+                  <span className="hidden sm:inline">{t("contractors.grantSecurityClearance", "Grant Security Clearance")}</span>
+                  <span className="sm:hidden">{t("common.approve", "Approve")}</span>
                 </Button>
-                <Button variant="destructive" onClick={() => openRejectDialog(worker)} disabled={rejectWorker.isPending} className="flex-1">
-                  <XCircle className="h-4 w-4 me-2" />
-                  {t("contractors.returnToPending", "Return with Comments")}
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => openRejectDialog(worker)} 
+                  disabled={rejectWorker.isPending} 
+                  className="flex-1 h-9 sm:h-10 text-xs sm:text-sm"
+                >
+                  <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 me-1.5" />
+                  <span className="hidden sm:inline">{t("contractors.returnToPending", "Return with Comments")}</span>
+                  <span className="sm:hidden">{t("common.reject", "Reject")}</span>
                 </Button>
               </div>
             </CardContent>
