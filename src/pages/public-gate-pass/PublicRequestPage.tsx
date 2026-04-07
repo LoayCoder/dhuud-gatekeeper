@@ -520,7 +520,11 @@ export default function PublicRequestPage() {
                       className="ps-10"
                       placeholder={isRTL ? "اسم الشركة" : "Company Name"}
                     />
-                  </div>
+                    {form.formState.errors.requesterCompany && (
+                      <p className="text-xs text-destructive mt-1">
+                        {isRTL ? "اسم الشركة مطلوب" : String(form.formState.errors.requesterCompany.message)}
+                      </p>
+                    )}
                 </div>
                 {branches && branches.length > 0 && (
                   <div className="space-y-2">
