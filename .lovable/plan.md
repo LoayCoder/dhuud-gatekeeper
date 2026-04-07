@@ -1,47 +1,59 @@
 
 
-# Fix Missing `deleted_at` + Clean All DHUUD Tenant Data
+# Update ID Card Design — Logo + Colored Header Bar
 
-## Step 1: Add `deleted_at` to `risk_assessment_team`
+## Overview
 
-This is the only table missing the column among the 12 target tables.
+Redesign the ID card front layouts (both Portrait and Landscape) to match the new design: a light header with the tenant logo on one side and a colored bar (no text) on the other, with card-type-specific accent colors.
 
-```sql
-ALTER TABLE public.risk_assessment_team
-  ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+## Design Changes
+
+```text
+Current Header:
+┌──────────────────────────────────────────┐
+│ [Logo] [Tenant Name] [CARD TYPE BADGE]   │  ← Fully colored background
+└──────────────────────────────────────────┘
+
+New Header:
+┌──────────────────────────────────────────┐
+│ [Logo]  [═══════ Color Bar ═══════]      │  ← Light bg, color bar only
+└──────────────────────────────────────────┘
 ```
 
-## Step 2: Soft-delete all DHUUD tenant data
+## Card Type Color Map
 
-One migration that sets `deleted_at = now()` on all active records for tenant `9290e913-c735-405c-91c6-141e966011ae`, ordered child-first to respect FK constraints.
-
-```sql
--- Children first
-UPDATE public.risk_assessment_details SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-UPDATE public.risk_assessment_team SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-UPDATE public.risk_assessments SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-UPDATE public.ptw_clearance_checks SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-UPDATE public.ptw_permits SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-UPDATE public.ptw_projects SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-UPDATE public.material_gate_passes SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-UPDATE public.gate_entry_logs SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-UPDATE public.worker_inductions SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-UPDATE public.contractor_projects SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-UPDATE public.contractor_workers SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-UPDATE public.contractor_companies SET deleted_at = now() WHERE tenant_id = '...' AND deleted_at IS NULL;
-```
-
-**Records affected:** 676 total (17 risk assessments, 81 details, 2 team, 35 PTW projects, 350 clearance checks, 1 gate pass, 110 entry logs, 22 inductions, 8 contractor projects, 51 workers, 9 companies).
-
-## Step 3: Update `getRiskAssessmentTeam` query
-
-Now that `risk_assessment_team` has `deleted_at`, add `.is('deleted_at', null)` filter back to the query in `src/services/risk-assessment/riskAssessmentService.ts` for consistency with the soft-delete pattern.
+| Type | Color | Hex |
+|------|-------|-----|
+| Contractor (`contractor_rep`) | Orange | `#FFA21A` |
+| Employee (`employee`) | Blue | `#2B64E3` |
+| Visitor (`visitor`) | Gray | `#3F434C` |
+| VIP Visitor (`visitor_vip`) | Gray | `#3F434C` |
+| Worker (`worker`) | Red | `#C43718` |
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| Database migration | Add `deleted_at` column to `risk_assessment_team` |
-| Database migration | Soft-delete all DHUUD tenant records across 12 tables |
-| `src/services/risk-assessment/riskAssessmentService.ts` | Add `.is('deleted_at', null)` to `getRiskAssessmentTeam` query |
+| `src/features/admin/components/id-cards/IDCardTemplate/layouts/PortraitFrontLayout.tsx` | Redesign header: light background, logo left, color bar fills remaining space. Remove tenant name text and card type badge from header. Keep photo, name (Arabic primary), fields, and QR sections with the same structure but using card-type color for borders/accents. |
+| `src/features/admin/components/id-cards/IDCardTemplate/layouts/LandscapeFrontLayout.tsx` | Same header redesign for landscape orientation. |
+| `src/features/admin/components/id-cards/IDCardTemplate/utils.ts` | Add `CARD_TYPE_COLORS` map for the 5 card types. |
+| `src/features/admin/components/id-cards/IDCardTemplate/types.ts` | No change needed — `LayoutProps` already has `cardType` for color lookup. |
+| `src/types/id-card.types.ts` | Update `DEFAULT_CARD_SETTINGS` accent colors to match new color map. |
+
+## Header Layout Detail
+
+- Background: `#f5f5f5` (light gray)
+- Bottom border: `2px solid #e0e0e0`
+- Logo: 32px height, auto width
+- Gap: 12px between logo and bar
+- Color Bar: `flex: 1`, height 32px, border-radius 4px, filled with card-type color
+- No text in header (tenant name and badge removed from header area)
+
+## Body Layout (unchanged structure)
+
+- Photo with colored border (card-type color)
+- Arabic name prominent, English name secondary
+- Field rows: Company, Role, Valid Until (label–value pairs)
+- QR code with colored border
+- "Scan to verify" / "امسح للتحقق" footer text
 
