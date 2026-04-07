@@ -16,6 +16,7 @@ export function useWorkerProjectAssignment(workerId: string | undefined) {
     queryFn: async () => {
       if (!workerId) return null;
 
+      // Source 1: Check project_worker_assignments junction table
       const { data, error } = await supabase
         .from("project_worker_assignments")
         .select(`
@@ -30,7 +31,33 @@ export function useWorkerProjectAssignment(workerId: string | undefined) {
         .maybeSingle();
 
       if (error) throw error;
-      return data as WorkerProjectAssignment | null;
+      if (data) return data as WorkerProjectAssignment;
+
+      // Source 2: Fallback to contractor_workers.project_id
+      const { data: worker, error: workerError } = await supabase
+        .from("contractor_workers")
+        .select("id, project_id")
+        .eq("id", workerId)
+        .is("deleted_at", null)
+        .maybeSingle();
+
+      if (workerError) throw workerError;
+      if (!worker?.project_id) return null;
+
+      const { data: project, error: projectError } = await supabase
+        .from("contractor_projects")
+        .select("project_name, status")
+        .eq("id", worker.project_id)
+        .is("deleted_at", null)
+        .maybeSingle();
+
+      if (projectError) throw projectError;
+
+      return {
+        id: worker.id,
+        project_id: worker.project_id,
+        project: project ?? null,
+      } as WorkerProjectAssignment;
     },
     enabled: !!workerId,
   });
