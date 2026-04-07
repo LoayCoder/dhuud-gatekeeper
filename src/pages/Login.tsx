@@ -35,7 +35,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/';
-  const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData, isRememberedTenant, clearRememberedTenant } = useTheme();
+  const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, invitationCode, clearInvitationData, refreshTenantData, isRememberedTenant, clearRememberedTenant } = useTheme();
   const { resolvedTheme } = useNextTheme();
   const { checkPassword } = usePasswordBreachCheck();
   const { checkTrustedDevice } = useTrustedDevice();
@@ -494,8 +494,8 @@ export default function Login() {
 
           if (!existingProfile) {
             // User exists in auth but has no profile — create one from invitation data
-            const storedCode = sessionStorage.getItem('invitation_code') || '';
-            const { data: inviteResult } = await supabase.rpc('lookup_invitation', { lookup_code: storedCode });
+            const codeToLookup = invitationCode || '';
+            const { data: inviteResult } = await supabase.rpc('lookup_invitation', { lookup_code: codeToLookup });
 
             if (inviteResult) {
               const inviteData = inviteResult as unknown as {
