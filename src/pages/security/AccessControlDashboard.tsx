@@ -163,16 +163,16 @@ export default function AccessControlDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         {statCards.map((stat) => (
           <Card
             key={stat.label}
             className={cn(
-              "overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border-s-4", // Changed border-l to border-s for RTL
+              "overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border-s-4",
               stat.color.includes('destructive') ? 'border-s-destructive' :
                 stat.color.includes('primary') ? 'border-s-primary' :
                   stat.color.includes('blue') ? 'border-s-blue-500' :
-                    'border-s-amber-500' // Changed border-l to border-s for RTL
+                    'border-s-amber-500'
             )}
             onClick={() => {
               if (stat.label === t('accessControl.pendingApprovals', 'Pending Approvals')) {
@@ -182,30 +182,23 @@ export default function AccessControlDashboard() {
               }
             }}
           >
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{stat.label}</p>
                   {statsLoading ? (
-                    <Skeleton className="h-8 w-16 mt-2" />
+                    <Skeleton className="h-7 w-12 mt-1" />
                   ) : (
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
-                      {/* Trend indicator placeholder */}
-                      <span className="text-xs font-medium text-muted-foreground flex items-center">
-                        {t('accessControl.trends.fromYesterday', 'from yesterday')}
-                      </span>
-                    </div>
+                    <p className="text-2xl sm:text-3xl font-bold tracking-tight mt-0.5">{stat.value}</p>
                   )}
                 </div>
-                <div className={cn('p-2.5 rounded-xl', stat.bgColor)}>
-                  <stat.icon className={cn('h-5 w-5', stat.color,
+                <div className={cn('p-2 sm:p-2.5 rounded-xl flex-shrink-0', stat.bgColor)}>
+                  <stat.icon className={cn('h-4 w-4 sm:h-5 sm:w-5', stat.color,
                     stat.label === t('accessControl.pendingApprovals', 'Pending Approvals') && stat.value > 0 ? "animate-pulse" : ""
                   )} />
                 </div>
               </div>
             </CardContent>
-            {/* Progress bar placeholder at bottom */}
             {stat.label === t('accessControl.pendingApprovals', 'Pending Approvals') && stat.value > 0 && (
               <div className="h-1 w-full bg-destructive/20">
                 <div className="h-full bg-destructive w-[45%]" />
@@ -312,32 +305,32 @@ export default function AccessControlDashboard() {
           <div className="grid gap-4 lg:grid-cols-2">
             {/* Visitor Approvals */}
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Users className="h-5 w-5 text-blue-600" />
-                  {t('accessControl.visitorApprovals', 'Visitor Approvals')}
+              <CardHeader className="pb-3 px-3 sm:px-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Users className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                  <span className="truncate">{t('accessControl.visitorApprovals', 'Visitor Approvals')}</span>
                   {pendingVisitorApprovals.length > 0 && (
-                    <Badge variant="destructive">{pendingVisitorApprovals.length}</Badge>
+                    <Badge variant="destructive" className="flex-shrink-0">{pendingVisitorApprovals.length}</Badge>
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-3 sm:px-6">
                 <VisitorApprovalQueue />
               </CardContent>
             </Card>
 
             {/* Worker Approvals (Stage 1) */}
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <HardHat className="h-5 w-5 text-amber-600" />
-                  {t('accessControl.workerApprovals', 'Worker Approvals')}
+              <CardHeader className="pb-3 px-3 sm:px-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <HardHat className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                  <span className="truncate">{t('accessControl.workerApprovals', 'Worker Approvals')}</span>
                   {pendingWorkerApprovals.length > 0 && (
-                    <Badge variant="destructive">{pendingWorkerApprovals.length}</Badge>
+                    <Badge variant="destructive" className="flex-shrink-0">{pendingWorkerApprovals.length}</Badge>
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-3 sm:px-6">
                 <WorkerApprovalQueue workers={pendingWorkerApprovals} />
               </CardContent>
             </Card>
@@ -345,32 +338,32 @@ export default function AccessControlDashboard() {
 
           {/* Security Approvals (Stage 2) */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Shield className="h-5 w-5 text-primary" />
-                {t('accessControl.securityApprovals', 'Security Approvals')}
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Shield className="h-5 w-5 text-primary flex-shrink-0" />
+                <span className="truncate">{t('accessControl.securityApprovals', 'Security Approvals')}</span>
                 {pendingSecurityApprovals.length > 0 && (
-                  <Badge variant="default">{pendingSecurityApprovals.length}</Badge>
+                  <Badge variant="default" className="flex-shrink-0">{pendingSecurityApprovals.length}</Badge>
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6">
               <WorkerSecurityApprovalQueue />
             </CardContent>
           </Card>
 
           {/* Gate Pass Approvals */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Package className="h-5 w-5 text-green-600" />
-                {t('accessControl.gatePassApprovals', 'Gate Pass Approvals')}
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Package className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <span className="truncate">{t('accessControl.gatePassApprovals', 'Gate Pass Approvals')}</span>
                 {pendingGatePassApprovals.length > 0 && (
-                  <Badge variant="destructive">{pendingGatePassApprovals.length}</Badge>
+                  <Badge variant="destructive" className="flex-shrink-0">{pendingGatePassApprovals.length}</Badge>
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6">
               <GatePassApprovalQueue passes={pendingGatePassApprovals} />
             </CardContent>
           </Card>
