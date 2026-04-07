@@ -47,6 +47,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
   const projects = allProjects.filter(p => p.status === 'active');
   const { data: existingQRCode, refetch: refetchQRCode } = useWorkerQRCode(worker?.id || "");
   const onboardWorker = useOnboardWorker();
+  const { data: projectAssignment } = useWorkerProjectAssignment(worker?.id);
 
   // Fetch photo URL
   useEffect(() => {
