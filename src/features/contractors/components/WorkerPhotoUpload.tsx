@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Camera, Upload, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,10 +35,14 @@ export function WorkerPhotoUpload({ photoPath, onPhotoChange, workerId, disabled
     }
   }, []);
 
-  // Load photo URL if path exists
-  useState(() => {
-    if (photoPath) fetchPhotoUrl(photoPath);
-  });
+  // Load photo URL if path exists or changes
+  React.useEffect(() => {
+    if (photoPath) {
+      fetchPhotoUrl(photoPath);
+    } else {
+      setPhotoUrl(null);
+    }
+  }, [photoPath, fetchPhotoUrl]);
 
   const handleFileSelect = async (file: File) => {
     if (!profile?.tenant_id) return;

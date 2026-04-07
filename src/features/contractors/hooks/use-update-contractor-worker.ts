@@ -17,7 +17,7 @@ interface UpdateWorkerData {
 
 export function useUpdateContractorWorker() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { t } = useTranslation();
 
   return useMutation({
@@ -38,17 +38,38 @@ export function useUpdateContractorWorker() {
         throw new Error("DUPLICATE_NATIONAL_ID");
       }
 
+      // Get the current worker to detect photo changes
+      const { data: currentWorker } = await supabase
+        .from("contractor_workers")
+        .select("photo_path")
+        .eq("id", data.id)
+        .single();
+
+      // Build update payload
+      const updatePayload: Record<string, unknown> = {
+        company_id: data.company_id,
+        full_name: data.full_name,
+        national_id: data.national_id,
+        nationality: data.nationality,
+        mobile_number: data.mobile_number,
+        preferred_language: data.preferred_language || "en",
+        photo_path: data.photo_path,
+      };
+
+      // Auto-verify photo when admin uploads/changes it
+      const photoChanged = data.photo_path !== currentWorker?.photo_path;
+      if (photoChanged && data.photo_path) {
+        updatePayload.photo_verified_at = new Date().toISOString();
+        updatePayload.photo_verified_by = user?.id || null;
+      } else if (photoChanged && !data.photo_path) {
+        // Photo removed — clear verification
+        updatePayload.photo_verified_at = null;
+        updatePayload.photo_verified_by = null;
+      }
+
       const { data: result, error } = await supabase
         .from("contractor_workers")
-        .update({
-          company_id: data.company_id,
-          full_name: data.full_name,
-          national_id: data.national_id,
-          nationality: data.nationality,
-          mobile_number: data.mobile_number,
-          preferred_language: data.preferred_language || "en",
-          photo_path: data.photo_path,
-        })
+        .update(updatePayload)
         .eq("id", data.id)
         .eq("tenant_id", profile.tenant_id)
         .select()
