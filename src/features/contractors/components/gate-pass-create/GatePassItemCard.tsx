@@ -38,6 +38,7 @@ const UNIT_OPTIONS = [
   { value: "pieces", labelEn: "Pieces", labelAr: "قطعة" },
   { value: "bags", labelEn: "Bags", labelAr: "أكياس" },
   { value: "boxes", labelEn: "Boxes", labelAr: "صناديق" },
+  { value: "units", labelEn: "Units", labelAr: "وحدات" },
   { value: "kg", labelEn: "Kilograms", labelAr: "كيلوغرام" },
   { value: "tons", labelEn: "Tons", labelAr: "طن" },
   { value: "liters", labelEn: "Liters", labelAr: "لتر" },
@@ -64,13 +65,24 @@ export function GatePassItemCard({
     onChange({ ...item, [field]: value });
   };
 
+  const handleQuantityChange = (value: string) => {
+    // Allow only numeric input (digits and decimal point)
+    const cleaned = value.replace(/[^0-9.]/g, "");
+    // Prevent multiple decimal points
+    const parts = cleaned.split(".");
+    const sanitized = parts.length > 2 ? parts[0] + "." + parts.slice(1).join("") : cleaned;
+    updateField("quantity", sanitized);
+  };
+
   const handlePhotosChange = (photos: File[], previewUrls: string[]) => {
     onChange({ ...item, photos, photoPreviewUrls: previewUrls });
   };
 
   const hasPhotos = item.photos.length > 0;
   const hasName = item.item_name.trim().length > 0;
-  const isComplete = hasName && hasPhotos;
+  const hasQty = item.quantity.trim().length > 0 && !isNaN(Number(item.quantity));
+  const hasUnit = item.unit.trim().length > 0;
+  const isComplete = hasName && hasPhotos && hasQty && hasUnit;
   const showPhotoError = hasError && !hasPhotos;
 
   return (
@@ -92,12 +104,10 @@ export function GatePassItemCard({
         )}
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        {/* Drag handle */}
         <div className="text-muted-foreground/50">
           <GripVertical className="h-5 w-5" />
         </div>
 
-        {/* Item number */}
         <div
           className={cn(
             "h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0",
@@ -111,12 +121,11 @@ export function GatePassItemCard({
           {index + 1}
         </div>
 
-        {/* Item summary */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <span className={cn("font-medium truncate", !hasName && "text-muted-foreground")}>
-              {hasName ? item.item_name : t("gatePasses.itemNamePlaceholder", "Item name")}
+              {hasName ? item.item_name : t("gatePasses.itemDescriptionPlaceholder", "Item description")}
             </span>
           </div>
           {item.quantity && (
@@ -126,7 +135,6 @@ export function GatePassItemCard({
           )}
         </div>
 
-        {/* Photo count badge */}
         <div
           className={cn(
             "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
@@ -141,7 +149,6 @@ export function GatePassItemCard({
           {item.photos.length}/{3}
         </div>
 
-        {/* Expand/Collapse */}
         <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
           {isExpanded ? (
             <ChevronUp className="h-4 w-4" />
@@ -155,33 +162,18 @@ export function GatePassItemCard({
       {isExpanded && (
         <div className="px-4 pb-4 space-y-4 border-t bg-muted/30">
           <div className="pt-4 grid gap-4">
-            {/* Item name */}
+            {/* Item Description (was "Item Name") */}
             <div className="space-y-2">
               <Label htmlFor={`item-name-${item.id}`} className="text-sm font-medium">
-                {t("gatePasses.itemName", "Item Name")} *
+                {t("gatePasses.itemDescription", "Item Description")} *
               </Label>
               <Input
                 id={`item-name-${item.id}`}
                 value={item.item_name}
                 onChange={(e) => updateField("item_name", e.target.value)}
-                placeholder={t("gatePasses.itemNamePlaceholder", "Enter item name")}
+                placeholder={t("gatePasses.itemDescriptionPlaceholder", "Enter item description")}
                 disabled={disabled}
                 className={cn("h-12", hasError && !hasName && "border-destructive")}
-              />
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor={`item-desc-${item.id}`} className="text-sm font-medium">
-                {t("gatePasses.itemDescription", "Description")}
-              </Label>
-              <Input
-                id={`item-desc-${item.id}`}
-                value={item.description}
-                onChange={(e) => updateField("description", e.target.value)}
-                placeholder={t("gatePasses.descriptionPlaceholder", "Optional description")}
-                disabled={disabled}
-                className="h-12"
               />
             </div>
 
@@ -189,29 +181,32 @@ export function GatePassItemCard({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor={`item-qty-${item.id}`} className="text-sm font-medium">
-                  {t("gatePasses.quantity", "Quantity")}
+                  {t("gatePasses.quantity", "Qty")} *
                 </Label>
                 <Input
                   id={`item-qty-${item.id}`}
                   type="text"
-                  inputMode="numeric"
+                  inputMode="decimal"
                   value={item.quantity}
-                  onChange={(e) => updateField("quantity", e.target.value)}
+                  onChange={(e) => handleQuantityChange(e.target.value)}
                   placeholder="0"
                   disabled={disabled}
-                  className="h-12"
+                  className={cn("h-12", hasError && !hasQty && "border-destructive")}
                 />
+                {hasError && !hasQty && (
+                  <p className="text-xs text-destructive">{t("gatePasses.qtyRequired", "Quantity is required")}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor={`item-unit-${item.id}`} className="text-sm font-medium">
-                  {t("gatePasses.unit", "Unit")}
+                  {t("gatePasses.unit", "Unit")} *
                 </Label>
                 <Select
                   value={item.unit}
                   onValueChange={(value) => updateField("unit", value)}
                   disabled={disabled}
                 >
-                  <SelectTrigger id={`item-unit-${item.id}`} className="h-12">
+                  <SelectTrigger id={`item-unit-${item.id}`} className={cn("h-12", hasError && !hasUnit && "border-destructive")}>
                     <SelectValue placeholder={t("gatePasses.selectUnit", "Select")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -222,13 +217,16 @@ export function GatePassItemCard({
                     ))}
                   </SelectContent>
                 </Select>
+                {hasError && !hasUnit && (
+                  <p className="text-xs text-destructive">{t("gatePasses.unitRequired", "Unit is required")}</p>
+                )}
               </div>
             </div>
 
             {/* Photos */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">
-                {t("gatePasses.itemPhotos", "Item Photos")} *
+                {t("gatePasses.itemPhotos", "Photos")} *
               </Label>
               <GatePassPhotoCapture
                 photos={item.photos}

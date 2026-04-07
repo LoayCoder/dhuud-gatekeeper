@@ -73,18 +73,21 @@ export interface GatePassItemInput {
 }
 
 export interface CreateGatePassData {
-  project_id?: string; // Optional for internal users
-  company_id?: string; // Optional for internal users
+  project_id?: string;
+  company_id?: string;
   pass_type: string;
   pm_approved_by?: string;
-  approval_from_id?: string; // For internal requests - selected approver
+  approval_from_id?: string;
   is_internal_request?: boolean;
   vehicle_plate?: string;
+  vehicle_plate_letters?: string;
+  vehicle_plate_numbers?: string;
+  plate_photos?: File[];
   driver_name?: string;
   driver_mobile?: string;
-  pass_date?: string; // Pass validity date
-  start_date?: string; // Pass validity start date (future use)
-  end_date?: string; // Pass validity end date (future use)
+  pass_date?: string;
+  start_date?: string;
+  end_date?: string;
   time_window_start?: string;
   time_window_end?: string;
   items: GatePassItemInput[];
