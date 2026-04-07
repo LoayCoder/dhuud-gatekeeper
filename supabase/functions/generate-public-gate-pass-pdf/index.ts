@@ -38,7 +38,7 @@ serve(async (req) => {
     // Get tenant
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
-      .select('id, name, slug, logo_url, brand_color')
+      .select('id, name, slug, logo_light_url, brand_color')
       .eq('slug', tenantSlug)
       .single();
 
