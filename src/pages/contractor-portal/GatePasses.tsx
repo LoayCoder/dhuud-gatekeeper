@@ -11,11 +11,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
-import { GatePassFormDialog, GatePassDetailDialog } from '@/features/contractors';
+import { GatePassDetailDialog } from '@/features/contractors';
+import { GatePassCreateDialog } from '@/features/contractors/components/GatePassCreateDialog';
 import { useContractorPortalData, useContractorGatePasses } from "@/hooks/contractor-management/index";
 import { format } from "date-fns";
 import { ContractorPortalRoute } from "@/components/access-control";
-import { ContractorProject } from "@/features/contractors/hooks/use-contractor-projects";
 import type { MaterialGatePass } from "@/features/contractors/hooks/use-material-gate-passes";
 
 const ALL_STATUSES = "all";
@@ -76,7 +76,6 @@ function ContractorPortalGatePassesContent() {
   }
 
   const activeProjects = projects?.filter(p => p.status === "active") || [];
-  const mappedProjects = activeProjects as unknown as ContractorProject[];
 
   return (
     <ContractorPortalLayout>
@@ -216,16 +215,10 @@ function ContractorPortalGatePassesContent() {
           onOpenChange={(open) => { if (!open) setSelectedPass(null); }}
         />
 
-        {company && (
-          <GatePassFormDialog
-            open={isFormOpen}
-            onOpenChange={setIsFormOpen}
-            projects={mappedProjects}
-            canCreateInternal={false}
-            canCreateExternal={true}
-            contractorCompanyId={company.id}
-          />
-        )}
+        <GatePassCreateDialog
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+        />
       </div>
     </ContractorPortalLayout>
   );

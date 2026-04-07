@@ -8,9 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMyGatePasses } from "@/features/contractors/hooks/use-my-gate-passes";
-import { useContractorProjects } from "@/features/contractors/hooks/use-contractor-projects";
 import { GatePassListTable } from "./GatePassListTable";
-import { GatePassFormDialog } from "./GatePassFormDialog";
+import { GatePassCreateDialog } from "./GatePassCreateDialog";
 
 interface MyGatePassesTabProps {
   onRequestNew?: () => void;
@@ -141,29 +140,10 @@ export function MyGatePassesTab({ onRequestNew }: MyGatePassesTabProps) {
         )}
       </CardContent>
 
-      {/* Create Dialog - projects passed from hook */}
-      <GatePassFormDialogWrapper
+      <GatePassCreateDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
       />
     </Card>
-  );
-}
-
-// Wrapper component to fetch projects
-function GatePassFormDialogWrapper({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const { data: projects = [] } = useContractorProjects({ status: "active" });
-  return (
-    <GatePassFormDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      projects={projects}
-    />
   );
 }
