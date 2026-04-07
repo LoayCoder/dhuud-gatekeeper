@@ -297,6 +297,7 @@ function ContractorPortalWorkersContent() {
               open={isFormOpen}
               onOpenChange={setIsFormOpen}
               companyId={company.id}
+              companyName={company.company_name}
               blacklistedIds={blacklistedIds}
             />
             <ContractorWorkerEditForm
