@@ -74,7 +74,26 @@ export async function createRiskAssessment(data: any, tenantId: string, userId: 
 export async function getRiskAssessment(id: string, tenantId: string) {
   const { data, error } = await supabase.from('risk_assessments').select('id, tenant_id, assessment_number, activity_name, activity_name_ar, activity_type, activity_description, status, location, branch_id, contractor_id, project_id, assessment_date, valid_until, next_review_date, overall_risk_rating, scope_description, boundaries, risk_tolerance, review_frequency, permit_requirements, work_environment, applicable_legislation, management_approval_required, worker_consultation_date, worker_consultation_notes, union_representative_consulted, acceptance_justification, template_id, previous_version_id, revision_reason, created_by, approved_by, approved_at, rejection_reason, revision_number, ai_risk_score, ai_confidence_level, created_at, updated_at, deleted_at').eq('id', id).eq('tenant_id', tenantId).single();
   if (error) throw error;
-  return data;
+
+  // Resolve creator and approver names from profiles
+  let created_by_name: string | null = null;
+  let approved_by_name: string | null = null;
+
+  const profileIds = [data.created_by, data.approved_by].filter(Boolean) as string[];
+  if (profileIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', profileIds);
+    if (profiles) {
+      for (const p of profiles) {
+        if (p.id === data.created_by) created_by_name = p.full_name;
+        if (p.id === data.approved_by) approved_by_name = p.full_name;
+      }
+    }
+  }
+
+  return { ...data, created_by_name, approved_by_name };
 }
 
 export async function updateRiskAssessment(id: string, updates: any) {
