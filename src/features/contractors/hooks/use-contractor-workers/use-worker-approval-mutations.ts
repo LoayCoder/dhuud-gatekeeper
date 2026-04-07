@@ -5,13 +5,22 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { ContractorWorker } from "./types";
 
+interface CreateWorkerData extends Partial<ContractorWorker> {
+    expiry_date?: string | null;
+    medical_certificate_path?: string | null;
+    user_type?: string | null;
+    access_start_date?: string | null;
+    access_end_date?: string | null;
+    project_id?: string;
+}
+
 export function useCreateContractorWorker() {
     const queryClient = useQueryClient();
     const { t } = useTranslation();
     const { profile } = useAuth();
 
     return useMutation({
-        mutationFn: async (data: Partial<ContractorWorker>) => {
+        mutationFn: async (data: CreateWorkerData) => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
             const { data: result, error } = await supabase
@@ -26,6 +35,21 @@ export function useCreateContractorWorker() {
                     preferred_language: data.preferred_language || "en",
                     tenant_id: profile.tenant_id,
                     approval_status: "pending",
+                    id_type: data.id_type || "national_id",
+                    date_of_birth: data.date_of_birth || null,
+                    gender: data.gender || null,
+                    email: data.email || null,
+                    emergency_contact_name: data.emergency_contact_name || null,
+                    emergency_contact_phone: data.emergency_contact_phone || null,
+                    worker_role: data.worker_role || null,
+                    fitness_to_work: data.fitness_to_work || null,
+                    fitness_acknowledged: data.fitness_acknowledged || false,
+                    medical_check_date: data.medical_check_date || null,
+                    fitness_expiry_date: data.fitness_expiry_date || null,
+                    medical_certificate_path: data.medical_certificate_path || null,
+                    training_certifications: data.training_certifications || [],
+                    photo_path: data.photo_path || null,
+                    project_id: data.project_id || null,
                 })
                 .select()
                 .single();

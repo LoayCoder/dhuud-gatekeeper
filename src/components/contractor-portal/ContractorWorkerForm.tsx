@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const workerSchema = z.object({
   full_name: z.string().min(2, "Name is required"),
+  full_name_ar: z.string().optional(),
   id_type: z.string().default("national_id"),
   national_id: z.string().min(5, "ID number is required"),
   date_of_birth: z.string().optional(),
@@ -43,7 +44,6 @@ const workerSchema = z.object({
   expiry_date: z.string().optional(),
 }).refine(
   (data) => {
-    // If "fit", acknowledgment must be checked
     if (data.fitness_to_work === "fit" && !data.fitness_acknowledged) {
       return false;
     }
@@ -86,7 +86,7 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
   const form = useForm<WorkerFormData>({
     resolver: zodResolver(workerSchema),
     defaultValues: {
-      full_name: "", id_type: "national_id", national_id: "", date_of_birth: "",
+      full_name: "", full_name_ar: "", id_type: "national_id", national_id: "", date_of_birth: "",
       gender: "", nationality: "", mobile_number: "", email: "",
       emergency_contact_name: "", emergency_contact_phone: "",
       worker_role: "laborer", preferred_language: "ar",
@@ -184,6 +184,7 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
     await createWorker.mutateAsync({
       company_id: companyId,
       full_name: data.full_name,
+      full_name_ar: data.full_name_ar || null,
       national_id: data.national_id,
       id_type: data.id_type,
       date_of_birth: data.date_of_birth || null,
@@ -255,6 +256,10 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField control={form.control} name="full_name" render={({ field }) => (
                     <FormItem><FormLabel>{t("contractors.workers.name", "Full Name")} *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+
+                  <FormField control={form.control} name="full_name_ar" render={({ field }) => (
+                    <FormItem><FormLabel>{t("contractors.workers.nameAr", "Full Name (Arabic)")}</FormLabel><FormControl><Input {...field} dir="rtl" /></FormControl></FormItem>
                   )} />
 
                   <FormField control={form.control} name="id_type" render={({ field }) => (
