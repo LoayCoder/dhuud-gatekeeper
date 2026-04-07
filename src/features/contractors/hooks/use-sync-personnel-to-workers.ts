@@ -99,6 +99,13 @@ export function useSyncPersonnelToWorkers() {
               mobile_number: siteRep.mobile_number || siteRep.phone,
               nationality: siteRep.nationality || null,
               photo_path: siteRep.photo_path,
+              ...(siteRep.photo_path ? {
+                photo_verified_at: new Date().toISOString(),
+                photo_verified_by: (await supabase.auth.getUser()).data.user?.id || null,
+              } : {
+                photo_verified_at: null,
+                photo_verified_by: null,
+              }),
               approval_status: "approved",
               approved_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
@@ -113,6 +120,7 @@ export function useSyncPersonnelToWorkers() {
           }
         } else {
           // Create new worker
+          const currentUserId = (await supabase.auth.getUser()).data.user?.id || null;
           const { data: newWorker, error: insertError } = await supabase
             .from("contractor_workers")
             .insert({
@@ -123,6 +131,10 @@ export function useSyncPersonnelToWorkers() {
               mobile_number: siteRep.mobile_number || siteRep.phone || "N/A",
               nationality: siteRep.nationality || null,
               photo_path: siteRep.photo_path,
+              ...(siteRep.photo_path ? {
+                photo_verified_at: new Date().toISOString(),
+                photo_verified_by: currentUserId,
+              } : {}),
               worker_type: "site_representative",
               approval_status: "approved",
               approved_at: new Date().toISOString(),
