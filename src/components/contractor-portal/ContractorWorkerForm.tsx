@@ -257,6 +257,10 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
                     <FormItem><FormLabel>{t("contractors.workers.name", "Full Name")} *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
 
+                  <FormField control={form.control} name="full_name_ar" render={({ field }) => (
+                    <FormItem><FormLabel>{t("contractors.workers.nameAr", "Full Name (Arabic)")}</FormLabel><FormControl><Input {...field} dir="rtl" /></FormControl></FormItem>
+                  )} />
+
                   <FormField control={form.control} name="id_type" render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("contractors.workers.idType", "ID Type")} *</FormLabel>
