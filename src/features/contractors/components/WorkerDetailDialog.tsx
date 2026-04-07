@@ -19,6 +19,7 @@ import { WorkerPhotoGate } from "./WorkerPhotoGate";
 import { IDCardActionButton } from '@/features/admin';
 import { useWorkerInductions } from "@/features/contractors/hooks/use-worker-inductions";
 import { useInductionVideos } from "@/features/contractors/hooks/use-induction-videos";
+import { useContractorProjects } from "@/features/contractors/hooks/use-contractor-projects";
 import { useWorkerProjectAssignment } from "@/features/contractors/hooks/use-worker-project-assignment";
 import { useOnboardWorker } from "@/features/contractors/hooks/use-worker-onboarding";
 import { useWorkerQRCode } from "@/features/contractors/hooks/use-worker-qr-codes";
