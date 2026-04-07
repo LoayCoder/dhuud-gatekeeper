@@ -5681,6 +5681,10 @@ export type Database = {
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           expiry_date: string | null
+          fitness_acknowledged: boolean | null
+          fitness_acknowledged_at: string | null
+          fitness_acknowledged_by: string | null
+          fitness_expiry_date: string | null
           fitness_to_work: string | null
           full_name: string
           full_name_ar: string | null
@@ -5690,6 +5694,8 @@ export type Database = {
           id_card_image_path: string | null
           id_card_sent_at: string | null
           id_type: string
+          medical_certificate_path: string | null
+          medical_check_date: string | null
           mobile_number: string
           national_id: string
           nationality: string | null
@@ -5731,6 +5737,10 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           expiry_date?: string | null
+          fitness_acknowledged?: boolean | null
+          fitness_acknowledged_at?: string | null
+          fitness_acknowledged_by?: string | null
+          fitness_expiry_date?: string | null
           fitness_to_work?: string | null
           full_name: string
           full_name_ar?: string | null
@@ -5740,6 +5750,8 @@ export type Database = {
           id_card_image_path?: string | null
           id_card_sent_at?: string | null
           id_type?: string
+          medical_certificate_path?: string | null
+          medical_check_date?: string | null
           mobile_number: string
           national_id: string
           nationality?: string | null
@@ -5781,6 +5793,10 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           expiry_date?: string | null
+          fitness_acknowledged?: boolean | null
+          fitness_acknowledged_at?: string | null
+          fitness_acknowledged_by?: string | null
+          fitness_expiry_date?: string | null
           fitness_to_work?: string | null
           full_name?: string
           full_name_ar?: string | null
@@ -5790,6 +5806,8 @@ export type Database = {
           id_card_image_path?: string | null
           id_card_sent_at?: string | null
           id_type?: string
+          medical_certificate_path?: string | null
+          medical_check_date?: string | null
           mobile_number?: string
           national_id?: string
           nationality?: string | null

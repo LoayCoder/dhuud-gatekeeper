@@ -239,6 +239,10 @@ export function useContractorPortalCreateWorker() {
       emergency_contact_phone?: string | null;
       worker_role?: string;
       fitness_to_work?: string | null;
+      fitness_acknowledged?: boolean;
+      medical_check_date?: string | null;
+      fitness_expiry_date?: string | null;
+      medical_certificate_path?: string | null;
       training_certifications?: string[];
       photo_path?: string | null;
       project_id?: string;
