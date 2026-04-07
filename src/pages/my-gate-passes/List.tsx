@@ -26,7 +26,7 @@ import { Search, Filter, FileKey, Plus, History, Clock, CheckCircle2, XCircle, A
 import { useMyGatePasses } from "@/features/contractors/hooks/use-my-gate-passes";
 import { MaterialGatePass } from "@/features/contractors/hooks/use-material-gate-passes";
 import { GatePassDetailDialog } from '@/features/contractors';
-import { GatePassFormDialog } from '@/features/contractors';
+import { GatePassCreateDialog } from '@/features/contractors/components/GatePassCreateDialog';
 import { GatePassResubmitDialog } from '@/features/contractors';
 import { useContractorProjects } from "@/features/contractors/hooks/use-contractor-projects";
 import { GatePassTypeBadge } from '@/features/contractors';
