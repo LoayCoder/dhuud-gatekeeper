@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GraduationCap } from "lucide-react";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers/types";
+import { TRAINING_CERTS } from "@/features/contractors/constants/worker-constants";
 
 interface WorkerCertificationsCardProps {
   worker: ContractorWorker;
@@ -23,9 +24,14 @@ export function WorkerCertificationsCard({ worker }: WorkerCertificationsCardPro
       </CardHeader>
       <CardContent className="px-4 pb-4">
         <div className="flex flex-wrap gap-2">
-          {worker.training_certifications.map((cert, i) => (
-            <Badge key={i} variant="secondary">{cert}</Badge>
-          ))}
+          {worker.training_certifications.map((cert, i) => {
+            const certDef = TRAINING_CERTS.find(c => c.value === cert);
+            return (
+              <Badge key={i} variant="secondary">
+                {certDef ? t(certDef.labelKey, certDef.fallback) : cert}
+              </Badge>
+            );
+          })}
         </div>
       </CardContent>
     </Card>

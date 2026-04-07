@@ -85,9 +85,26 @@ export function WorkerFormDialog({ open, onOpenChange, worker, companies }: Work
     try {
       if (isEditing && worker) {
         await updateWorker.mutateAsync({
-          id: worker.id, company_id: values.company_id, full_name: values.full_name,
-          national_id: values.national_id, nationality: values.nationality,
-          mobile_number: values.mobile_number, preferred_language: values.preferred_language,
+          id: worker.id,
+          company_id: values.company_id,
+          full_name: values.full_name,
+          full_name_ar: values.full_name_ar || null,
+          id_type: values.id_type,
+          national_id: values.national_id,
+          date_of_birth: values.date_of_birth || null,
+          gender: values.gender || null,
+          nationality: values.nationality,
+          mobile_number: values.mobile_number,
+          email: values.email || null,
+          emergency_contact_name: values.emergency_contact_name || null,
+          emergency_contact_phone: values.emergency_contact_phone || null,
+          worker_role: values.worker_role || null,
+          preferred_language: values.preferred_language,
+          fitness_to_work: values.fitness_to_work || null,
+          fitness_acknowledged: values.fitness_acknowledged,
+          medical_check_date: values.medical_check_date || null,
+          fitness_expiry_date: values.fitness_expiry_date || null,
+          training_certifications: values.training_certifications,
           photo_path: values.photo_path,
         });
         setShowSuccessAlert(true);

@@ -1,7 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers/types";
+import { WORKER_ROLES } from "@/features/contractors/constants/worker-constants";
 
 interface WorkerProfileHeaderProps {
   worker: ContractorWorker;
@@ -9,6 +11,12 @@ interface WorkerProfileHeaderProps {
 }
 
 export function WorkerProfileHeader({ worker, photoUrl }: WorkerProfileHeaderProps) {
+  const { t } = useTranslation();
+
+  const roleLabel = worker.worker_role
+    ? WORKER_ROLES.find(r => r.value === worker.worker_role)
+    : null;
+
   return (
     <>
       <div className="flex items-start gap-4">
@@ -23,7 +31,9 @@ export function WorkerProfileHeader({ worker, photoUrl }: WorkerProfileHeaderPro
           )}
           <p className="text-sm text-muted-foreground">{worker.company?.company_name}</p>
           {worker.worker_role && (
-            <Badge variant="secondary" className="mt-1">{worker.worker_role}</Badge>
+            <Badge variant="secondary" className="mt-1">
+              {roleLabel ? t(roleLabel.labelKey, roleLabel.fallback) : worker.worker_role}
+            </Badge>
           )}
         </div>
       </div>

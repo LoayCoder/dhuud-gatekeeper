@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers/types";
 import { WorkerInfoRow } from "./WorkerInfoRow";
 import { WorkerFitnessBadge } from "./WorkerFitnessBadge";
+import { FITNESS_OPTIONS } from "@/features/contractors/constants/worker-constants";
 
 interface WorkerFitnessCardProps {
   worker: ContractorWorker;

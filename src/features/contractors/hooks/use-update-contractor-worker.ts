@@ -8,10 +8,23 @@ interface UpdateWorkerData {
   id: string;
   company_id: string;
   full_name: string;
+  full_name_ar?: string | null;
+  id_type?: string;
   national_id: string;
+  date_of_birth?: string | null;
+  gender?: string | null;
   nationality?: string | null;
   mobile_number: string;
+  email?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+  worker_role?: string | null;
   preferred_language?: string;
+  fitness_to_work?: string | null;
+  fitness_acknowledged?: boolean;
+  medical_check_date?: string | null;
+  fitness_expiry_date?: string | null;
+  training_certifications?: string[];
   photo_path?: string | null;
 }
 
@@ -45,14 +58,27 @@ export function useUpdateContractorWorker() {
         .eq("id", data.id)
         .single();
 
-      // Build update payload
+      // Build update payload with ALL fields
       const updatePayload: Record<string, unknown> = {
         company_id: data.company_id,
         full_name: data.full_name,
+        full_name_ar: data.full_name_ar ?? null,
+        id_type: data.id_type || "national_id",
         national_id: data.national_id,
+        date_of_birth: data.date_of_birth || null,
+        gender: data.gender || null,
         nationality: data.nationality,
         mobile_number: data.mobile_number,
+        email: data.email || null,
+        emergency_contact_name: data.emergency_contact_name || null,
+        emergency_contact_phone: data.emergency_contact_phone || null,
+        worker_role: data.worker_role || null,
         preferred_language: data.preferred_language || "en",
+        fitness_to_work: data.fitness_to_work || null,
+        fitness_acknowledged: data.fitness_acknowledged ?? false,
+        medical_check_date: data.medical_check_date || null,
+        fitness_expiry_date: data.fitness_expiry_date || null,
+        training_certifications: data.training_certifications || [],
         photo_path: data.photo_path,
       };
 
@@ -62,7 +88,6 @@ export function useUpdateContractorWorker() {
         updatePayload.photo_verified_at = new Date().toISOString();
         updatePayload.photo_verified_by = user?.id || null;
       } else if (photoChanged && !data.photo_path) {
-        // Photo removed — clear verification
         updatePayload.photo_verified_at = null;
         updatePayload.photo_verified_by = null;
       }
