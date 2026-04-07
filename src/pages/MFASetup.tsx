@@ -40,7 +40,7 @@ export default function MFASetup() {
   const isOnline = useOnlineStatus();
   const { tenantName, activeLogoUrl, activeAppIconUrl } = useTheme();
   const { enroll, challenge, verify, isEnabled, refreshFactors, factors } = useMFA();
-  const { refreshProfile } = useAuth();
+  const { refreshProfile, setMfaGracePeriod } = useAuth();
 
   useEffect(() => {
     // Check if this is a tenant-specific MFA verification
