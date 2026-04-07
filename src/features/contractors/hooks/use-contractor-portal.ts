@@ -231,6 +231,16 @@ export function useContractorPortalCreateWorker() {
       nationality?: string;
       mobile_number: string;
       preferred_language?: string;
+      id_type?: string;
+      date_of_birth?: string | null;
+      gender?: string | null;
+      email?: string | null;
+      emergency_contact_name?: string | null;
+      emergency_contact_phone?: string | null;
+      worker_role?: string;
+      fitness_to_work?: string | null;
+      training_certifications?: string[];
+      photo_path?: string | null;
     }) => {
       if (!profile?.tenant_id) throw new Error("No tenant");
 
@@ -242,9 +252,36 @@ export function useContractorPortalCreateWorker() {
           approval_status: "pending",
         })
         .select()
-        .single();
+        .single()
+        .throwOnError();
 
       if (error) throw error;
+
+      // Auto-create PTW access request if worker has PTW certification
+      if (data.training_certifications?.includes("ptw") && result) {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase
+          .from("ptw_access_requests")
+          .insert({
+            tenant_id: profile.tenant_id,
+            worker_id: result.id,
+            company_id: data.company_id,
+            requested_by: user?.id || profile.id,
+            status: "pending",
+          })
+          .throwOnError();
+
+        // Update worker ptw_access_status
+        await supabase
+          .from("contractor_workers")
+          .update({
+            ptw_access_status: "pending",
+            ptw_access_requested_at: new Date().toISOString(),
+          })
+          .eq("id", result.id)
+          .throwOnError();
+      }
+
       return result;
     },
     onSuccess: () => {
