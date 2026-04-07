@@ -5665,6 +5665,8 @@ export type Database = {
       }
       contractor_workers: {
         Row: {
+          access_end_date: string | null
+          access_start_date: string | null
           approval_status: string
           approved_at: string | null
           approved_by: string | null
@@ -5681,6 +5683,8 @@ export type Database = {
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           expiry_date: string | null
+          expiry_final_warning_sent_at: string | null
+          expiry_warning_sent_at: string | null
           fitness_acknowledged: boolean | null
           fitness_acknowledged_at: string | null
           fitness_acknowledged_by: string | null
@@ -5717,10 +5721,13 @@ export type Database = {
           tenant_id: string
           training_certifications: string[]
           updated_at: string
+          user_type: string | null
           worker_role: string
           worker_type: string | null
         }
         Insert: {
+          access_end_date?: string | null
+          access_start_date?: string | null
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
@@ -5737,6 +5744,8 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           expiry_date?: string | null
+          expiry_final_warning_sent_at?: string | null
+          expiry_warning_sent_at?: string | null
           fitness_acknowledged?: boolean | null
           fitness_acknowledged_at?: string | null
           fitness_acknowledged_by?: string | null
@@ -5773,10 +5782,13 @@ export type Database = {
           tenant_id: string
           training_certifications?: string[]
           updated_at?: string
+          user_type?: string | null
           worker_role?: string
           worker_type?: string | null
         }
         Update: {
+          access_end_date?: string | null
+          access_start_date?: string | null
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
@@ -5793,6 +5805,8 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           expiry_date?: string | null
+          expiry_final_warning_sent_at?: string | null
+          expiry_warning_sent_at?: string | null
           fitness_acknowledged?: boolean | null
           fitness_acknowledged_at?: string | null
           fitness_acknowledged_by?: string | null
@@ -5829,6 +5843,7 @@ export type Database = {
           tenant_id?: string
           training_certifications?: string[]
           updated_at?: string
+          user_type?: string | null
           worker_role?: string
           worker_type?: string | null
         }
