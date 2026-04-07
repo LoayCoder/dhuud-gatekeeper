@@ -111,16 +111,18 @@ Deno.serve(async (req) => {
           .from("contractor_workers")
           .select("company_id")
           .eq("id", requestData.workerId)
-          .single();
+          .is("deleted_at", null)
+          .maybeSingle();
 
-        if (workerError || !worker) {
+        if (workerError) {
           console.error("Failed to find worker:", workerError);
-          return new Response(
-            JSON.stringify({ error: "Worker not found" }),
-            { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
         }
-        companyId = worker.company_id;
+        
+        if (!worker) {
+          console.log("Worker not found, trying to find reps via companyId from request");
+        } else {
+          companyId = worker.company_id;
+        }
       }
 
       // Find all contractor representatives for this company
