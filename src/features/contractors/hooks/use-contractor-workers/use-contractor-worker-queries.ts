@@ -23,6 +23,8 @@ export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
           edit_pending_approval, edited_by, edited_at,
           photo_verified_by, photo_verified_at,
           security_approval_status,
+          fitness_to_work, fitness_acknowledged, medical_check_date,
+          fitness_expiry_date, medical_certificate_path, training_certifications,
           company:contractor_companies(company_name, assigned_branch_id),
           latest_induction:worker_inductions(id, status, expires_at)
         `)
