@@ -1,70 +1,73 @@
 
-
-# Add Project Assignment + Validation to Worker Form
+# Contractor User Automation & Access Control
 
 ## Overview
+Automate contractor worker lifecycle: auto-assign type, enforce project linkage, cap access at 3 months, auto-deactivate on expiry, and send expiry alerts.
 
-Add a company-filtered project assignment dropdown, real-time duplicate national ID validation, and auto-managed system fields to the worker registration form.
+---
 
-## Changes
+## Phase 1: Form & Database Logic
 
-### 1. Database: Add `project_id` column to `contractor_workers`
+### 1.1 Database Migration
+- Add columns to `contractor_workers`:
+  - `user_type` (text, default `'short_term_contractor'`)
+  - `access_start_date` (date) — set on approval
+  - `access_end_date` (date) — computed: MIN(project end date, approval + 3 months)
+  - `approved_at` (timestamptz) — when worker is approved
+  - `expiry_warning_sent_at` (timestamptz) — track 7-day warning
+  - `expiry_final_warning_sent_at` (timestamptz) — track 1-day warning
 
-Add an optional `project_id` FK column so workers are linked to a project at creation time. This is separate from the `project_worker_assignments` junction table (used for multi-project assignments later) — this captures the **primary** project during registration.
+### 1.2 Form Updates (`ContractorWorkerForm.tsx`)
+- Auto-set `user_type = "short_term_contractor"` (read-only, visible but disabled)
+- When project is selected, auto-fill:
+  - Start Date = project's `start_date`
+  - End Date = MIN(project's `end_date`, today + 3 months)
+- Show info alert explaining the 3-month access cap rule
+- Prevent manual override of user_type field
 
-```sql
-ALTER TABLE public.contractor_workers 
-  ADD COLUMN project_id uuid REFERENCES public.contractor_projects(id);
-```
+### 1.3 Database Trigger
+- Create trigger `trg_enforce_contractor_access_duration` on `contractor_workers`:
+  - On INSERT/UPDATE: if `user_type = 'short_term_contractor'`, enforce `access_end_date <= approved_at + 3 months`
+  - On status change to `approved`: auto-set `approved_at = now()`, compute `access_end_date`
 
-### 2. Update `ContractorWorkerForm.tsx`
+---
 
-**Project Assignment dropdown (Work Details section):**
-- Import `useContractorPortalProjects` from the existing portal hook
-- Fetch projects filtered by `companyId` (already implemented in that hook)
-- Render a `Select` dropdown showing only active/planned projects for the worker's company
-- Auto-set `expiry_date` from selected project's `end_date`
-- Make project assignment required in the schema
+## Phase 2: Auto-Deactivation & Notifications
 
-**Real-time duplicate National ID check:**
-- Import `useCheckDuplicateNationalId` 
-- On national ID blur/change (debounced), check for duplicates
-- Show inline error if duplicate found (alongside blacklist check)
+### 2.1 Edge Function: `check-contractor-expiry`
+- Scheduled via pg_cron (runs daily)
+- Queries workers where `access_end_date <= now()` and status is still active
+- Auto-sets status to `suspended` / `inactive`
+- Sends 7-day warning (where `access_end_date - 7 days <= now()` and no warning sent)
+- Sends 1-day warning (where `access_end_date - 1 day <= now()` and no final warning sent)
+- Notifications via existing WhatsApp + in-app notification system
 
-**Schema updates:**
-- Add `project_id: z.string().min(1, "Project is required")` to the zod schema
-- Make `worker_role` required (already has default, add `.min(1)`)
+### 2.2 Notification Recipients
+- Worker (via mobile_number / WhatsApp)
+- Company representative / supervisor (via existing contractor_representatives)
 
-**Auto-managed fields (hidden, set in mutation):**
-- `created_by` — already handled via `submitted_by` in the hook
-- `created_at` — database default
-- Worker ID — auto-generated UUID
-- Status — set to "pending" by the mutation
+---
 
-### 3. Update `useContractorPortalCreateWorker` in `use-contractor-portal.ts`
+## Phase 3: Hook & Mutation Updates
 
-- Accept `project_id` in mutation data type
-- Include `project_id` in insert payload
-- After worker creation, auto-insert into `project_worker_assignments` to create the relational link
-- Set `submitted_by` from `auth.getUser()` (already partially done)
+### 3.1 Update `use-contractor-portal.ts`
+- Include `user_type`, `access_start_date`, `access_end_date` in create mutation
+- On approval action, auto-compute `access_end_date = MIN(project.end_date, approved_at + 90 days)`
 
-### 4. Pass projects data to `Workers.tsx`
+---
 
-- The `useContractorPortalData` already provides projects — no change needed
-- Pass `companyId` to form (already done)
-
-### Files Modified
+## Files Modified
 
 | File | Change |
 |------|--------|
-| Migration SQL | Add `project_id` column to `contractor_workers` |
-| `ContractorWorkerForm.tsx` | Add project dropdown, duplicate ID validation, make project/role required |
-| `use-contractor-portal.ts` | Accept `project_id`, auto-create `project_worker_assignments` row |
+| Migration SQL | Add access control columns + trigger |
+| `ContractorWorkerForm.tsx` | Auto user type, project date sync, 3-month cap display |
+| `use-contractor-portal.ts` | Include new fields in mutation |
+| `supabase/functions/check-contractor-expiry/index.ts` | New Edge Function for auto-deactivation + alerts |
+| pg_cron job | Schedule daily expiry check |
 
-### Technical Notes
-
-- Project dropdown uses existing `useContractorPortalProjects(companyId)` — strict company isolation already enforced by the query's `.eq("company_id", companyId)`
-- Duplicate check uses existing `useCheckDuplicateNationalId()` with debounce
-- Mobile responsiveness maintained via existing `grid-cols-1 md:grid-cols-2` pattern
-- Expiry date auto-populated from project `end_date` but editable
-
+## Technical Notes
+- 3-month cap is enforced both in UI (form) and DB (trigger) — defense in depth
+- Access end date = `LEAST(project_end_date, approved_at + interval '3 months')`
+- Auto-deactivation is idempotent (safe to re-run)
+- Existing WhatsApp utility (`wasender-whatsapp.ts`) used for notifications
