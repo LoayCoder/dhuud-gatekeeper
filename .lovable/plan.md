@@ -1,61 +1,38 @@
 
 
-# Fix: "User Already Registered" Error on Invitation Signup
+# Fix: "Skip for now" Button Does Nothing on MFA Setup Page
 
 ## Root Cause
 
-The user `l.r.love07@gmail.com` exists in the authentication system (`auth.users`) but has **no profile record** in any tenant. The `check-user-exists` function relies on finding a profile to detect auth existence, and its fallback `listUsers` call doesn't actually filter by email — it just fetches page 1 with 1 result, which is a random user. So the function incorrectly returns `exists_in_auth: false`, routing the user to `/signup`. Signup then fails because the email is already taken in auth.
+React state race condition. The "Skip for now" button:
+1. Upserts a grace period record to the database (works fine)
+2. Calls `await refreshProfile()` which internally calls `setMfaGraceUntil(...)` (a React setState)
+3. Immediately calls `navigate('/')`
+
+But React state updates from `refreshProfile` haven't propagated yet when navigation happens. The `ProtectedRoute` on `/` still sees `mfaGraceActive = false` and redirects right back to `/mfa-setup` — making it appear as if nothing happened.
 
 ## Fix
 
-**File:** `supabase/functions/check-user-exists/index.ts`
+**File:** `src/pages/MFASetup.tsx` (lines 361-396)
 
-Replace the broken fallback logic (lines 140-165) with a direct approach: use `supabase.auth.admin.getUserById()` is not possible without an ID, so instead use a raw REST call to the GoTrue admin API to look up the user by email. Alternatively, the simplest fix is to use the `listUsers` endpoint properly or query `auth.users` via a service-role SQL RPC.
+Instead of relying on `refreshProfile` to update React state before navigation, update the `mfaGraceUntil` state directly in the AuthContext before navigating. Two changes:
 
-The most reliable fix: after the profile lookup fails, query `auth.users` directly using the admin client's `listUsers` and filter the result by email, OR better yet, use the admin `getUserByEmail` pattern (not natively supported by the JS SDK, but achievable via a direct REST call to `/auth/v1/admin/users?email=...`).
+1. **Expose `setMfaGraceUntil` from AuthContext** (or add a helper `setGracePeriod` method) so MFASetup can set the grace state synchronously before navigating.
 
-### Concrete Change
+2. **In the "Skip for now" handler**, after the database upsert, call the new setter directly, then navigate. This ensures `ProtectedRoute` sees the updated state immediately.
 
-In the fallback section (lines 138-166), replace the broken `listUsers` logic with a direct GoTrue admin API call:
+**File:** `src/contexts/AuthContext.tsx`
+- Add `setMfaGracePeriod: (until: Date) => void` to the context type and value
+- This function sets `mfaGraceUntil` state directly
 
-```typescript
-// Fallback: check auth.users directly via GoTrue admin API
-const response = await fetch(
-  `${supabaseUrl}/auth/v1/admin/users?page=1&per_page=1&filter=${encodeURIComponent(email.toLowerCase())}`,
-  {
-    headers: {
-      'Authorization': `Bearer ${serviceRoleKey}`,
-      'apikey': serviceRoleKey,
-    }
-  }
-);
-if (response.ok) {
-  const userData = await response.json();
-  const matchedUser = userData.users?.find(
-    (u: any) => u.email?.toLowerCase() === email.toLowerCase()
-  );
-  if (matchedUser) {
-    existsInAuth = true;
-    authUserId = matchedUser.id;
-  }
-}
-```
-
-This ensures that even when a user has no profile but exists in auth, the function correctly returns `should_login: true` instead of `should_signup: true`.
-
-## Also Needed: Handle Login for Profile-less Users
-
-Since this user has no profile in the tenant, after login the system needs to create their profile and link them to the contractor representative record. The Signup page already has this logic, so we should ensure the Login flow also handles "existing auth user, new tenant profile" by checking if a profile exists post-login and creating one if needed (using the invitation metadata).
-
-**File:** `src/pages/Login.tsx` (or the post-login hook)
-- After successful login, check if the user has a profile in the invitation's tenant
-- If not, create one using the stored invitation metadata (company_id, representative_id)
-- Assign the `contractor_site_rep` role
+**File:** `src/pages/MFASetup.tsx`
+- Import and use `setMfaGracePeriod(graceUntilDate)` before `navigate('/')`
+- Remove reliance on `refreshProfile` for the grace period state update
 
 ## Summary
 
 | File | Change |
 |------|--------|
-| `supabase/functions/check-user-exists/index.ts` | Fix auth lookup to use GoTrue admin API filter instead of broken `listUsers` |
-| Post-login flow | Ensure profile + role creation for auth-existing users entering a new tenant via invitation |
+| `src/contexts/AuthContext.tsx` | Expose `setMfaGracePeriod` helper in context |
+| `src/pages/MFASetup.tsx` | Use direct state setter before navigating after skip |
 
