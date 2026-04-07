@@ -5,3 +5,4 @@ export type { PassTypeValue } from "./PassTypeSelector";
 export { GatePassItemCard } from "./GatePassItemCard";
 export type { GatePassItemData } from "./GatePassItemCard";
 export { GatePassPhotoCapture } from "./GatePassPhotoCapture";
+export { ApprovalFlowPreview } from "./ApprovalFlowPreview";

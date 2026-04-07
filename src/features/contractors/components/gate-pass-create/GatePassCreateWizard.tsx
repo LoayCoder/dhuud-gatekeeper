@@ -1,9 +1,9 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, Plus, Calendar as CalendarIcon, Clock, Truck, AlertTriangle, Loader2, CheckCircle2, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Plus, Calendar as CalendarIcon, Clock, Truck, AlertTriangle, Loader2, CheckCircle2, User, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,14 +24,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { useCreateGatePass } from "@/features/contractors/hooks/use-material-gate-passes";
 import { useGolfClubMgmtApprovers } from "@/features/contractors/hooks/use-golf-club-mgmt-approvers";
 import { useAutoResolveApprover } from "@/features/contractors/hooks/use-auto-resolve-approver";
+import { DhuudPhoneInput } from "@/components/ui/phone-input";
 import { WizardProgressIndicator } from "./WizardProgressIndicator";
 import { PassTypeSelector, PassTypeValue } from "./PassTypeSelector";
 import { GatePassItemCard, GatePassItemData } from "./GatePassItemCard";
+import { GatePassPhotoCapture } from "./GatePassPhotoCapture";
+import { ApprovalFlowPreview } from "./ApprovalFlowPreview";
 
 const createEmptyItem = (): GatePassItemData => ({
   id: crypto.randomUUID(),
@@ -57,20 +59,26 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
-
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  // Form state
+  // Form state - Step 1
   const [passType, setPassType] = useState<PassTypeValue>("in_out");
   const [passDate, setPassDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [timeWindowStart, setTimeWindowStart] = useState("");
   const [timeWindowEnd, setTimeWindowEnd] = useState("");
   const [approverId, setApproverId] = useState("");
+
+  // Form state - Step 2
   const [items, setItems] = useState<GatePassItemData[]>([createEmptyItem()]);
-  const [vehiclePlate, setVehiclePlate] = useState("");
+
+  // Form state - Step 3: Driver & Vehicle
   const [driverName, setDriverName] = useState("");
   const [driverMobile, setDriverMobile] = useState("");
+  const [plateLetters, setPlateLetters] = useState("");
+  const [plateNumbers, setPlateNumbers] = useState("");
+  const [platePhoto, setPlatePhoto] = useState<File[]>([]);
+  const [platePhotoUrls, setPlatePhotoUrls] = useState<string[]>([]);
 
   // API hooks
   const createGatePass = useCreateGatePass();
@@ -91,11 +99,20 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
 
   // Step labels
   const stepLabels = [
-    t("gatePasses.wizard.stepBasics", "Basics"),
+    t("gatePasses.wizard.stepBasics", "Request Info"),
     t("gatePasses.wizard.stepItems", "Items"),
-    t("gatePasses.wizard.stepVehicle", "Vehicle"),
+    t("gatePasses.wizard.stepVehicle", "Driver & Vehicle"),
     t("gatePasses.wizard.stepReview", "Review"),
   ];
+
+  // Date range warning
+  const daysDiff = differenceInDays(endDate, passDate);
+  const showDurationWarning = daysDiff > 1;
+
+  // Composed vehicle plate for backward compat
+  const composedPlate = plateLetters || plateNumbers 
+    ? `${plateLetters} ${plateNumbers}`.trim() 
+    : "";
 
   // Validation
   const step1Valid = useMemo(() => {
@@ -103,10 +120,20 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
   }, [passType, passDate, approverId]);
 
   const step2Valid = useMemo(() => {
-    return items.every((item) => item.item_name.trim() && item.photos.length > 0);
+    return items.every((item) => 
+      item.item_name.trim() && 
+      item.quantity.trim() && !isNaN(Number(item.quantity)) && Number(item.quantity) > 0 &&
+      item.unit.trim() &&
+      item.photos.length > 0
+    );
   }, [items]);
 
-  const step3Valid = true; // Vehicle info is optional
+  const step3Valid = useMemo(() => {
+    // Plate letters + numbers + plate photo are required
+    return plateLetters.trim().length > 0 && 
+           plateNumbers.trim().length > 0 && 
+           platePhoto.length > 0;
+  }, [plateLetters, plateNumbers, platePhoto]);
 
   const canProceed = useMemo(() => {
     if (currentStep === 0) return step1Valid;
@@ -121,7 +148,6 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
     if (canProceed) {
       setShowValidationErrors(false);
       setCurrentStep((prev) => Math.min(prev + 1, 3));
-      // Haptic feedback
       if (navigator.vibrate) navigator.vibrate(10);
     }
   };
@@ -154,7 +180,7 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
     }
   };
 
-  // Handle date changes for multi-day
+  // Handle date changes
   const isDateRange = passType === "in_out";
   const handlePassDateChange = (d: Date) => {
     setPassDate(d);
@@ -163,10 +189,21 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
     }
   };
 
+  // Plate handlers
+  const handlePlateLettersChange = (value: string) => {
+    const cleaned = value.replace(/[^a-zA-Zأ-ي]/g, "").slice(0, 3).toUpperCase();
+    setPlateLetters(cleaned);
+  };
+
+  const handlePlateNumbersChange = (value: string) => {
+    const cleaned = value.replace(/[^0-9]/g, "").slice(0, 4);
+    setPlateNumbers(cleaned);
+  };
+
   // Submit
   const handleSubmitClick = () => {
     setShowValidationErrors(true);
-    if (!step1Valid || !step2Valid) {
+    if (!step1Valid || !step2Valid || !step3Valid) {
       toast.error(t("gatePasses.wizard.validationError", "Please complete all required fields"));
       return;
     }
@@ -179,7 +216,10 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
     try {
       await createGatePass.mutateAsync({
         pass_type: passType,
-        vehicle_plate: vehiclePlate || undefined,
+        vehicle_plate: composedPlate || undefined,
+        vehicle_plate_letters: plateLetters || undefined,
+        vehicle_plate_numbers: plateNumbers || undefined,
+        plate_photos: platePhoto.length > 0 ? platePhoto : undefined,
         driver_name: driverName || undefined,
         driver_mobile: driverMobile || undefined,
         pass_date: format(passDate, "yyyy-MM-dd"),
@@ -211,7 +251,7 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
     }
   };
 
-  // Get approver name for review - prefer auto-resolved, fallback to manual selection
+  // Get approver name for review
   const selectedApprover = isAutoResolved && autoResolvedApprover 
     ? autoResolvedApprover 
     : approvers?.find((a) => a.id === approverId);
@@ -237,7 +277,7 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
       {/* Content */}
       <ScrollArea className="flex-1">
         <div className="p-4 pb-32">
-          {/* Step 1: Basic Info */}
+          {/* Step 1: Request Info */}
           {currentStep === 0 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <Card>
@@ -276,7 +316,6 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Date pickers */}
                   <div className="space-y-2">
                     <Label>{isDateRange ? t("gatePasses.startDate", "Start Date") : t("gatePasses.passDate", "Pass Date")} *</Label>
                     <Popover>
@@ -327,6 +366,16 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                     </div>
                   )}
 
+                  {/* Duration warning */}
+                  {showDurationWarning && (
+                    <Alert variant="default" className="border-warning bg-warning/10">
+                      <Info className="h-4 w-4 text-warning" />
+                      <AlertDescription className="text-warning text-sm">
+                        {t("gatePasses.durationWarning", "Material passes are typically limited to 1 day. This pass spans {{days}} days.", { days: daysDiff + 1 })}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
                   {/* Time window */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
@@ -369,7 +418,7 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                     }
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   {loadingAutoApprover ? (
                     <div className="flex items-center gap-2 h-12 px-3 border rounded-md bg-muted/50">
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -419,6 +468,14 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                   {showValidationErrors && !approverId && !isAutoResolved && (
                     <p className="text-sm text-destructive mt-2">{t("gatePasses.approverRequired", "Please select an approver")}</p>
                   )}
+
+                  {/* Approval Flow Preview */}
+                  {approverId && selectedApprover && (
+                    <ApprovalFlowPreview 
+                      approverName={selectedApprover.full_name} 
+                      approverTitle={'job_title' in selectedApprover ? selectedApprover.job_title : null} 
+                    />
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -431,7 +488,7 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                 <div>
                   <h2 className="text-lg font-semibold">{t("gatePasses.wizard.addItems", "Add Items")}</h2>
                   <p className="text-sm text-muted-foreground">
-                    {t("gatePasses.wizard.addItemsDesc", "Add items with photos")}
+                    {t("gatePasses.wizard.addItemsDesc", "Add items with description, quantity, unit, and photos")}
                   </p>
                 </div>
                 <Badge variant="outline">{items.length} {t("gatePasses.items", "items")}</Badge>
@@ -446,7 +503,12 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                     onChange={(updatedItem) => updateItem(item.id, updatedItem)}
                     onRemove={() => removeItem(item.id)}
                     canRemove={items.length > 1}
-                    hasError={showValidationErrors && (!item.item_name.trim() || item.photos.length === 0)}
+                    hasError={showValidationErrors && (
+                      !item.item_name.trim() || 
+                      !item.quantity.trim() || isNaN(Number(item.quantity)) || Number(item.quantity) <= 0 ||
+                      !item.unit.trim() ||
+                      item.photos.length === 0
+                    )}
                   />
                 ))}
               </div>
@@ -458,29 +520,18 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
             </div>
           )}
 
-          {/* Step 3: Vehicle (Optional) */}
+          {/* Step 3: Driver & Vehicle */}
           {currentStep === 2 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+              {/* Driver Details */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Truck className="h-5 w-5" />
-                    {t("gatePasses.wizard.vehicleInfo", "Vehicle & Driver")}
+                    <User className="h-5 w-5" />
+                    {t("gatePasses.wizard.driverDetails", "Driver Details")}
                   </CardTitle>
-                  <CardDescription>
-                    {t("gatePasses.wizard.vehicleInfoDesc", "Optional - Fill if known")}
-                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>{t("gatePasses.vehiclePlate", "Vehicle Plate")}</Label>
-                    <Input
-                      value={vehiclePlate}
-                      onChange={(e) => setVehiclePlate(e.target.value)}
-                      placeholder={t("gatePasses.vehiclePlatePlaceholder", "e.g. ABC 1234")}
-                      className="h-12"
-                    />
-                  </div>
                   <div className="space-y-2">
                     <Label>{t("gatePasses.driverName", "Driver Name")}</Label>
                     <Input
@@ -492,13 +543,88 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                   </div>
                   <div className="space-y-2">
                     <Label>{t("gatePasses.driverMobile", "Driver Mobile")}</Label>
-                    <Input
-                      type="tel"
+                    <DhuudPhoneInput
                       value={driverMobile}
-                      onChange={(e) => setDriverMobile(e.target.value)}
-                      placeholder={t("gatePasses.driverMobilePlaceholder", "+966 5XX XXX XXXX")}
-                      className="h-12"
-                      dir="ltr"
+                      onChange={(v) => setDriverMobile(v || "")}
+                      placeholder={t("gatePasses.driverMobilePlaceholder", "5XX XXX XXXX")}
+                      defaultCountry="SA"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Vehicle Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Truck className="h-5 w-5" />
+                    {t("gatePasses.wizard.vehicleDetails", "Vehicle Details")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Structured plate input */}
+                  <div className="space-y-2">
+                    <Label>{t("gatePasses.vehiclePlate", "Vehicle Plate")} *</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Input
+                          value={plateLetters}
+                          onChange={(e) => handlePlateLettersChange(e.target.value)}
+                          placeholder="ABC"
+                          maxLength={3}
+                          className={cn("h-12 text-center text-lg font-bold tracking-widest", 
+                            showValidationErrors && !plateLetters.trim() && "border-destructive"
+                          )}
+                          dir="ltr"
+                        />
+                        <p className="text-xs text-muted-foreground text-center">
+                          {t("gatePasses.plateLetters", "Letters")}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <Input
+                          value={plateNumbers}
+                          onChange={(e) => handlePlateNumbersChange(e.target.value)}
+                          placeholder="1234"
+                          maxLength={4}
+                          inputMode="numeric"
+                          className={cn("h-12 text-center text-lg font-bold tracking-widest",
+                            showValidationErrors && !plateNumbers.trim() && "border-destructive"
+                          )}
+                          dir="ltr"
+                        />
+                        <p className="text-xs text-muted-foreground text-center">
+                          {t("gatePasses.plateNumbers", "Numbers")}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Plate preview */}
+                    {(plateLetters || plateNumbers) && (
+                      <div className="flex items-center justify-center py-2">
+                        <div className="px-4 py-2 bg-muted rounded-lg border-2 border-border">
+                          <span className="text-lg font-bold tracking-wider" dir="ltr">
+                            {plateLetters} {plateNumbers}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {showValidationErrors && (!plateLetters.trim() || !plateNumbers.trim()) && (
+                      <p className="text-xs text-destructive">{t("gatePasses.plateRequired", "Vehicle plate is required")}</p>
+                    )}
+                  </div>
+
+                  {/* Plate image upload */}
+                  <div className="space-y-2">
+                    <Label>{t("gatePasses.plateImage", "Vehicle Plate Image")} *</Label>
+                    <GatePassPhotoCapture
+                      photos={platePhoto}
+                      photoPreviewUrls={platePhotoUrls}
+                      onPhotosChange={(photos, urls) => {
+                        setPlatePhoto(photos);
+                        setPlatePhotoUrls(urls);
+                      }}
+                      error={showValidationErrors && platePhoto.length === 0}
+                      maxPhotos={1}
                     />
                   </div>
                 </CardContent>
@@ -511,7 +637,7 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <h2 className="text-lg font-semibold">{t("gatePasses.wizard.review", "Review & Submit")}</h2>
 
-              {/* Summary Cards */}
+              {/* Request Info Summary */}
               <Card>
                 <CardContent className="pt-4 space-y-3">
                   <div className="flex justify-between items-center">
@@ -520,7 +646,10 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">{t("gatePasses.passDate", "Date")}</span>
-                    <span className="font-medium">{format(passDate, "PPP")}</span>
+                    <span className="font-medium">
+                      {format(passDate, "PPP")}
+                      {isDateRange && endDate > passDate && ` → ${format(endDate, "PPP")}`}
+                    </span>
                   </div>
                   {timeWindowStart && timeWindowEnd && (
                     <div className="flex justify-between items-center">
@@ -548,46 +677,58 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{item.item_name}</p>
-                        {item.quantity && (
-                          <p className="text-xs text-muted-foreground">{item.quantity} {item.unit}</p>
-                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {item.quantity} {item.unit} • {item.photos.length} 📷
+                        </p>
                       </div>
-                      <Badge variant="secondary">{item.photos.length} 📷</Badge>
                     </div>
                   ))}
                 </CardContent>
               </Card>
 
-              {/* Vehicle summary */}
-              {(vehiclePlate || driverName) && (
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Truck className="h-4 w-4" />
-                      {t("gatePasses.vehicle", "Vehicle")}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-1 text-sm">
-                    {vehiclePlate && (
-                      <p>
-                        <span className="text-muted-foreground">{t("gatePasses.plate", "Plate")}:</span>{" "}
-                        <span className="font-medium">{vehiclePlate}</span>
-                      </p>
-                    )}
-                    {driverName && (
-                      <p>
-                        <span className="text-muted-foreground">{t("gatePasses.driver", "Driver")}:</span>{" "}
-                        <span className="font-medium">{driverName}</span>
-                      </p>
-                    )}
-                    {driverMobile && (
-                      <p>
-                        <span className="text-muted-foreground">{t("gatePasses.mobile", "Mobile")}:</span>{" "}
-                        <span className="font-medium" dir="ltr">{driverMobile}</span>
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+              {/* Driver & Vehicle summary */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Truck className="h-4 w-4" />
+                    {t("gatePasses.wizard.driverVehicle", "Driver & Vehicle")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {driverName && (
+                    <p>
+                      <span className="text-muted-foreground">{t("gatePasses.driver", "Driver")}:</span>{" "}
+                      <span className="font-medium">{driverName}</span>
+                    </p>
+                  )}
+                  {driverMobile && (
+                    <p>
+                      <span className="text-muted-foreground">{t("gatePasses.mobile", "Mobile")}:</span>{" "}
+                      <span className="font-medium" dir="ltr">{driverMobile}</span>
+                    </p>
+                  )}
+                  <p>
+                    <span className="text-muted-foreground">{t("gatePasses.plate", "Plate")}:</span>{" "}
+                    <span className="font-bold" dir="ltr">{plateLetters} {plateNumbers}</span>
+                  </p>
+                  {platePhotoUrls.length > 0 && (
+                    <div className="pt-1">
+                      <img 
+                        src={platePhotoUrls[0]} 
+                        alt="Vehicle plate" 
+                        className="h-16 w-auto rounded-md border object-cover" 
+                      />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Approval flow preview summary */}
+              {selectedApprover && (
+                <ApprovalFlowPreview 
+                  approverName={selectedApprover.full_name} 
+                  approverTitle={'job_title' in selectedApprover ? selectedApprover.job_title : null} 
+                />
               )}
             </div>
           )}
@@ -642,6 +783,8 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                 {isDateRange && ` → ${format(endDate, "PPP")}`}
                 {" • "}
                 <strong>{t("gatePasses.items", "Items")}:</strong> {items.length}
+                {" • "}
+                <strong>{t("gatePasses.plate", "Plate")}:</strong> {plateLetters} {plateNumbers}
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
