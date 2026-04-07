@@ -21,6 +21,7 @@ export const workerFormSchema = z.object({
   fitness_expiry_date: z.string().optional(),
   training_certifications: z.array(z.string()).default([]),
   project_id: z.string().optional(),
+  expiry_date: z.string().optional(),
   photo_path: z.string().nullable(),
 });
 
