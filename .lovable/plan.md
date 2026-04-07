@@ -1,27 +1,23 @@
 
 
-# Improve Items & Photos Tab UI
+# Fix Gate Pass Duplicate Submission
 
 ## Problem
-The current Items & Photos tab shows items in a flat, minimal style — just a name and a small badge. It lacks visual hierarchy, item numbering, and clear separation of item details (description, serial number, quantity/unit).
+Creating a gate pass produces two records (e.g., DP-2026-00002 and DP-2026-00003). Two root causes:
+
+1. **No ref-based submission guard**: `isSubmitting` is React state (async). Between `setIsSubmitting(true)` and the re-render, a second invocation can slip through — especially on slow networks or double-tap on mobile.
+2. **Duplicate success toast**: Both `useMutation.onSuccess` (line 157 in hook) and `handleConfirmedSubmit` (line 243 in wizard) fire `toast.success`, confirming the mutation fires but also making it seem like two events happened.
 
 ## Changes
 
-### File: `src/features/contractors/components/GatePassDetailDialog/tabs/ItemsPhotosTab.tsx`
+### File: `GatePassCreateWizard.tsx`
+- Add a `useRef(false)` guard (`submittingRef.current`) checked at the top of `handleConfirmedSubmit`. Set it `true` before calling `mutateAsync`, and only reset on error.
+- Remove the duplicate `toast.success` call on line 243 (the hook's `onSuccess` already shows one).
+- Disable the AlertDialog's submit button with `disabled={isSubmitting}` to prevent double-click.
 
-**Redesign each item card to be more structured and informative:**
+### File: `use-material-gate-passes.ts` (useCreateGatePass)
+- No changes needed — the hook's `onSuccess` toast is the canonical one.
 
-1. **Add item index number** — Show `#1`, `#2`, etc. as a numbered indicator on each item for clarity
-2. **Structured layout with labeled fields** — Instead of inline text, show labeled rows:
-   - **Item Name** — prominent, bold
-   - **Description** — if present, shown below name with label
-   - **Serial Number** — shown with `SN:` label in a subtle mono style
-   - **Quantity & Unit** — displayed as a clearly labeled field (e.g., "Qty: 22 tons") with a colored badge
-3. **Better visual card styling** — Use a slightly elevated card with a left accent border and better spacing
-4. **Item summary header** — Show total item count in the section header (e.g., "Items (3)")
-5. **Photo count per item** — Show photo count label (e.g., "2 Photos") before the photo grid
-6. **Empty state polish** — Cleaner empty state with icon
-
-### No other files changed
-This is a UI-only improvement to the existing component. No data fetching or backend changes needed.
+### Summary
+Two small edits in one file: add a ref guard + remove duplicate toast. No DB or backend changes.
 
