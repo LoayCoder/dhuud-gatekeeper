@@ -648,3 +648,56 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
   );
 }
 
+/* ── Detail View Helpers ── */
+
+function DetailInfoRow({ icon: Icon, label, value, mono, dir }: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string; value: string; mono?: boolean; dir?: string;
+}) {
+  return (
+    <div>
+      <span className="text-muted-foreground flex items-center gap-1">
+        <Icon className="h-3 w-3" /> {label}
+      </span>
+      <p className={`mt-0.5 font-medium ${mono ? "font-mono text-xs" : ""}`} dir={dir}>{value}</p>
+    </div>
+  );
+}
+
+function DetailFitnessBadge({ status }: { status?: string | null }) {
+  if (!status || status === "pending") {
+    return <Badge variant="outline" className="text-warning border-warning/30">Pending</Badge>;
+  }
+  if (status === "fit") {
+    return <Badge variant="outline" className="text-success border-success/30">Fit</Badge>;
+  }
+  return <Badge variant="destructive">{status}</Badge>;
+}
+
+function getComplianceFlags(worker: ContractorWorker, t: (k: string, d: string) => string) {
+  const flags: { level: "critical" | "warning"; icon: React.ComponentType<{ className?: string }>; message: string }[] = [];
+
+  if (!worker.photo_path) {
+    flags.push({ level: "warning", icon: Camera, message: t("contractors.workers.missingPhoto", "Worker photo is missing") });
+  }
+
+  if (!worker.fitness_acknowledged) {
+    flags.push({ level: "warning", icon: HeartPulse, message: t("contractors.workers.fitnessNotAcknowledged", "Fitness to work not acknowledged") });
+  }
+
+  if (worker.fitness_to_work === "not_fit") {
+    flags.push({ level: "critical", icon: HeartPulse, message: t("contractors.workers.notFitToWork", "Worker is NOT fit to work") });
+  }
+
+  if (worker.fitness_expiry_date) {
+    const expiry = new Date(worker.fitness_expiry_date);
+    if (expiry < new Date()) {
+      flags.push({ level: "critical", icon: FileWarning, message: t("contractors.workers.medicalExpired", "Medical fitness has expired") });
+    }
+  } else if (!worker.medical_check_date) {
+    flags.push({ level: "warning", icon: FileWarning, message: t("contractors.workers.noMedicalRecord", "No medical check on record") });
+  }
+
+  return flags;
+}
+
