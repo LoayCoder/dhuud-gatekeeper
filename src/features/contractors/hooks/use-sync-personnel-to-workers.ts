@@ -175,6 +175,13 @@ export function useSyncPersonnelToWorkers() {
               mobile_number: officer.mobile_number || officer.phone,
               nationality: officer.nationality || null,
               photo_path: officer.photo_path,
+              ...(officer.photo_path ? {
+                photo_verified_at: new Date().toISOString(),
+                photo_verified_by: (await supabase.auth.getUser()).data.user?.id || null,
+              } : {
+                photo_verified_at: null,
+                photo_verified_by: null,
+              }),
               worker_type: "safety_officer",
               safety_officer_id: officer.id || null,
               approval_status: "approved",
@@ -191,6 +198,7 @@ export function useSyncPersonnelToWorkers() {
           results.officerWorkerIds.push(workerId);
         } else {
           // Create new worker
+          const officerUserId = (await supabase.auth.getUser()).data.user?.id || null;
           const { data: newWorker, error: insertError } = await supabase
             .from("contractor_workers")
             .insert({
@@ -201,6 +209,10 @@ export function useSyncPersonnelToWorkers() {
               mobile_number: officer.mobile_number || officer.phone || "N/A",
               nationality: officer.nationality || null,
               photo_path: officer.photo_path,
+              ...(officer.photo_path ? {
+                photo_verified_at: new Date().toISOString(),
+                photo_verified_by: officerUserId,
+              } : {}),
               worker_type: "safety_officer",
               safety_officer_id: officer.id || null,
               approval_status: "approved",
