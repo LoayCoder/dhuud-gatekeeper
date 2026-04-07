@@ -44,6 +44,7 @@ export interface ContractorProjectFilters {
   search?: string;
   companyId?: string;
   status?: string;
+  projectType?: string;
 }
 
 export function useContractorProjects(filters: ContractorProjectFilters = {}) {
@@ -79,6 +80,7 @@ export function useContractorProjects(filters: ContractorProjectFilters = {}) {
       }
       if (filters.companyId) query = query.eq("company_id", filters.companyId);
       if (filters.status) query = query.eq("status", filters.status);
+      if (filters.projectType) query = query.eq("project_type", filters.projectType);
 
       const { data, error } = await query;
       if (error) throw error;
