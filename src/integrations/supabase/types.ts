@@ -18683,6 +18683,7 @@ export type Database = {
       risk_assessment_team: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           id: string
           is_required: boolean | null
           risk_assessment_id: string
@@ -18697,6 +18698,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_required?: boolean | null
           risk_assessment_id: string
@@ -18711,6 +18713,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_required?: boolean | null
           risk_assessment_id?: string
