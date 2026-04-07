@@ -1,12 +1,15 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { HeartPulse, Calendar, Check, X } from "lucide-react";
+import { HeartPulse, Calendar, Check, X, FileDown } from "lucide-react";
 import { format } from "date-fns";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers/types";
 import { WorkerInfoRow } from "./WorkerInfoRow";
 import { WorkerFitnessBadge } from "./WorkerFitnessBadge";
 import { FITNESS_OPTIONS } from "@/features/contractors/constants/worker-constants";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface WorkerFitnessCardProps {
   worker: ContractorWorker;
@@ -14,6 +17,19 @@ interface WorkerFitnessCardProps {
 
 export function WorkerFitnessCard({ worker }: WorkerFitnessCardProps) {
   const { t } = useTranslation();
+
+  const handleDownloadCert = async () => {
+    if (!worker.medical_certificate_path) return;
+    try {
+      const { data, error } = await supabase.storage
+        .from("contractor-documents")
+        .createSignedUrl(worker.medical_certificate_path, 3600);
+      if (error) throw error;
+      if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+    } catch {
+      toast.error(t("contractors.workers.certDownloadFailed", "Failed to download certificate"));
+    }
+  };
 
   return (
     <Card>
@@ -56,6 +72,14 @@ export function WorkerFitnessCard({ worker }: WorkerFitnessCardProps) {
             value={worker.fitness_expiry_date ? format(new Date(worker.fitness_expiry_date), "PP") : "-"}
           />
         </div>
+        {worker.medical_certificate_path && (
+          <div className="pt-2 border-t">
+            <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleDownloadCert}>
+              <FileDown className="h-4 w-4" />
+              {t("contractors.workers.downloadMedicalCert", "Download Medical Certificate")}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -165,15 +165,20 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
 
     setUploadingCert(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profileData } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id ?? "").single();
+      const tenantId = profileData?.tenant_id;
+      if (!tenantId) throw new Error("No tenant");
       const ext = file.name.split('.').pop();
-      const path = `medical-certificates/${companyId}/${Date.now()}.${ext}`;
+      const path = `${tenantId}/medical-certificates/${Date.now()}.${ext}`;
       const { error } = await supabase.storage
         .from("contractor-documents")
         .upload(path, file, { upsert: true });
-      
-      if (!error) {
-        setMedicalCertPath(path);
-      }
+      if (error) throw error;
+      setMedicalCertPath(path);
+    } catch {
+      const { toast } = await import("sonner");
+      toast.error(t("contractors.workers.certUploadFailed", "Failed to upload medical certificate"));
     } finally {
       setUploadingCert(false);
     }
