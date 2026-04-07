@@ -40,7 +40,7 @@ export default function MFASetup() {
   const isOnline = useOnlineStatus();
   const { tenantName, activeLogoUrl, activeAppIconUrl } = useTheme();
   const { enroll, challenge, verify, isEnabled, refreshFactors, factors } = useMFA();
-  const { refreshProfile } = useAuth();
+  const { refreshProfile, setMfaGracePeriod } = useAuth();
 
   useEffect(() => {
     // Check if this is a tenant-specific MFA verification
@@ -386,8 +386,8 @@ export default function MFASetup() {
                           title: t('mfaSetup.skippedTitle', 'Skipped for now'),
                           description: t('mfaSetup.skippedDescription', 'You can set up 2FA later from your profile settings.'),
                         });
-                        // Refresh auth context so ProtectedRoute sees the grace period
-                        await refreshProfile();
+                        // Set grace period directly in context to avoid race condition
+                        setMfaGracePeriod(new Date(Date.now() + 24 * 60 * 60 * 1000));
                         navigate('/');
                       } catch (err) {
                         console.error('Failed to set MFA grace period:', err);
