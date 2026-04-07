@@ -196,10 +196,14 @@ Deno.serve(async (req) => {
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('tenant_id, is_deleted, is_active, deleted_at')
-      .eq('id', user.id)
-      .single();
+      .eq('user_id', user.id)
+      .is('deleted_at', null)
+      .maybeSingle();
 
     if (!profile?.tenant_id) {
+      // For newly invited users whose profile hasn't been created yet,
+      // return a soft error instead of blocking
+      console.warn('User profile not found for session management:', user.id);
       return new Response(
         JSON.stringify({ success: false, error: 'User profile not found' }),
         { status: 400, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }
