@@ -145,7 +145,6 @@ export function useDeptGatePassStats() {
             const pendingStatuses = [
                 "pending_dept_approval",
                 "pending_contractor_approval",
-                "pending_club_mgmt_ack",
                 "pending_security_approval",
                 "pending_dept_ack",
                 "pending_pm_approval",

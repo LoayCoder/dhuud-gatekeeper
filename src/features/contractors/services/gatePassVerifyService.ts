@@ -52,7 +52,7 @@ export const verifyPassByReference = async (referenceNumber: string, tenantId: s
     if (pass.status !== 'approved' && pass.status !== 'used') {
         const statusMessages: Record<string, string> = {
             pending_contractor_approval: 'Gate pass pending contractor consultant approval',
-            pending_club_mgmt_ack: 'Gate pass pending Golf Club Management acknowledgment',
+            pending_club_mgmt_ack: 'Gate pass pending management acknowledgment (legacy)',
             pending_dept_ack: 'Gate pass pending department acknowledgment',
             pending_dept_approval: 'Gate pass pending department approval',
             pending_security_approval: 'Gate pass pending security approval',
