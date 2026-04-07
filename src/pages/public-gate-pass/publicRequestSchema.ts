@@ -25,7 +25,7 @@ export const publicRequestSchema = z.object({
       'Invalid phone number'
     ),
   requesterEmail: z.string().email('Invalid email').optional().or(z.literal('')),
-  requesterCompany: z.string().optional().or(z.literal('')),
+  requesterCompany: z.string().min(2, 'Company name must be at least 2 characters'),
   branchId: z.string().optional().or(z.literal('')),
 
   // Step 2 — Vehicle

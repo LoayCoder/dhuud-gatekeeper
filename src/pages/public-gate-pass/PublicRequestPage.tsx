@@ -512,7 +512,7 @@ export default function PublicRequestPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>{isRTL ? "الشركة (اختياري)" : "Company (Optional)"}</Label>
+                  <Label>{isRTL ? "الشركة" : "Company"} *</Label>
                   <div className="relative">
                     <Building2 className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -520,6 +520,11 @@ export default function PublicRequestPage() {
                       className="ps-10"
                       placeholder={isRTL ? "اسم الشركة" : "Company Name"}
                     />
+                    {form.formState.errors.requesterCompany && (
+                      <p className="text-xs text-destructive mt-1">
+                        {isRTL ? "اسم الشركة مطلوب" : String(form.formState.errors.requesterCompany.message)}
+                      </p>
+                    )}
                   </div>
                 </div>
                 {branches && branches.length > 0 && (
