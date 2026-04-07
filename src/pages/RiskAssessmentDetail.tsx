@@ -230,19 +230,19 @@ export default function RiskAssessmentDetail() {
             </p>
           ) : (
             <div className="space-y-2">
-              {team.map((member: Record<string, unknown>) => (
-                <div key={String(member.id)} className="flex items-center justify-between border rounded-lg p-3">
+              {team.map((member: RiskAssessmentTeamMember) => (
+                <div key={member.id} className="flex items-center justify-between border rounded-lg p-3">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                      {String(member.member_name || "?").charAt(0).toUpperCase()}
+                      {(member.role || "?").charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{String(member.member_name || "—")}</p>
-                      {member.role && <p className="text-xs text-muted-foreground">{String(member.role)}</p>}
+                      <p className="text-sm font-medium">{member.role || "—"}</p>
+                      {member.role_ar && <p className="text-xs text-muted-foreground">{member.role_ar}</p>}
                     </div>
                   </div>
                   {member.signed_at ? (
-                    <Badge variant="outline" className="text-green-600 border-green-300">
+                    <Badge variant="outline" className="text-success border-success/30">
                       {direction === "rtl" ? "تم التوقيع" : "Signed"}
                     </Badge>
                   ) : (
