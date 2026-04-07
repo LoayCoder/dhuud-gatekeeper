@@ -18969,7 +18969,7 @@ export type Database = {
             foreignKeyName: "risk_assessments_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "ptw_projects"
+            referencedRelation: "contractor_projects"
             referencedColumns: ["id"]
           },
           {
