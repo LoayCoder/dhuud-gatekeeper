@@ -66,11 +66,22 @@ export function WorkerSecurityApprovalQueue() {
     }
   };
 
-  const getWorkerPhotoUrl = (photoPath: string | null) => {
-    if (!photoPath) return null;
-    const { data } = supabase.storage.from("contractor-documents").getPublicUrl(photoPath);
-    return data?.publicUrl;
-  };
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      if (!pendingWorkers) return;
+      const urls: Record<string, string> = {};
+      for (const w of pendingWorkers) {
+        if (w.photo_path) {
+          const { data } = await supabase.storage.from("worker-photos").createSignedUrl(w.photo_path, 3600);
+          if (data?.signedUrl) urls[w.id] = data.signedUrl;
+        }
+      }
+      setPhotoUrls(urls);
+    };
+    fetchPhotos();
+  }, [pendingWorkers]);
 
   const getWorkerInitials = (name: string) => {
     return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -144,7 +155,7 @@ export function WorkerSecurityApprovalQueue() {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={getWorkerPhotoUrl(worker.photo_path) || undefined} />
+                    <AvatarImage src={photoUrls[worker.id] || undefined} />
                     <AvatarFallback>{getWorkerInitials(worker.full_name)}</AvatarFallback>
                   </Avatar>
                   <div>

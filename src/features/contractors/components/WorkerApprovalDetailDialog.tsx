@@ -40,8 +40,8 @@ export function WorkerApprovalDetailDialog({
   useEffect(() => {
     const fetchPhoto = async () => {
       if (!worker?.photo_path) { setPhotoUrl(null); return; }
-      const { data } = supabase.storage.from("contractor-photos").getPublicUrl(worker.photo_path);
-      setPhotoUrl(data?.publicUrl || null);
+      const { data } = await supabase.storage.from("worker-photos").createSignedUrl(worker.photo_path, 3600);
+      setPhotoUrl(data?.signedUrl || null);
     };
     fetchPhoto();
   }, [worker?.photo_path]);
