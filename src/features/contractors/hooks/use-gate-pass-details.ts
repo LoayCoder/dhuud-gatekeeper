@@ -42,6 +42,8 @@ export interface GatePassDetailData {
   material_description: string;
   quantity: string | null;
   vehicle_plate: string | null;
+  vehicle_plate_letters?: string | null;
+  vehicle_plate_numbers?: string | null;
   driver_name: string | null;
   driver_mobile: string | null;
   pass_date: string;
