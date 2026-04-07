@@ -1,73 +1,125 @@
 
-# Contractor User Automation & Access Control
+
+# Enhance Gate Pass Create Form
 
 ## Overview
-Automate contractor worker lifecycle: auto-assign type, enforce project linkage, cap access at 3 months, auto-deactivate on expiry, and send expiry alerts.
 
----
+Rebuild the Gate Pass creation wizard with fixed items section, structured vehicle plate, driver details with phone input, approval flow preview, and improved validation/UX.
 
-## Phase 1: Form & Database Logic
+## Changes
 
-### 1.1 Database Migration
-- Add columns to `contractor_workers`:
-  - `user_type` (text, default `'short_term_contractor'`)
-  - `access_start_date` (date) — set on approval
-  - `access_end_date` (date) — computed: MIN(project end date, approval + 3 months)
-  - `approved_at` (timestamptz) — when worker is approved
-  - `expiry_warning_sent_at` (timestamptz) — track 7-day warning
-  - `expiry_final_warning_sent_at` (timestamptz) — track 1-day warning
+### 1. Fix & Enhance Items Section (`GatePassItemCard.tsx`)
 
-### 1.2 Form Updates (`ContractorWorkerForm.tsx`)
-- Auto-set `user_type = "short_term_contractor"` (read-only, visible but disabled)
-- When project is selected, auto-fill:
-  - Start Date = project's `start_date`
-  - End Date = MIN(project's `end_date`, today + 3 months)
-- Show info alert explaining the 3-month access cap rule
-- Prevent manual override of user_type field
+- Rename "Item Name" label → "Item Description" (swap roles: `item_name` field becomes the description field, or relabel)
+- Make Qty field required with numeric-only validation (`inputMode="decimal"`, reject non-numeric)
+- Make Unit required (dropdown: Bags, Units, Tons, Pieces, etc.)
+- Make Photos mandatory — already enforced but strengthen error display
+- Add per-field error highlighting for incomplete items
+- Update validation in `GatePassCreateWizard.tsx`:
+  ```
+  step2Valid = items.every(item => 
+    item.item_name.trim() && 
+    item.quantity.trim() && !isNaN(Number(item.quantity)) &&
+    item.unit.trim() && 
+    item.photos.length > 0
+  )
+  ```
 
-### 1.3 Database Trigger
-- Create trigger `trg_enforce_contractor_access_duration` on `contractor_workers`:
-  - On INSERT/UPDATE: if `user_type = 'short_term_contractor'`, enforce `access_end_date <= approved_at + 3 months`
-  - On status change to `approved`: auto-set `approved_at = now()`, compute `access_end_date`
+### 2. Driver Details Section (New — Step 3)
 
----
+Restructure Step 3 "Vehicle & Driver" into two clear sub-sections:
 
-## Phase 2: Auto-Deactivation & Notifications
+**Driver Details card:**
+- Driver Name (text input)
+- Driver Mobile (`DhuudPhoneInput` with SA default country code, replacing plain `Input type="tel"`)
 
-### 2.1 Edge Function: `check-contractor-expiry`
-- Scheduled via pg_cron (runs daily)
-- Queries workers where `access_end_date <= now()` and status is still active
-- Auto-sets status to `suspended` / `inactive`
-- Sends 7-day warning (where `access_end_date - 7 days <= now()` and no warning sent)
-- Sends 1-day warning (where `access_end_date - 1 day <= now()` and no final warning sent)
-- Notifications via existing WhatsApp + in-app notification system
+**Vehicle Details card:**
+- Vehicle Plate split into structured inputs:
+  - Letters field (text, max 3 chars, placeholder "ABC")
+  - Numbers field (numeric, max 4 digits, placeholder "1234")
+  - Combined display preview below
+- Vehicle Plate Image Upload (mandatory — reuse `GatePassPhotoCapture` with `maxPhotos={1}`)
 
-### 2.2 Notification Recipients
-- Worker (via mobile_number / WhatsApp)
-- Company representative / supervisor (via existing contractor_representatives)
+State additions in wizard:
+```
+const [plateLetters, setPlateLetters] = useState("")
+const [plateNumbers, setPlateNumbers] = useState("")
+const [platePhoto, setPlatePhoto] = useState<File[]>([])
+const [platePhotoUrls, setPlatePhotoUrls] = useState<string[]>([])
+```
 
----
+Update `step3Valid` to require plate letters + numbers + plate photo.
 
-## Phase 3: Hook & Mutation Updates
+### 3. Update Create Service (`materialGatePassCreateService.ts`)
 
-### 3.1 Update `use-contractor-portal.ts`
-- Include `user_type`, `access_start_date`, `access_end_date` in create mutation
-- On approval action, auto-compute `access_end_date = MIN(project.end_date, approved_at + 90 days)`
+- Pass `vehicle_plate_letters` and `vehicle_plate_numbers` (columns already exist in DB)
+- Compose `vehicle_plate` as `${letters} ${numbers}` for backward compatibility
+- Upload plate photo to `gate-pass-photos` bucket under `{tenantId}/{passId}/plate/`
+- Store plate photo path (add to `gate_pass_photos` table with a `photo_type: 'plate'` distinction or store in notes)
 
----
+### 4. Update `CreateGatePassData` interface
 
-## Files Modified
+Add fields:
+```typescript
+vehicle_plate_letters?: string;
+vehicle_plate_numbers?: string;
+plate_photos?: File[];
+```
+
+### 5. Approval Flow Preview (Step 1 — after approver selection)
+
+After the approver is selected/auto-resolved, display an approval flow preview card:
+
+```
+Approval Flow Preview:
+  Step 1: Department Manager ← (selected approver)
+  Step 2: Club Management Acknowledgment
+  Step 3: Security Supervisor
+  ✓ Approved → QR Generated
+```
+
+This is a **read-only display** based on the known internal workflow:
+- `pending_dept_approval` → `pending_club_mgmt_ack` → `pending_security_approval` → `approved`
+
+Implementation: A simple `ApprovalFlowPreview` component showing the static 3-step chain with the selected approver name at step 1.
+
+### 6. Date Validation Enhancement
+
+- Already enforces `endDate >= passDate` via calendar `disabled` prop
+- Add explicit warning if date range > 1 day for material passes
+- Show policy note: "Material passes are typically limited to 1 day"
+
+### 7. Wizard Step Restructure
+
+Keep 4 steps but rename for clarity:
+```
+Step 1: Request Info (type, dates, approver + flow preview)
+Step 2: Items (description, qty, unit, photos)
+Step 3: Driver & Vehicle (driver name/mobile, plate letters/numbers, plate image)
+Step 4: Review & Submit
+```
+
+### 8. Review Step Enhancement
+
+- Show all new fields: structured plate, driver mobile, plate image thumbnail
+- Show approval flow preview summary
+- Items show description + qty + unit + photo count
+
+### Files Modified
 
 | File | Change |
 |------|--------|
-| Migration SQL | Add access control columns + trigger |
-| `ContractorWorkerForm.tsx` | Auto user type, project date sync, 3-month cap display |
-| `use-contractor-portal.ts` | Include new fields in mutation |
-| `supabase/functions/check-contractor-expiry/index.ts` | New Edge Function for auto-deactivation + alerts |
-| pg_cron job | Schedule daily expiry check |
+| `GatePassCreateWizard.tsx` | Add structured plate state, DhuudPhoneInput for driver mobile, plate photo, approval flow preview, enhanced validation |
+| `GatePassItemCard.tsx` | Rename "Item Name" → "Item Description", make qty/unit required, numeric validation |
+| `materialGatePassCreateService.ts` | Pass `vehicle_plate_letters`, `vehicle_plate_numbers`, upload plate photo |
+| `use-material-gate-passes.ts` | Update `CreateGatePassData` interface with new fields |
+| New: `ApprovalFlowPreview.tsx` | Static approval chain display component |
 
-## Technical Notes
-- 3-month cap is enforced both in UI (form) and DB (trigger) — defense in depth
-- Access end date = `LEAST(project_end_date, approved_at + interval '3 months')`
-- Auto-deactivation is idempotent (safe to re-run)
-- Existing WhatsApp utility (`wasender-whatsapp.ts`) used for notifications
+### Technical Notes
+
+- DB already has `vehicle_plate_letters` and `vehicle_plate_numbers` columns — no migration needed
+- `DhuudPhoneInput` exists at `src/components/ui/phone-input.tsx`
+- Approval chain is hardcoded display based on existing `approve_gate_pass_unified` RPC logic (dept → club mgmt → security)
+- No DB migration required — all columns exist
+- Mobile responsive via existing `grid-cols-1 md:grid-cols-2` pattern
+
