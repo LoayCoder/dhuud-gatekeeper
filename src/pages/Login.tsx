@@ -349,33 +349,39 @@ export default function Login() {
 
       // Only block if we got a definitive "not allowed" response
       if (accessValidation && accessValidation.allowed === false) {
-        console.warn('User access validation failed:', accessValidation.reason || accessError?.message);
-        await supabase.auth.signOut();
+        // If this is an invitation flow and the reason is just "no profile yet",
+        // don't block — let the profile creation code below handle it
+        if (isCodeValidated && accessValidation.reason === 'profile_not_found') {
+          console.log('Profile not found but invitation flow active — will create profile below');
+        } else {
+          console.warn('User access validation failed:', accessValidation.reason || accessError?.message);
+          await supabase.auth.signOut();
 
-        const reason = accessValidation.reason;
-        let errorTitle = t('auth.error');
-        let errorDesc = t('auth.accessDenied', 'Access denied');
+          const reason = accessValidation.reason;
+          let errorTitle = t('auth.error');
+          let errorDesc = t('auth.accessDenied', 'Access denied');
 
-        if (reason === 'user_deleted') {
-          errorTitle = t('auth.accountDeleted', 'Account Deactivated');
-          errorDesc = t('auth.accountDeletedDesc', 'Your account has been deactivated. Please contact your administrator.');
-        } else if (reason === 'user_inactive') {
-          errorTitle = t('auth.accountInactive', 'Account Inactive');
-          errorDesc = t('auth.accountInactiveDesc', 'Your account is currently inactive. Please contact your administrator.');
-        } else if (reason === 'profile_not_found') {
-          errorTitle = t('auth.noProfile', 'No Access');
-          errorDesc = t('auth.noProfileDesc', 'You do not have access to this organization.');
+          if (reason === 'user_deleted') {
+            errorTitle = t('auth.accountDeleted', 'Account Deactivated');
+            errorDesc = t('auth.accountDeletedDesc', 'Your account has been deactivated. Please contact your administrator.');
+          } else if (reason === 'user_inactive') {
+            errorTitle = t('auth.accountInactive', 'Account Inactive');
+            errorDesc = t('auth.accountInactiveDesc', 'Your account is currently inactive. Please contact your administrator.');
+          } else if (reason === 'profile_not_found') {
+            errorTitle = t('auth.noProfile', 'No Access');
+            errorDesc = t('auth.noProfileDesc', 'You do not have access to this organization.');
+          }
+
+          toast({
+            title: errorTitle,
+            description: errorDesc,
+            variant: 'destructive',
+            duration: 10000,
+          });
+
+          setLoading(false);
+          return;
         }
-
-        toast({
-          title: errorTitle,
-          description: errorDesc,
-          variant: 'destructive',
-          duration: 10000,
-        });
-
-        setLoading(false);
-        return;
       }
 
       if (accessError) {
@@ -507,6 +513,23 @@ export default function Login() {
               const metadata = inviteData.metadata || {};
               const isContractorRep = metadata.type === 'contractor_representative';
 
+              // Fetch phone number from representative record if missing
+              let phoneNumber = metadata.phone_number || null;
+              if (!phoneNumber && metadata.representative_id) {
+                try {
+                  const { data: repData } = await supabase
+                    .from('contractor_representatives')
+                    .select('mobile_number')
+                    .eq('id', metadata.representative_id)
+                    .maybeSingle();
+                  if (repData?.mobile_number) {
+                    phoneNumber = repData.mobile_number;
+                  }
+                } catch (e) {
+                  logger.warn('Failed to fetch representative phone:', e);
+                }
+              }
+
               // Create profile
               const profileData = {
                 id: user.id,
@@ -516,7 +539,7 @@ export default function Login() {
                 has_login: true,
                 is_active: true,
                 full_name: metadata.full_name || null,
-                phone_number: metadata.phone_number || null,
+                phone_number: phoneNumber,
                 user_type: metadata.user_type || null,
                 employee_id: metadata.employee_id || null,
                 job_title: metadata.job_title || null,
@@ -570,6 +593,16 @@ export default function Login() {
                   .eq('code', codeToLookup);
 
                 logger.debug('Profile and roles created for existing auth user via invitation');
+
+                // Navigate after successful profile creation
+                hasNavigated.current = true;
+                if (isContractorRep) {
+                  navigate('/contractor-portal');
+                } else {
+                  navigate(returnTo);
+                }
+                setLoading(false);
+                return;
               }
             }
           }
