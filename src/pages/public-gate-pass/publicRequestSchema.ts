@@ -6,8 +6,8 @@ export const gatePassItemSchema = z.object({
   sr_number: z.string(),
   item_name: z.string().min(1, 'Item name is required'),
   description: z.string(),
-  quantity: z.string(),
-  unit: z.string(),
+  quantity: z.string().min(1, 'Quantity is required'),
+  unit: z.string().min(1, 'Unit is required'),
   photo: z.any().refine(
     (val) => val instanceof File,
     'Photo is required'

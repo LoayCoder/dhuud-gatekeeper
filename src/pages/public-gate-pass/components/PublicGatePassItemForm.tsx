@@ -51,6 +51,8 @@ export function PublicGatePassItemForm({
 
   const hasPhotoError = showValidation && !item.photo;
   const hasNameError = showValidation && !item.item_name.trim();
+  const hasQtyError = showValidation && !item.quantity.trim();
+  const hasUnitError = showValidation && !item.unit;
 
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,7 +93,7 @@ export function PublicGatePassItemForm({
 
     <Card className={cn(
       "relative transition-all overflow-hidden border-l-4",
-      hasPhotoError || hasNameError ? "border-l-destructive border-t-destructive/50 border-r-destructive/50 border-b-destructive/50" : "border-l-primary"
+      hasPhotoError || hasNameError || hasQtyError || hasUnitError ? "border-l-destructive border-t-destructive/50 border-r-destructive/50 border-b-destructive/50" : "border-l-primary"
     )}>
       <CardContent className="pt-4 space-y-4">
         {/* Item Header with Remove Button */}
@@ -219,7 +221,7 @@ export function PublicGatePassItemForm({
           {/* Item Name */}
           <div className="space-y-1.5">
             <Label className={cn("text-xs font-semibold", hasNameError && "text-destructive")}>
-              {isRTL ? "اسم البند / المادة" : "Item Name / Material"} *
+              {isRTL ? "وصف البند" : "Item Description"} *
             </Label>
             <Input
               placeholder={isRTL ? "مثال: كابلات نحاسية" : "e.g., Copper Cables"}
@@ -251,22 +253,35 @@ export function PublicGatePassItemForm({
           {/* 3-Col Layout for details */}
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs">{isRTL ? "الكمية" : "Quantity"}</Label>
+              <Label className={cn("text-xs", hasQtyError && "text-destructive font-semibold")}>
+                {isRTL ? "الكمية" : "Qty"} *
+              </Label>
               <Input
                 placeholder="0"
-                type="number"
+                type="text"
+                inputMode="decimal"
                 value={item.quantity}
-                onChange={(e) => onUpdate(index, "quantity", e.target.value)}
-                className="text-center"
+                onChange={(e) => {
+                  const sanitized = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+                  onUpdate(index, "quantity", sanitized);
+                }}
+                className={cn("text-center", hasQtyError && "border-destructive bg-destructive/5")}
               />
+              {hasQtyError && (
+                <span className="text-[10px] text-destructive">
+                  {isRTL ? "مطلوب" : "Required"}
+                </span>
+              )}
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">{isRTL ? "الوحدة" : "Unit"}</Label>
+              <Label className={cn("text-xs", hasUnitError && "text-destructive font-semibold")}>
+                {isRTL ? "الوحدة" : "Unit"} *
+              </Label>
               <Select
                 value={item.unit}
                 onValueChange={(value) => onUpdate(index, "unit", value)}
               >
-                <SelectTrigger className="text-center">
+                <SelectTrigger className={cn("text-center", hasUnitError && "border-destructive bg-destructive/5")}>
                   <SelectValue placeholder={isRTL ? "اختر" : "Select"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -280,8 +295,16 @@ export function PublicGatePassItemForm({
                   <SelectItem value="PAIR">{isRTL ? "زوج" : "PAIR"}</SelectItem>
                   <SelectItem value="PACK">{isRTL ? "حزمة" : "PACK"}</SelectItem>
                   <SelectItem value="DOZ">{isRTL ? "دزينة" : "DOZ"}</SelectItem>
+                  <SelectItem value="BAGS">{isRTL ? "أكياس" : "Bags"}</SelectItem>
+                  <SelectItem value="TONS">{isRTL ? "أطنان" : "Tons"}</SelectItem>
+                  <SelectItem value="PALLETS">{isRTL ? "طبليات" : "Pallets"}</SelectItem>
                 </SelectContent>
               </Select>
+              {hasUnitError && (
+                <span className="text-[10px] text-destructive">
+                  {isRTL ? "مطلوب" : "Required"}
+                </span>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">{isRTL ? "الرقم التسلسلي" : "Serial #"}</Label>
