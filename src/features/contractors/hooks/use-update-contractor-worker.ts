@@ -26,6 +26,7 @@ interface UpdateWorkerData {
   fitness_expiry_date?: string | null;
   training_certifications?: string[];
   photo_path?: string | null;
+  medical_certificate_path?: string | null;
 }
 
 export function useUpdateContractorWorker() {
