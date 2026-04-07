@@ -130,8 +130,8 @@ serve(async (req) => {
         // Header with tenant branding
         {
           columns: [
-            tenant.logo_light_url
-              ? { image: tenant.logo_light_url, width: 100 }
+            logoDataUrl
+              ? { image: logoDataUrl, width: 100 }
               : { text: tenant.name, style: 'tenantName' },
             {
               text: 'MATERIAL GATE PASS',
