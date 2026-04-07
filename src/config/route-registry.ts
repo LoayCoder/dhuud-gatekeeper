@@ -483,11 +483,11 @@ export const routeRegistry: RouteDefinition[] = [
     sortOrder: 3,
   },
   {
-    path: "/inspections/my-actions",
+    path: "/incidents/my-actions",
     menuCode: "my_inspection_actions",
     title: { en: "My Inspection Actions", ar: "إجراءات التفتيش الخاصة بي" },
     icon: ClipboardCheck,
-    component: lazyWithRetry(() => import("@/pages/inspections/MyInspectionActions")),
+    component: lazyWithRetry(() => import("@/pages/incidents/MyActions")),
     protection: "protected",
     parentCode: "audits_inspections",
     sortOrder: 4,

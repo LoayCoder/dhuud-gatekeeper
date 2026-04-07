@@ -4,10 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Package, ImageIcon, Hash, BoxIcon } from "lucide-react";
 import { GatePassPhoto as GatePassPhotoComponent } from "@/components/ui/gate-pass-photo";
-import {
-  useGatePassItems,
-  useGatePassPhotos,
-} from "@/features/contractors/hooks/use-gate-pass-details";
+
 
 export function ItemsPhotosTab({
   items,

@@ -326,16 +326,4 @@ export async function sendEmailToMany(
   return sendEmail({ to, subject, html, module, tenantName });
 }
 
-/**
- * Legacy-compatible function name for backward compatibility
- * @deprecated Use sendEmail or sendEmailToOne instead
- */
-export async function sendEmailViaSES(
-  to: string,
-  subject: string,
-  html: string,
-  module: EmailModule = 'default',
-  tenantName?: string
-): Promise<EmailResult> {
-  return sendEmail({ to, subject, html, module, tenantName });
-}
+

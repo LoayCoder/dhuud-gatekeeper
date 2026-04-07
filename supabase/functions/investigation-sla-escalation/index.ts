@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { sendEmailViaSES, getAppUrl, emailButton } from "../_shared/email-sender.ts";
+import { sendEmailToOne, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 import { sendWhatsAppText, isProviderConfigured } from "../_shared/whatsapp-provider.ts";
 
 const corsHeaders = {
@@ -74,7 +74,7 @@ async function sendEscalationNotifications(supabaseClient: any, investigation: I
 
     // Send Email
     if (authUser?.user?.email) {
-      await sendEmailViaSES(authUser.user.email, `${levelText}: ${incident.title}`, `
+      await sendEmailToOne(authUser.user.email, `${levelText}: ${incident.title}`, `
         <h2>Investigation Escalation Level ${level}</h2>
         <p>The following investigation is ${daysOverdue} days overdue and has been escalated:</p>
         <ul>
@@ -117,7 +117,7 @@ async function sendWarningNotifications(supabaseClient: any, investigation: Inve
 
   // Send Email
   if (authUser?.user?.email) {
-    await sendEmailViaSES(authUser.user.email, `⚠️ Investigation Due Soon: ${incident.title}`, `
+    await sendEmailToOne(authUser.user.email, `⚠️ Investigation Due Soon: ${incident.title}`, `
       <h2>Investigation Reminder</h2>
       <p>Hello ${investigator?.full_name || "Investigator"},</p>
       <p>Your assigned investigation for incident "<strong>${incidentRef} - ${incident.title}</strong>" is due in <strong>${daysUntilDue} days</strong>.</p>

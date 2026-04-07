@@ -1,4 +1,4 @@
-import { sendEmailViaSES } from "../_shared/email-sender.ts";
+import { sendEmailToOne } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 
     console.log(`Sending test email to: ${to}`);
     
-    const result = await sendEmailViaSES(
+    const result = await sendEmailToOne(
       to,
       subject || "Test Email from DHUUD",
       emailHtml,

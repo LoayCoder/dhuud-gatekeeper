@@ -23,7 +23,8 @@ import {
   DollarSign,
   Building2
 } from 'lucide-react';
-import { formatSAR } from '@/lib/pricing-engine';
+import { formatCurrency } from '@/lib/currency-utils';
+const formatSAR = (amount: number) => new Intl.NumberFormat('en-SA', { style: 'currency', currency: 'SAR', minimumFractionDigits: 2 }).format(amount);
 import { toast } from 'sonner';
 
 export default function BillingOverview() {
