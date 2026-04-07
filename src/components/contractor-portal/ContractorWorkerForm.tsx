@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
-import { ShieldAlert, Info, AlertCircle, Upload, HeartPulse } from "lucide-react";
+import { ShieldAlert, Info, AlertCircle, Upload, HeartPulse, Clock, Lock } from "lucide-react";
+import { addMonths, format, min as dateMin, parseISO } from "date-fns";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
@@ -170,15 +171,26 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [watchedNationalId, handleNationalIdCheck]);
 
-  // Auto-set expiry_date from selected project's end_date
+  // Auto-compute access dates from selected project (with 3-month cap)
+  const selectedProject = watchedProjectId && projects ? projects.find(p => p.id === watchedProjectId) : null;
+
+  const computedAccessStart = selectedProject?.start_date || "";
+  const computedAccessEnd = (() => {
+    if (!selectedProject) return "";
+    const today = new Date();
+    const maxAccess = addMonths(today, 3);
+    const projectEnd = selectedProject.end_date ? parseISO(selectedProject.end_date) : null;
+    const endDate = projectEnd ? dateMin([projectEnd, maxAccess]) : maxAccess;
+    return format(endDate, "yyyy-MM-dd");
+  })();
+
   useEffect(() => {
     if (watchedProjectId && projects) {
-      const selectedProject = projects.find(p => p.id === watchedProjectId);
-      if (selectedProject?.end_date) {
-        form.setValue("expiry_date", selectedProject.end_date);
+      if (computedAccessEnd) {
+        form.setValue("expiry_date", computedAccessEnd);
       }
     }
-  }, [watchedProjectId, projects, form]);
+  }, [watchedProjectId, projects, form, computedAccessEnd]);
 
   // Medical certificate upload handler
   const handleMedicalCertUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -231,6 +243,9 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
       photo_path: photoPath,
       project_id: data.project_id,
       expiry_date: data.expiry_date || null,
+      user_type: "short_term_contractor",
+      access_start_date: computedAccessStart || null,
+      access_end_date: computedAccessEnd || null,
     });
     form.reset();
     setPhotoPath(null);
@@ -253,13 +268,25 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-2">
 
-              {/* Company (auto-linked, read-only) */}
-              {companyName && (
+              {/* Company (auto-linked, read-only) + User Type */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {companyName && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">{t("contractors.company", "Company")}</label>
+                    <Input value={companyName} disabled className="mt-1 bg-muted" />
+                  </div>
+                )}
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">{t("contractors.company", "Company")}</label>
-                  <Input value={companyName} disabled className="mt-1 bg-muted" />
+                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    <Lock className="h-3 w-3" />
+                    {t("contractors.workers.userType", "User Type")}
+                  </label>
+                  <Input value={t("contractors.workers.shortTermContractor", "Short-term Contractor")} disabled className="mt-1 bg-muted" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("contractors.workers.userTypeAutoAssigned", "Auto-assigned for contractor users")}
+                  </p>
                 </div>
-              )}
+              </div>
 
               {/* ── Section 1: Personal Information ── */}
               <div>
@@ -445,17 +472,28 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
 
                   <FormField control={form.control} name="expiry_date" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("contractors.workers.expiryDate", "Expiry Date")}</FormLabel>
-                      <FormControl><Input type="date" {...field} /></FormControl>
-                      {watchedProjectId && (
-                        <p className="text-xs text-muted-foreground">
-                          {t("contractors.workers.expiryAutoSet", "Auto-set from project end date")}
-                        </p>
-                      )}
+                      <FormLabel>{t("contractors.workers.accessEndDate", "Access End Date")}</FormLabel>
+                      <FormControl><Input type="date" {...field} disabled className="bg-muted" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                 </div>
+
+                {/* Access Duration Info */}
+                {watchedProjectId && computedAccessEnd && (
+                  <Alert className="mt-3 border-primary/30 bg-primary/5">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <AlertDescription className="text-sm">
+                      <strong>{t("contractors.workers.accessDurationRule", "Access Duration Rule")}:</strong>{" "}
+                      {t("contractors.workers.accessDurationInfo", "Maximum access duration is 3 months from approval date. Access will automatically expire on {{date}}. Manual renewal is required after expiration.", { date: computedAccessEnd })}
+                      {computedAccessStart && (
+                        <span className="block mt-1 text-xs text-muted-foreground">
+                          {t("contractors.workers.projectPeriod", "Project period")}: {computedAccessStart} → {selectedProject?.end_date || "—"}
+                        </span>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
 
               <Separator />
