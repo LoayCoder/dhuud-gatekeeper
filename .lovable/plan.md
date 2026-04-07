@@ -1,78 +1,30 @@
 
 
-# Integrated Worker Approval System with Auto-Induction
+# Fix: Worker Project Assignment Not Showing in Approval Dialog
 
 ## Problem
-The current `WorkerApprovalQueue` shows minimal worker info (name, ID, nationality, mobile). It lacks:
-- Full worker profile data (DOB, gender, email, emergency contact, fitness, training certs)
-- Documents tab
-- Induction tab with auto-linked project
-- Auto-triggered induction on approval
-- Compliance indicators (missing docs, expired medical, risk flags)
+The worker "Ahmad Mohammed Al-Harbi" has a `project_id` stored directly on the `contractor_workers` table (project: "Substation B Electrical Installation"), but the approval dialog shows "No project assigned yet". This happens because the `useWorkerProjectAssignment` hook only queries the `project_worker_assignments` junction table, which has no row for this worker. The project was linked at registration but the junction-table insert either failed silently or was added after the worker was created.
 
-## Plan
+## Root Cause
+Two sources of project data exist:
+1. `contractor_workers.project_id` — set during portal registration
+2. `project_worker_assignments` table — junction table for formal assignments
 
-### 1. Expand `usePendingWorkerApprovals` query
-**File:** `src/features/contractors/hooks/use-contractor-workers/use-contractor-worker-queries.ts`
+The hook only checks source #2, missing source #1.
 
-Expand the select from minimal fields to full worker profile (id_type, date_of_birth, gender, email, emergency_contact_name/phone, worker_role, fitness_to_work, fitness_acknowledged, medical_check_date, fitness_expiry_date, medical_certificate_path, training_certifications, photo_path, photo_verified_at, preferred_language, full_name_ar, worker_type, approved_at, security_approval_status, tenant_id). Also join `company:contractor_companies(company_name)`.
+## Fix
 
-### 2. Create `WorkerApprovalDetailDialog` component
-**File:** `src/features/contractors/components/WorkerApprovalDetailDialog.tsx`
-
-A new dialog opened when clicking "View" on a pending worker card, with 3 tabs:
-
-**Overview tab:**
-- Worker photo + avatar
-- Personal info grid: Full Name (EN/AR), ID Type + National ID, DOB, Gender, Nationality, Mobile, Email, Emergency Contact
-- Worker Role badge
-- Fitness to Work card with compliance indicators (status badge, medical dates, certificate link)
-- Training Certifications list
-- Compliance flags section: amber/red alerts for missing photo, missing docs, expired/missing medical, unacknowledged fitness
-
-**Documents tab:**
-- Reuse existing `ContractorDocumentUpload` component (read-only mode for reviewer)
-
-**Induction tab:**
-- Auto-detect assigned project from `project_worker_assignments` (new query)
-- Show project name (read-only, no manual selection)
-- Show induction status if any exists
-- Display worker language + mobile for reference
-- Note: "Induction will be sent automatically upon approval"
-
-**Footer:** Approve / Reject buttons (same logic as current queue)
-
-### 3. Add `useWorkerProjectAssignment` hook
+### 1. Update `useWorkerProjectAssignment` hook
 **File:** `src/features/contractors/hooks/use-worker-project-assignment.ts`
 
-Query `project_worker_assignments` joined with `contractor_projects` to get the worker's assigned project (for the induction tab auto-link).
+Add a fallback: if no `project_worker_assignments` row is found, check the worker's direct `project_id` column on `contractor_workers` and fetch the project name from `contractor_projects`.
 
-### 4. Update `useSecurityApproveWorker` for auto-induction with project
-**File:** `src/features/contractors/hooks/use-contractor-workers/use-worker-approval-mutations.ts`
+```
+Step 1: Query project_worker_assignments (existing logic)
+Step 2: If null, query contractor_workers.project_id for this worker
+Step 3: If project_id exists, fetch contractor_projects(project_name, status)
+Step 4: Return the result in the same shape
+```
 
-In `useSecurityApproveWorker.onSuccess`, after approval:
-- Fetch worker's active project assignment from `project_worker_assignments`
-- Pass `projectId` to the `send-induction-video` edge function call (currently missing)
-- Also invoke `onboard-worker` to generate QR code automatically
-
-### 5. Update `WorkerApprovalQueue` to open detail dialog
-**File:** `src/features/contractors/components/WorkerApprovalQueue.tsx`
-
-Replace the current `WorkerDetailDialog` (generic) with the new `WorkerApprovalDetailDialog` when clicking the Eye icon. Keep the inline approve/reject buttons on the card for quick actions.
-
-### 6. Update `usePendingSecurityApprovals` query
-**File:** `src/features/contractors/hooks/use-contractor-workers/use-contractor-worker-queries.ts`
-
-Expand similarly to include full worker fields for the security approval queue.
-
-### Summary
-
-| File | Change |
-|------|--------|
-| `use-contractor-worker-queries.ts` | Expand pending approval queries with full worker fields |
-| `WorkerApprovalDetailDialog.tsx` (new) | 3-tab approval dialog with compliance indicators |
-| `use-worker-project-assignment.ts` (new) | Query worker's assigned project |
-| `use-worker-approval-mutations.ts` | Auto-trigger induction + onboarding on security approval with project context |
-| `WorkerApprovalQueue.tsx` | Use new detail dialog |
-| Barrel exports | Export new components/hooks |
+This is a single file change — no UI modifications needed since the dialog already renders `projectData` correctly when it's non-null.
 
