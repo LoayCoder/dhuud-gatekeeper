@@ -1,31 +1,54 @@
 
 
-# Fix: Replace `is_admin` Column Reference with RPC Function Call
+# Fix Contractor Project Creation Flow
 
 ## Problem
-The migration created for gate pass approval references `is_admin` as a column on the `profiles` table (line 26), but it doesn't exist. `is_admin` is an **RPC function** (`public.is_admin(uuid)`) that checks `user_role_assignments`. Only `is_super_admin` is an actual column on `profiles`.
+Three issues in the current contractor project creation:
 
-## Fix
-Re-create all three functions in the migration, replacing every `is_admin` column reference with a call to `public.is_admin(p_user_id)`.
+1. **Status constraint violation**: Code inserts `status: "planned"` but the DB constraint only allows `active|completed|suspended|cancelled` — causing silent failures
+2. **No project type distinction**: All projects require a `company_id` (NOT NULL), but internal projects should not need a contractor company
+3. **Label confusion**: "Company" label is ambiguous — should say "Contractor Company"
 
-### Changes in the JSONB `can_approve_gate_pass` function:
-```sql
--- BEFORE (broken):
-SELECT tenant_id, COALESCE(is_admin, false), COALESCE(is_super_admin, false)
-INTO v_user_tenant_id, v_is_admin, v_is_super_admin
-FROM profiles WHERE id = p_user_id;
+## Changes
 
--- AFTER (fixed):
-SELECT tenant_id, COALESCE(is_super_admin, false)
-INTO v_user_tenant_id, v_is_super_admin
-FROM profiles WHERE id = p_user_id;
+### 1. Database Migration
 
-v_is_admin := public.is_admin(p_user_id);
-```
+- **Add `project_type` column** to `contractor_projects`: `TEXT NOT NULL DEFAULT 'contractor'` with CHECK constraint `('internal', 'contractor')`
+- **Make `company_id` nullable**: Currently `NOT NULL` — internal projects won't have a contractor company
+- **Add `planned` to status constraint**: Drop old constraint and recreate with `('planned', 'active', 'completed', 'suspended', 'cancelled')`
 
-### Same fix in the boolean `can_approve_gate_pass` and `get_auto_approver_for_gate_pass`:
-Any reference to `profiles.is_admin` must be replaced with `public.is_admin(p_user_id)`.
+### 2. Update Form Schema (`projectFormSchema.ts`)
+
+- Add `project_type` field: `z.enum(['internal', 'contractor']).default('contractor')`
+- Make `company_id` conditional: optional when `project_type = 'internal'`, required when `project_type = 'contractor'` (use `.superRefine()`)
+
+### 3. Update Form Dialog (`ProjectFormDialog.tsx`)
+
+- Add **Project Type** selector (radio or select) at the top of the form — "Internal" or "Contractor"
+- Watch `project_type` field:
+  - When `internal`: hide the Contractor Company dropdown, clear `company_id`
+  - When `contractor`: show Contractor Company dropdown as required
+- Rename "Company *" label to "Contractor Company *"
+- Wrap submit in try/catch with user-friendly error: *"Project creation failed due to invalid contractor configuration. Please check project type and required fields."*
+
+### 4. Update Create Hook (`use-contractor-projects.ts`)
+
+- Set `status: "active"` instead of `"planned"` (matches constraint)
+- Include `project_type` in the insert payload
+- Send `company_id: null` for internal projects
+- Improve error message in `onError`
+
+### 5. Update List/Table
+
+- Add project type badge (Internal / Contractor) to `ProjectListTable` for visibility
 
 ### Summary
-Single SQL migration to recreate the three functions with the corrected admin check. No frontend changes.
+
+| File | Change |
+|------|--------|
+| DB migration | Add `project_type`, make `company_id` nullable, fix status constraint |
+| `projectFormSchema.ts` | Add `project_type`, conditional `company_id` validation |
+| `ProjectFormDialog.tsx` | Project type selector, conditional company field, label fix, error handling |
+| `use-contractor-projects.ts` | Fix status to `"active"`, include `project_type`, handle null `company_id` |
+| `ProjectListTable` (minor) | Show project type badge |
 
