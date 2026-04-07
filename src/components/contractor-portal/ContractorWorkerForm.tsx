@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { useContractorPortalCreateWorker } from "@/hooks/contractor-management";
+import { useContractorPortalCreateWorker } from "@/features/contractors/hooks/use-contractor-portal";
 import { NATIONALITIES } from "@/lib/nationalities";
 import { DhuudPhoneInput } from "@/components/ui/phone-input";
 import { WorkerPhotoUpload } from "@/features/contractors/components/WorkerPhotoUpload";
