@@ -20,7 +20,7 @@ export interface ContractorWorker {
     approved_by?: string | null;
     rejection_reason: string | null;
     created_at: string;
-    worker_type?: string; // 'worker' | 'site_representative' | 'safety_officer'
+    worker_type?: string;
     safety_officer_id?: string | null;
     company?: { company_name: string } | null;
     latest_induction?: WorkerInduction | null;
@@ -38,6 +38,20 @@ export interface ContractorWorker {
     // Photo verification fields
     photo_verified_by?: string | null;
     photo_verified_at?: string | null;
+    // Extended profile fields
+    id_type?: string | null;
+    date_of_birth?: string | null;
+    gender?: string | null;
+    email?: string | null;
+    emergency_contact_name?: string | null;
+    emergency_contact_phone?: string | null;
+    worker_role?: string | null;
+    fitness_to_work?: string | null;
+    fitness_acknowledged?: boolean | null;
+    medical_check_date?: string | null;
+    fitness_expiry_date?: string | null;
+    medical_certificate_path?: string | null;
+    training_certifications?: string[] | null;
 }
 
 export interface ContractorWorkerFilters {

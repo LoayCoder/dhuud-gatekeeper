@@ -8,7 +8,7 @@ import { Check, X, Eye, Phone, Globe, ShieldAlert } from "lucide-react";
 import { format } from "date-fns";
 import { ContractorWorker, useApproveWorker } from "@/features/contractors/hooks/use-contractor-workers";
 import { WorkerRejectionDialog } from "./WorkerRejectionDialog";
-import { WorkerDetailDialog } from "./WorkerDetailDialog";
+import { WorkerApprovalDetailDialog } from "./WorkerApprovalDetailDialog";
 import { cn } from "@/lib/utils";
 
 interface WorkerApprovalQueueProps {
@@ -127,7 +127,7 @@ export function WorkerApprovalQueue({
         worker={rejectWorker}
       />
 
-      <WorkerDetailDialog
+      <WorkerApprovalDetailDialog
         open={!!viewWorker}
         onOpenChange={(open) => !open && setViewWorker(null)}
         worker={viewWorker}

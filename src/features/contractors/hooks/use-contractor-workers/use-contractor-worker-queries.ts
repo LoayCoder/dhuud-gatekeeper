@@ -85,7 +85,16 @@ export function usePendingWorkerApprovals() {
 
             const { data, error } = await supabase
                 .from("contractor_workers")
-                .select(`id, full_name, national_id, nationality, mobile_number, created_at, company_id, company:contractor_companies(company_name)`)
+                .select(`
+                    id, tenant_id, full_name, full_name_ar, national_id, nationality, mobile_number,
+                    id_type, date_of_birth, gender, email,
+                    emergency_contact_name, emergency_contact_phone,
+                    worker_role, preferred_language, photo_path, photo_verified_at,
+                    fitness_to_work, fitness_acknowledged, medical_check_date,
+                    fitness_expiry_date, medical_certificate_path, training_certifications,
+                    worker_type, approval_status, created_at, company_id,
+                    company:contractor_companies(company_name)
+                `)
                 .eq("tenant_id", tenantId)
                 .eq("approval_status", "pending")
                 .is("deleted_at", null)
@@ -156,10 +165,15 @@ export function usePendingSecurityApprovals() {
             const { data, error } = await supabase
                 .from("contractor_workers")
                 .select(`
-          id, full_name, full_name_ar, national_id, nationality, mobile_number, 
-          created_at, approved_at, photo_path, worker_type, company_id,
-          company:contractor_companies(company_name)
-        `)
+                    id, tenant_id, full_name, full_name_ar, national_id, nationality, mobile_number,
+                    id_type, date_of_birth, gender, email,
+                    emergency_contact_name, emergency_contact_phone,
+                    worker_role, preferred_language, photo_path, photo_verified_at,
+                    fitness_to_work, fitness_acknowledged, medical_check_date,
+                    fitness_expiry_date, medical_certificate_path, training_certifications,
+                    worker_type, approval_status, approved_at, created_at, company_id,
+                    company:contractor_companies(company_name)
+                `)
                 .eq("tenant_id", tenantId)
                 .eq("approval_status", "pending_security")
                 .is("deleted_at", null)

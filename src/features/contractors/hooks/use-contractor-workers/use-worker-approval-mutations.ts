@@ -166,6 +166,22 @@ export function useSecurityApproveWorker() {
                 console.error("Failed to send notification:", e);
             }
 
+            // Auto-fetch project assignment for induction context
+            let projectId: string | null = null;
+            try {
+                const { data: assignment } = await supabase
+                    .from("project_worker_assignments")
+                    .select("project_id")
+                    .eq("worker_id", data.id)
+                    .eq("is_active", true)
+                    .is("deleted_at", null)
+                    .limit(1)
+                    .maybeSingle();
+                projectId = assignment?.project_id || null;
+            } catch (e) {
+                console.error("Failed to fetch project assignment:", e);
+            }
+
             try {
                 await supabase.functions.invoke("send-induction-video", {
                     body: {
@@ -174,11 +190,24 @@ export function useSecurityApproveWorker() {
                         workerMobile: data.mobile_number,
                         workerLanguage: data.preferred_language || "en",
                         tenant_id: data.tenant_id,
+                        ...(projectId ? { projectId } : {}),
                     },
                 });
                 toast.info(t("contractors.messages.inductionSentToWorker", "Safety induction sent to worker"));
             } catch (e) {
                 console.error("Failed to send induction video:", e);
+            }
+
+            // Auto-trigger onboarding (QR code generation)
+            try {
+                await supabase.functions.invoke("onboard-worker", {
+                    body: {
+                        workerId: data.id,
+                        tenant_id: data.tenant_id,
+                    },
+                });
+            } catch (e) {
+                console.error("Failed to auto-onboard worker:", e);
             }
         },
         onError: (error: Error) => {
