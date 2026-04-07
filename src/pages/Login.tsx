@@ -567,7 +567,7 @@ export default function Login() {
                 await supabase
                   .from('invitations')
                   .update({ used: true })
-                  .eq('code', storedCode);
+                  .eq('code', codeToLookup);
 
                 logger.debug('Profile and roles created for existing auth user via invitation');
               }
