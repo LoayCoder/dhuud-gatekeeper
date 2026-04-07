@@ -1,5 +1,14 @@
 import { IDCardType, CARD_TYPE_LABELS } from "@/types/id-card.types";
 
+// Card type accent colors for header bar and borders
+export const CARD_TYPE_COLORS: Record<IDCardType, string> = {
+  contractor_rep: '#FFA21A', // Orange
+  employee: '#2B64E3',       // Blue
+  visitor: '#3F434C',        // Gray
+  visitor_vip: '#3F434C',    // Gray
+  worker: '#C43718',         // Red
+};
+
 // CR-80 Card dimensions in mm (85.6mm x 54mm)
 export const CARD_WIDTH_MM = 85.6;
 export const CARD_HEIGHT_MM = 54;

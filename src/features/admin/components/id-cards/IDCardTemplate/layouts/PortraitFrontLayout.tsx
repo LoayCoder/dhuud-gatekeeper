@@ -2,6 +2,7 @@ import React from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { FIELD_LABELS } from "@/types/id-card.types";
 import { LayoutProps } from "../types";
+import { CARD_TYPE_COLORS } from "../utils";
 
 export function PortraitFrontLayout({
   cardType,
@@ -21,6 +22,7 @@ export function PortraitFrontLayout({
 }: LayoutProps) {
   const photoSize = Math.round(width * 0.38);
   const qrSize = Math.round(width * 0.30);
+  const accentColor = CARD_TYPE_COLORS[cardType] || settings.front_accent_color;
 
   return (
     <div
@@ -39,65 +41,38 @@ export function PortraitFrontLayout({
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
       }}
     >
-      {/* Header with accent color */}
+      {/* Header: Logo + Color Bar */}
       <div
         style={{
-          backgroundColor: settings.front_accent_color,
-          padding: `${7 * scale}px ${8 * scale}px`,
+          backgroundColor: '#f5f5f5',
+          padding: `${8 * scale}px ${10 * scale}px`,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 6 * scale,
+          gap: 10 * scale,
+          borderBottom: `2px solid #e0e0e0`,
         }}
       >
-        {/* Logo */}
         {settings.show_logo && tenantData.logoUrl && (
           <img
             src={tenantData.logoUrl}
             alt="Logo"
             crossOrigin="anonymous"
             style={{
-              height: 28 * scale,
+              height: 32 * scale,
               width: 'auto',
               objectFit: 'contain',
+              flexShrink: 0,
             }}
           />
         )}
-        
-        {/* Tenant Name - Bilingual */}
-        {settings.show_tenant_name && (
-          <div
-            style={{
-              color: '#FFFFFF',
-              fontSize: 9 * scale,
-              fontWeight: 700,
-              flex: 1,
-              textAlign: 'center',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              lineHeight: 1.3,
-            }}
-          >
-            {bilingualTenantName}
-          </div>
-        )}
-        
-        {/* Card Type Badge - Bilingual */}
         <div
           style={{
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            color: '#FFFFFF',
-            padding: `${2 * scale}px ${6 * scale}px`,
+            flex: 1,
+            height: 32 * scale,
+            backgroundColor: accentColor,
             borderRadius: 4 * scale,
-            fontSize: 6 * scale,
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            whiteSpace: 'nowrap',
           }}
-        >
-          {bilingualCardTypeLabel}
-        </div>
+        />
       </div>
 
       {/* Photo Section - Centered */}
@@ -116,7 +91,7 @@ export function PortraitFrontLayout({
               borderRadius: 6 * scale,
               overflow: 'hidden',
               backgroundColor: '#f3f4f6',
-              border: `2px solid ${settings.front_accent_color}`,
+              border: `3px solid ${accentColor}`,
             }}
           >
             {personData.photo ? (
@@ -138,7 +113,7 @@ export function PortraitFrontLayout({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: settings.front_accent_color,
+                  backgroundColor: accentColor,
                   color: '#FFFFFF',
                 }}
               >
@@ -152,42 +127,40 @@ export function PortraitFrontLayout({
         </div>
       )}
 
-      {/* Name - Centered, Prominent, Bilingual */}
+      {/* Name - Arabic primary, English secondary */}
       <div
         style={{
           textAlign: 'center',
           padding: `0 ${10 * scale}px`,
         }}
       >
-        {/* English Name (Primary) */}
-        <div
-          style={{
-            fontSize: 11 * scale,
-            fontWeight: 700,
-            color: settings.front_text_color,
-            lineHeight: 1.3,
-          }}
-        >
-          {personData.fullName}
-        </div>
-        {/* Arabic Name (Always shown if available) */}
         {personData.fullNameAr && (
           <div
             style={{
-              fontSize: 10 * scale,
-              fontWeight: 600,
+              fontSize: 12 * scale,
+              fontWeight: 700,
               color: settings.front_text_color,
-              opacity: 0.85,
-              marginTop: 2 * scale,
+              lineHeight: 1.3,
               direction: 'rtl',
             }}
           >
             {personData.fullNameAr}
           </div>
         )}
+        <div
+          style={{
+            fontSize: 9 * scale,
+            fontWeight: 600,
+            color: settings.front_text_color,
+            opacity: 0.7,
+            marginTop: 2 * scale,
+          }}
+        >
+          {personData.fullName}
+        </div>
       </div>
 
-      {/* Fields Section - Vertical Stack */}
+      {/* Fields Section */}
       <div
         style={{
           flex: 1,
@@ -212,7 +185,7 @@ export function PortraitFrontLayout({
                   fontSize: 8 * scale,
                   color: settings.front_text_color,
                   gap: 4 * scale,
-                  borderBottom: `1px solid ${settings.front_accent_color}15`,
+                  borderBottom: `1px solid ${accentColor}15`,
                   paddingBottom: 3 * scale,
                 }}
               >
@@ -227,7 +200,7 @@ export function PortraitFrontLayout({
           })}
       </div>
 
-      {/* QR Code Section - Bottom Center */}
+      {/* QR Code Section */}
       {settings.show_qr_code && (
         <div
           style={{
@@ -236,8 +209,8 @@ export function PortraitFrontLayout({
             flexDirection: 'column',
             alignItems: 'center',
             gap: 2 * scale,
-            borderTop: `1px solid ${settings.front_accent_color}20`,
-            backgroundColor: `${settings.front_accent_color}08`,
+            borderTop: `1px solid ${accentColor}20`,
+            backgroundColor: `${accentColor}08`,
           }}
         >
           <div
@@ -245,7 +218,7 @@ export function PortraitFrontLayout({
               backgroundColor: '#FFFFFF',
               padding: 4 * scale,
               borderRadius: 4 * scale,
-              border: `1px solid ${settings.front_accent_color}`,
+              border: `2px solid ${accentColor}`,
             }}
           >
             <QRCodeSVG
