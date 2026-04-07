@@ -173,14 +173,12 @@ export function GatePassDetailDialog({
   const { data: passDetails, isLoading: isLoadingDetails } = useGatePassDetails(
     open ? pass?.id || null : null
   );
-  const { data: items, isLoading: isLoadingItems } = useGatePassItems(
+  const { items, photos, isLoading: isLoadingMedia } = useGatePassMedia(
     open ? pass?.id || null : null,
     pass?.is_public_request || false
   );
-  const { data: photos, isLoading: isLoadingPhotos } = useGatePassPhotos(
-    open ? pass?.id || null : null,
-    pass?.is_public_request || false
-  );
+  const isLoadingItems = isLoadingMedia;
+  const isLoadingPhotos = isLoadingMedia;
 
   const timelineEvents = useMemo(
     () => buildTimelineEvents(passDetails, t),

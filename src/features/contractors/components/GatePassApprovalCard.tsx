@@ -73,8 +73,7 @@ export function GatePassApprovalCard({
     const [selectedGateId, setSelectedGateId] = useState<string>("");
 
     // Fetch items and photos
-    const { data: items } = useGatePassItems(pass.id, pass.is_public_request);
-    const { data: photos } = useGatePassPhotos(pass.id, pass.is_public_request);
+    const { items, photos } = useGatePassMedia(pass.id, pass.is_public_request);
 
     const stage = getApprovalStage(pass.status);
     const isSecurityRole = stage.role === "security_supervisor" || stage.role === "security_manager";

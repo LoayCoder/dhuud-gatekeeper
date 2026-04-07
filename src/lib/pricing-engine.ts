@@ -79,29 +79,7 @@ export function isOverQuota(used: number, quota: number): boolean {
   return used >= quota;
 }
 
-/**
- * @deprecated Use formatCurrency from currency-utils.ts instead
- * Format currency in SAR
- */
-export function formatSAR(amount: number): string {
-  return new Intl.NumberFormat('en-SA', {
-    style: 'currency',
-    currency: 'SAR',
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
 
-/**
- * @deprecated Use formatCurrency from currency-utils.ts instead
- * Format currency in SAR for Arabic
- */
-export function formatSARArabic(amount: number): string {
-  return new Intl.NumberFormat('ar-SA', {
-    style: 'currency',
-    currency: 'SAR',
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
 
 /**
  * Calculate proportional billing for plan change mid-cycle
