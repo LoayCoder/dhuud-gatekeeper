@@ -280,7 +280,7 @@ export function useContractorPortalCreateWorker() {
             worker_id: result.id,
             tenant_id: profile.tenant_id,
             created_by: user?.id || profile.id,
-            status: "active",
+            is_active: true,
           })
           .throwOnError();
       }
