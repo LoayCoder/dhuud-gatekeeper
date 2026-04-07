@@ -275,10 +275,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
 
           <TabsContent value="qr" className="mt-4 space-y-4">
             {needsPhotoGate && !readOnly ? (
-              <WorkerPhotoGate worker={worker} onVerified={() => {
-                // Invalidate queries to refresh worker data instead of full page reload
-                import("@tanstack/react-query").then(({ useQueryClient }) => {});
-              }} />
+              <WorkerPhotoGate worker={worker} onVerified={() => onOpenChange(false)} />
             ) : worker.approval_status === "approved" ? (
               <>
                 {/* Quick Onboard Card - hidden in readOnly mode */}
