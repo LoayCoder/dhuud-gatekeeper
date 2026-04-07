@@ -24,6 +24,7 @@ export default function Projects() {
   
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   
   // Sync with URL changes
   useEffect(() => {
@@ -40,6 +41,7 @@ export default function Projects() {
     search: search || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
     companyId: companyFilter !== "all" ? companyFilter : undefined,
+    projectType: typeFilter !== "all" ? typeFilter : undefined,
   });
 
   const { data: companies = [] } = useContractorCompanies({ status: "active" });
@@ -88,6 +90,16 @@ export default function Projects() {
                       {company.company_name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder={t("contractors.projects.type", "Type")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("common.all", "All Types")}</SelectItem>
+                  <SelectItem value="internal">{t("contractors.projectType.internal", "Internal")}</SelectItem>
+                  <SelectItem value="contractor">{t("contractors.projectType.contractor", "Contractor")}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
