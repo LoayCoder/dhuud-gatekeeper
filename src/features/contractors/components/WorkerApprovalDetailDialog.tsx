@@ -330,10 +330,10 @@ function InfoRow({ icon: Icon, label, value, mono, dir }: {
 
 function FitnessBadge({ status }: { status?: string | null }) {
   if (!status || status === "pending") {
-    return <Badge variant="outline" className="text-amber-600 border-amber-300">Pending</Badge>;
+    return <Badge variant="outline" className="text-warning border-warning/30">Pending</Badge>;
   }
   if (status === "fit") {
-    return <Badge variant="outline" className="text-green-600 border-green-300">Fit</Badge>;
+    return <Badge variant="outline" className="text-success border-success/30">Fit</Badge>;
   }
   return <Badge variant="destructive">{status}</Badge>;
 }
