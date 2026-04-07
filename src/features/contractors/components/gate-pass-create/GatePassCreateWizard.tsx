@@ -645,7 +645,7 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
               <Card>
                 <CardContent className="pt-4 space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">{t("gatePasses.passType", "Type")}</span>
+                    <span className="text-muted-foreground">{t("gatePasses.passTypeLabel", "Type")}</span>
                     <Badge>{t(`gatePasses.passType.${passType}`, passType)}</Badge>
                   </div>
                   <div className="flex justify-between items-center">
@@ -781,7 +781,7 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
                 {t("gatePasses.wizard.confirmMessage", "Please confirm the details are correct before submitting.")}
               </span>
               <span className="block text-sm">
-                <strong>{t("gatePasses.passType", "Type")}:</strong> {t(`gatePasses.passType.${passType}`, passType)}
+                <strong>{t("gatePasses.passTypeLabel", "Type")}:</strong> {t(`gatePasses.passType.${passType}`, passType)}
                 {" • "}
                 <strong>{t("gatePasses.passDate", "Date")}:</strong> {format(passDate, "PPP")}
                 {isDateRange && ` → ${format(endDate, "PPP")}`}
