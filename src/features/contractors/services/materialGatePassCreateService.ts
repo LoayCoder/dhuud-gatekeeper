@@ -1,5 +1,6 @@
 import { supabase } from '../supabaseClient';
 import { compressImage } from "@/lib/upload-utils";
+import { toast } from "sonner";
 import type { CreateGatePassData } from '@/features/contractors/hooks/use-material-gate-passes';
 
 export const createGatePass = async (data: CreateGatePassData, tenantId: string, userId: string, requesterName: string): Promise<unknown> => {
@@ -113,6 +114,7 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
 
                 if (uploadError) {
                     console.error("Item photo upload error:", uploadError);
+                    toast.error(`Failed to upload photo for item "${item.item_name}": ${uploadError.message}`);
                     continue;
                 }
 
