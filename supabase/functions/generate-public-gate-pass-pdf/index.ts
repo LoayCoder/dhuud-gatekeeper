@@ -49,6 +49,22 @@ serve(async (req) => {
       );
     }
 
+    // Convert logo URL to base64 data URL for pdfMake
+    let logoDataUrl: string | null = null;
+    if (tenant.logo_light_url) {
+      try {
+        const logoResponse = await fetch(tenant.logo_light_url);
+        if (logoResponse.ok) {
+          const logoBuffer = await logoResponse.arrayBuffer();
+          const contentType = logoResponse.headers.get('content-type') || 'image/png';
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(logoBuffer)));
+          logoDataUrl = `data:${contentType};base64,${base64}`;
+        }
+      } catch (e) {
+        console.warn('[generate-public-gate-pass-pdf] Failed to fetch logo:', e);
+      }
+    }
+
     // Get gate pass by token
     const { data: gatePass, error: passError } = await supabase
       .from('material_gate_passes')
