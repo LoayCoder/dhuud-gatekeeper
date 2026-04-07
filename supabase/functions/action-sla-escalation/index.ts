@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { sendEmailViaSES, getAppUrl, emailButton } from "../_shared/email-sender.ts";
+import { sendEmailToOne, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 import { sendWhatsAppText, isProviderConfigured } from "../_shared/whatsapp-provider.ts";
 
 const corsHeaders = {
@@ -68,7 +68,7 @@ async function sendEscalationNotifications(supabaseClient: any, action: Correcti
 
     // Send Email
     if (authUser?.user?.email) {
-      await sendEmailViaSES(authUser.user.email, `${levelText}: ${action.title}`, `
+      await sendEmailToOne(authUser.user.email, `${levelText}: ${action.title}`, `
         <h2>Action Escalation Level ${level}</h2>
         <p>The following action is ${daysOverdue} days overdue and has been escalated:</p>
         <ul>
@@ -110,7 +110,7 @@ async function sendWarningNotifications(supabaseClient: any, action: CorrectiveA
 
   // Send Email
   if (authUser?.user?.email) {
-    await sendEmailViaSES(authUser.user.email, `⚠️ Action Due Soon: ${action.title}`, `
+    await sendEmailToOne(authUser.user.email, `⚠️ Action Due Soon: ${action.title}`, `
       <h2>Action Reminder</h2>
       <p>Hello ${assignee?.full_name || "User"},</p>
       <p>Your assigned action "<strong>${action.title}</strong>" is due in <strong>${daysUntilDue} days</strong>.</p>

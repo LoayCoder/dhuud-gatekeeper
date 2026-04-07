@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { sendEmailViaSES, getAppUrl, emailButton, wrapEmailHtml } from "../_shared/email-sender.ts";
+import { sendEmailToOne, getAppUrl, emailButton, wrapEmailHtml } from "../_shared/email-sender.ts";
 import { 
   CONTRACTOR_TRANSLATIONS, 
   getTranslations, 
@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
 
     const emailHtml = wrapEmailHtml(emailContent, userLanguage, tenantName);
 
-    const emailResult = await sendEmailViaSES(
+    const emailResult = await sendEmailToOne(
       rep.email,
       `[${tenantName}] ${subject}`,
       emailHtml,

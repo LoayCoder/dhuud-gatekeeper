@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendEmailViaSES, getAppUrl, emailButton } from "../_shared/email-sender.ts";
+import { sendEmailToOne, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
               </div>
             `;
 
-            const emailResult = await sendEmailViaSES(
+            const emailResult = await sendEmailToOne(
               authData.user.email,
               `New Inspection Session Assigned: ${session.schedule_name}`,
               emailHtml,
