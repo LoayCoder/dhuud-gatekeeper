@@ -1254,6 +1254,16 @@ export const routeRegistry: RouteDefinition[] = [
     hidden: true,
     hiddenReason: "Action page - accessed via risk assessments list",
   },
+  {
+    path: "/risk-assessments/:id",
+    menuCode: "risk_assessment_detail",
+    title: { en: "Risk Assessment Detail", ar: "تفاصيل تقييم المخاطر" },
+    icon: FileText,
+    component: lazyWithRetry(() => import("@/pages/RiskAssessmentDetail")),
+    protection: "hsse",
+    hidden: true,
+    hiddenReason: "Dynamic detail page - accessed by clicking a risk assessment row",
+  },
 
   // -------------------------------------------------------------------------
   // ADMIN ROUTES
