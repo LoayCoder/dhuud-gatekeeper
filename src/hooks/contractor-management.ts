@@ -64,8 +64,9 @@ export function useContractorProjects() {
       if (!tenantId) return [];
       const { data, error } = await supabase
         .from('contractor_projects')
-        .select('id, project_code, project_name, company_id, site_id, status, tenant_id, latitude, longitude, boundary_polygon, geofence_radius_meters')
+        .select('id, project_code, project_name, company_id, site_id, status, project_type, tenant_id, latitude, longitude, boundary_polygon, geofence_radius_meters')
         .eq('tenant_id', tenantId)
+        .eq('project_type', 'contractor')
         .is('deleted_at', null)
         .order('project_name');
       if (error) throw error;
