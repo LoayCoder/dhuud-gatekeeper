@@ -264,17 +264,14 @@ function MyGatePassListContent() {
       />
 
       {/* Create Gate Pass Dialog */}
-      <GatePassFormDialog
+      <GatePassCreateDialog
         open={createDialogOpen}
         onOpenChange={(open) => {
           setCreateDialogOpen(open);
           if (!open) {
-            refetch(); // Refresh list after closing
+            refetch();
           }
         }}
-        projects={projects}
-        canCreateInternal={canCreateInternal}
-        canCreateExternal={canCreateExternal}
       />
 
       {/* Resubmit Dialog */}

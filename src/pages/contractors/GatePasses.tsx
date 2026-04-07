@@ -183,12 +183,9 @@ const [searchParams, setSearchParams] = useSearchParams();
       </Tabs>
 
       {canCreate && (
-        <GatePassFormDialog
+        <GatePassCreateDialog
           open={isCreateOpen}
           onOpenChange={setIsCreateOpen}
-          projects={projects}
-          canCreateInternal={canCreateInternal}
-          canCreateExternal={canCreateExternal}
         />
       )}
     </div>
