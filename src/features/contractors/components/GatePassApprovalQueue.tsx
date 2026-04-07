@@ -89,7 +89,7 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
       case "pending_dept_approval":
         return { label: t("contractorPortal.gatePasses.awaitingDeptApproval", "Awaiting Dept Approval"), step: 1, role: "department_representative" };
       case "pending_club_mgmt_ack":
-        return { label: t("contractorPortal.gatePasses.awaitingClubMgmtAck", "Awaiting Golf Club Management"), step: 2, role: "golf_club_management_department_representative" };
+        return { label: t("contractorPortal.gatePasses.awaitingMgmtAck", "Awaiting Management (Legacy)"), step: 2, role: "department_representative" };
       case "pending_security_approval":
         return { label: t("contractorPortal.gatePasses.awaitingSecurity", "Awaiting Security Approval"), step: 3, role: "security_supervisor" };
       // Legacy statuses for backward compatibility

@@ -9,7 +9,6 @@ interface ApprovalFlowPreviewProps {
 
 const APPROVAL_STEPS = [
   { key: "dept_manager", labelEn: "Department Manager", labelAr: "مدير القسم" },
-  { key: "club_mgmt", labelEn: "Club Management Acknowledgment", labelAr: "إقرار إدارة النادي" },
   { key: "security", labelEn: "Security Supervisor", labelAr: "مشرف الأمن" },
 ];
 
