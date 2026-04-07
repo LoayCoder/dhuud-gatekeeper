@@ -184,6 +184,7 @@ export default function ContractorWorkerForm({ open, onOpenChange, companyId, co
     await createWorker.mutateAsync({
       company_id: companyId,
       full_name: data.full_name,
+      full_name_ar: data.full_name_ar || null,
       national_id: data.national_id,
       id_type: data.id_type,
       date_of_birth: data.date_of_birth || null,
