@@ -5672,16 +5672,24 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string | null
+          date_of_birth: string | null
           deleted_at: string | null
           edit_pending_approval: boolean | null
           edited_at: string | null
           edited_by: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          expiry_date: string | null
+          fitness_to_work: string | null
           full_name: string
           full_name_ar: string | null
+          gender: string | null
           id: string
           id_card_generated_at: string | null
           id_card_image_path: string | null
           id_card_sent_at: string | null
+          id_type: string
           mobile_number: string
           national_id: string
           nationality: string | null
@@ -5689,6 +5697,10 @@ export type Database = {
           photo_verified_at: string | null
           photo_verified_by: string | null
           preferred_language: string
+          ptw_access_approved_at: string | null
+          ptw_access_approved_by: string | null
+          ptw_access_requested_at: string | null
+          ptw_access_status: string | null
           rejection_reason: string | null
           safety_officer_id: string | null
           security_approval_status: string | null
@@ -5696,7 +5708,9 @@ export type Database = {
           security_approved_by: string | null
           security_rejection_reason: string | null
           tenant_id: string
+          training_certifications: string[]
           updated_at: string
+          worker_role: string
           worker_type: string | null
         }
         Insert: {
@@ -5707,16 +5721,24 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by?: string | null
+          date_of_birth?: string | null
           deleted_at?: string | null
           edit_pending_approval?: boolean | null
           edited_at?: string | null
           edited_by?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          expiry_date?: string | null
+          fitness_to_work?: string | null
           full_name: string
           full_name_ar?: string | null
+          gender?: string | null
           id?: string
           id_card_generated_at?: string | null
           id_card_image_path?: string | null
           id_card_sent_at?: string | null
+          id_type?: string
           mobile_number: string
           national_id: string
           nationality?: string | null
@@ -5724,6 +5746,10 @@ export type Database = {
           photo_verified_at?: string | null
           photo_verified_by?: string | null
           preferred_language?: string
+          ptw_access_approved_at?: string | null
+          ptw_access_approved_by?: string | null
+          ptw_access_requested_at?: string | null
+          ptw_access_status?: string | null
           rejection_reason?: string | null
           safety_officer_id?: string | null
           security_approval_status?: string | null
@@ -5731,7 +5757,9 @@ export type Database = {
           security_approved_by?: string | null
           security_rejection_reason?: string | null
           tenant_id: string
+          training_certifications?: string[]
           updated_at?: string
+          worker_role?: string
           worker_type?: string | null
         }
         Update: {
@@ -5742,16 +5770,24 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string | null
+          date_of_birth?: string | null
           deleted_at?: string | null
           edit_pending_approval?: boolean | null
           edited_at?: string | null
           edited_by?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          expiry_date?: string | null
+          fitness_to_work?: string | null
           full_name?: string
           full_name_ar?: string | null
+          gender?: string | null
           id?: string
           id_card_generated_at?: string | null
           id_card_image_path?: string | null
           id_card_sent_at?: string | null
+          id_type?: string
           mobile_number?: string
           national_id?: string
           nationality?: string | null
@@ -5759,6 +5795,10 @@ export type Database = {
           photo_verified_at?: string | null
           photo_verified_by?: string | null
           preferred_language?: string
+          ptw_access_approved_at?: string | null
+          ptw_access_approved_by?: string | null
+          ptw_access_requested_at?: string | null
+          ptw_access_status?: string | null
           rejection_reason?: string | null
           safety_officer_id?: string | null
           security_approval_status?: string | null
@@ -5766,7 +5806,9 @@ export type Database = {
           security_approved_by?: string | null
           security_rejection_reason?: string | null
           tenant_id?: string
+          training_certifications?: string[]
           updated_at?: string
+          worker_role?: string
           worker_type?: string | null
         }
         Relationships: [
@@ -16833,6 +16875,77 @@ export type Database = {
           },
           {
             foreignKeyName: "project_worker_assignments_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ptw_access_requests: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          rejection_reason: string | null
+          requested_by: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          requested_by: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          requested_by?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_access_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_access_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_access_requests_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_access_requests_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers_safe"
