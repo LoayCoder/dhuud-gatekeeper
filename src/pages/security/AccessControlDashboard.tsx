@@ -268,27 +268,27 @@ export default function AccessControlDashboard() {
         {/* On Site Tab */}
         <TabsContent value="overview" className="space-y-4 mt-4">
           <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    {t('accessControl.currentlyOnSite', 'Currently On Site')}
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <span>{t('accessControl.currentlyOnSite', 'Currently On Site')}</span>
                     <Badge variant="secondary">{onSiteEntries.length}</Badge>
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
                     {t('accessControl.onSiteDescription', 'All visitors and workers currently checked in')}
                   </CardDescription>
                 </div>
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="self-start sm:self-auto">
                   <Link to="/visitors/register" className="gap-2">
                     <UserPlus className="h-4 w-4" />
-                    {t('accessControl.preRegister', 'Pre-Register')}
+                    <span className="text-xs sm:text-sm">{t('accessControl.preRegister', 'Pre-Register')}</span>
                   </Link>
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6 overflow-x-auto">
               <UnifiedAccessLogTable
                 entries={onSiteEntries}
                 isLoading={onSiteLoading}
