@@ -132,7 +132,31 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
         }
     }
 
-    if (data.photos.length > 0) {
+    // Upload plate photos if provided
+    if (data.plate_photos && data.plate_photos.length > 0) {
+        for (const photo of data.plate_photos) {
+            const compressedPhoto = await compressImage(photo, 1280, 0.75);
+            const fileName = `${tenantId}/${result.id}/plate/${crypto.randomUUID()}-${photo.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from("gate-pass-photos")
+                .upload(fileName, compressedPhoto);
+
+            if (uploadError) {
+                console.error("Plate photo upload error:", uploadError);
+            } else {
+                await supabase
+                    .from("gate_pass_photos")
+                    .insert({
+                        gate_pass_id: result.id,
+                        storage_path: fileName,
+                        file_name: photo.name,
+                        file_size: compressedPhoto.size,
+                        mime_type: compressedPhoto.type,
+                        uploaded_by: userId,
+                        tenant_id: tenantId,
+                    });
+            }
+        }
         const photoRecords = [];
 
         for (const photo of data.photos) {
