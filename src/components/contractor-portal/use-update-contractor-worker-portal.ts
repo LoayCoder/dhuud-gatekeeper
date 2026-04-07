@@ -59,6 +59,7 @@ export function useUpdateContractorWorker() {
           mobile_number: data.mobile_number,
           nationality: data.nationality,
           preferred_language: data.preferred_language,
+          photo_path: data.photo_path,
           // Note: edited_by and edited_at are set by DB trigger
         })
         .eq("id", workerId)
