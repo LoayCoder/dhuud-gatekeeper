@@ -49,7 +49,7 @@ export * from './components/GatePassApprovalQueue';
 export * from './components/GatePassBulkActionsToolbar';
 export * from './components/GatePassBulkApprovalDialog';
 export * from './components/GatePassBulkRejectionDialog';
-export * from './components/GatePassFormDialog';
+
 export * from './components/GatePassItemPhotoUpload';
 export * from './components/GatePassListTable';
 export * from './components/GatePassPDFExportButton';
