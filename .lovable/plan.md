@@ -1,45 +1,61 @@
 
 
-# Fix: Invitation Code Error, Missing Phone Number, and Auto Role Assignment
+# Fix: "User Already Registered" Error on Invitation Signup
 
-## Three Issues Identified
+## Root Cause
 
-### Issue 1: "Failed to verify user status" Error
-**Root Cause:** The `check-user-exists` Edge Function (line 69-93) requires a valid JWT Bearer token. But on the `/invite` page, the user is **not logged in** — they're an anonymous visitor entering an invitation code. The function returns 401 Unauthorized, which the UI shows as "Failed to verify user status."
+The user `l.r.love07@gmail.com` exists in the authentication system (`auth.users`) but has **no profile record** in any tenant. The `check-user-exists` function relies on finding a profile to detect auth existence, and its fallback `listUsers` call doesn't actually filter by email — it just fetches page 1 with 1 result, which is a random user. So the function incorrectly returns `exists_in_auth: false`, routing the user to `/signup`. Signup then fails because the email is already taken in auth.
 
-**Fix:** Remove the JWT authentication requirement from `check-user-exists` since it's designed for the anonymous invitation flow. The function already has rate limiting and input validation. Instead, make the function work with or without a JWT (if present, use it; if not, proceed with service role for the lookup only).
+## Fix
 
 **File:** `supabase/functions/check-user-exists/index.ts`
-- Remove the hard 401 block when no auth header is present
-- Keep rate limiting as the primary protection
-- The function already uses service role key for the actual lookup, so JWT is not needed for data access
 
-### Issue 2: Phone Number Missing in Pending Invitations
-**Root Cause:** The `send-contractor-invitation` Edge Function (line 109-125) inserts the invitation record **without** `phone_number`. The representative has `mobile_number: +966537249823` but it's never written to `invitations.phone_number`.
+Replace the broken fallback logic (lines 140-165) with a direct approach: use `supabase.auth.admin.getUserById()` is not possible without an ID, so instead use a raw REST call to the GoTrue admin API to look up the user by email. Alternatively, the simplest fix is to use the `listUsers` endpoint properly or query `auth.users` via a service-role SQL RPC.
 
-**Fix:** Include the representative's `mobile_number` in the invitation insert.
+The most reliable fix: after the profile lookup fails, query `auth.users` directly using the admin client's `listUsers` and filter the result by email, OR better yet, use the admin `getUserByEmail` pattern (not natively supported by the JS SDK, but achievable via a direct REST call to `/auth/v1/admin/users?email=...`).
 
-**File:** `supabase/functions/send-contractor-invitation/index.ts`
-- Add `phone_number: rep.mobile_number || null` to the invitation insert at line 111-125
+### Concrete Change
 
-### Issue 3: `invitation_sent` Action Not in Audit Constraint
-**Root Cause:** The `send-contractor-invitation` function logs action `'invitation_sent'` to `contractor_module_audit_logs`, but this value is not in the `contractor_module_audit_logs_action_check` constraint (just fixed recently for other actions). This causes a silent failure when logging.
+In the fallback section (lines 138-166), replace the broken `listUsers` logic with a direct GoTrue admin API call:
 
-**Fix:** Add `'invitation_sent'` to the constraint.
+```typescript
+// Fallback: check auth.users directly via GoTrue admin API
+const response = await fetch(
+  `${supabaseUrl}/auth/v1/admin/users?page=1&per_page=1&filter=${encodeURIComponent(email.toLowerCase())}`,
+  {
+    headers: {
+      'Authorization': `Bearer ${serviceRoleKey}`,
+      'apikey': serviceRoleKey,
+    }
+  }
+);
+if (response.ok) {
+  const userData = await response.json();
+  const matchedUser = userData.users?.find(
+    (u: any) => u.email?.toLowerCase() === email.toLowerCase()
+  );
+  if (matchedUser) {
+    existsInAuth = true;
+    authUserId = matchedUser.id;
+  }
+}
+```
 
-**File:** Database migration
-- Drop and recreate constraint with `invitation_sent` added
+This ensures that even when a user has no profile but exists in auth, the function correctly returns `should_login: true` instead of `should_signup: true`.
 
-### Issue 4: Role Auto-Assignment After Login
-**Root Cause:** The signup flow in `Signup.tsx` (lines 200-235) already handles role assignment for contractor representatives correctly — it assigns `contractor_site_rep` role. However, this only works during **signup** (new user creation). If the user already exists in auth (the `check-user-exists` function routes them to `/login` instead of `/signup`), the role assignment logic in the signup page is never executed.
+## Also Needed: Handle Login for Profile-less Users
 
-**Fix:** This is already handled in the signup flow. The real issue is Issue 1 — because `check-user-exists` fails with 401, the flow never reaches the routing decision (login vs signup), so the user never gets to the signup page where roles are assigned. Fixing Issue 1 will fix the role assignment flow.
+Since this user has no profile in the tenant, after login the system needs to create their profile and link them to the contractor representative record. The Signup page already has this logic, so we should ensure the Login flow also handles "existing auth user, new tenant profile" by checking if a profile exists post-login and creating one if needed (using the invitation metadata).
 
-## Summary of Changes
+**File:** `src/pages/Login.tsx` (or the post-login hook)
+- After successful login, check if the user has a profile in the invitation's tenant
+- If not, create one using the stored invitation metadata (company_id, representative_id)
+- Assign the `contractor_site_rep` role
+
+## Summary
 
 | File | Change |
 |------|--------|
-| `supabase/functions/check-user-exists/index.ts` | Make JWT optional (allow anonymous access for invitation flow) |
-| `supabase/functions/send-contractor-invitation/index.ts` | Add `phone_number: rep.mobile_number` to invitation insert |
-| Database migration | Add `invitation_sent` to audit constraint |
+| `supabase/functions/check-user-exists/index.ts` | Fix auth lookup to use GoTrue admin API filter instead of broken `listUsers` |
+| Post-login flow | Ensure profile + role creation for auth-existing users entering a new tenant via invitation |
 
