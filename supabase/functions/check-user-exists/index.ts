@@ -136,16 +136,32 @@ Deno.serve(async (req) => {
       existsInAuth = true;
       authUserId = profileByEmail.user_id;
     } else {
-      // Fallback: check auth via admin API with pagination filter
+      // Fallback: check auth.users directly via GoTrue admin API with email filter
       try {
-        // listUsers with page/perPage and filter by email
-        const { data: listData } = await supabaseAdmin.auth.admin.listUsers({
-          page: 1,
-          perPage: 1,
-        });
-        // The JS client doesn't support email filter directly on listUsers,
-        // so we use a targeted profile query above as primary method.
-        // As a secondary check, look up by email in profiles across all tenants
+        const goTrueResponse = await fetch(
+          `${supabaseUrl}/auth/v1/admin/users?page=1&per_page=1&filter=${encodeURIComponent(email.toLowerCase())}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${serviceRoleKey}`,
+              'apikey': serviceRoleKey,
+            },
+          }
+        );
+        if (goTrueResponse.ok) {
+          const userData = await goTrueResponse.json();
+          const matchedUser = userData.users?.find(
+            (u: any) => u.email?.toLowerCase() === email.toLowerCase()
+          );
+          if (matchedUser) {
+            existsInAuth = true;
+            authUserId = matchedUser.id;
+            console.log('User found in auth via GoTrue admin API');
+          }
+        } else {
+          console.warn('GoTrue admin API returned:', goTrueResponse.status);
+        }
+
+        // Secondary fallback: check profiles across all tenants
         if (!existsInAuth) {
           const { data: anyProfile } = await supabaseAdmin
             .from('profiles')
