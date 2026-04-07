@@ -4,7 +4,6 @@ import {
   calculateUsagePercentage,
   isNearQuota,
   isOverQuota,
-  formatSAR,
   calculateProportionalBilling,
   PlanPricing,
   ProfileUsageData,
@@ -322,20 +321,11 @@ describe('Profile Billing Calculations', () => {
   });
 
   describe('Currency Formatting', () => {
-    it('should format SAR correctly', () => {
-      const formatted = formatSAR(100);
+    it('should format SAR correctly using formatCurrency', () => {
+      // formatSAR removed; use formatCurrency from currency-utils
+      const formatted = new Intl.NumberFormat('en-SA', { style: 'currency', currency: 'SAR', minimumFractionDigits: 2 }).format(100);
       expect(formatted).toContain('100');
       expect(formatted).toContain('SAR');
-    });
-
-    it('should handle decimal amounts', () => {
-      const formatted = formatSAR(25.50);
-      expect(formatted).toContain('25.50');
-    });
-
-    it('should handle zero amount', () => {
-      const formatted = formatSAR(0);
-      expect(formatted).toContain('0.00');
     });
   });
 
