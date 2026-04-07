@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +19,7 @@ import { LocationBoundaryPicker } from "@/components/shared/LocationBoundaryPick
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface Coordinate {
   lat: number;
@@ -79,6 +81,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
+      project_type: (extProject?.project_type as 'internal' | 'contractor') ?? 'contractor',
       branch_id: extProject?.branch_id ?? "",
       company_id: extProject?.company_id ?? "",
       project_code: extProject?.project_code ?? "",
@@ -100,6 +103,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
 
   const watchedBranchId = form.watch("branch_id");
   const watchedPMId = form.watch("project_manager_id");
+  const watchedProjectType = form.watch("project_type");
 
   // Fetch project managers filtered by branch
   const { data: managers = [] } = useProjectManagers(watchedBranchId || undefined);
@@ -118,6 +122,13 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
         }
       });
   }, [watchedPMId, form]);
+
+  // Clear company_id when switching to internal
+  useEffect(() => {
+    if (watchedProjectType === 'internal') {
+      form.setValue("company_id", "");
+    }
+  }, [watchedProjectType, form]);
 
   // Cascading filters
   const filteredSites = useMemo(() => {
@@ -149,8 +160,9 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   useEffect(() => {
     if (extProject) {
       form.reset({
+        project_type: (extProject.project_type as 'internal' | 'contractor') || 'contractor',
         branch_id: extProject.branch_id || "",
-        company_id: extProject.company_id,
+        company_id: extProject.company_id || "",
         project_code: extProject.project_code,
         project_name: extProject.project_name,
         project_name_ar: extProject.project_name_ar || "",
@@ -168,6 +180,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
       });
     } else {
       form.reset({
+        project_type: 'contractor',
         branch_id: "", company_id: "", project_code: "", project_name: "", project_name_ar: "",
         start_date: "", end_date: "", location_description: "", notes: "", project_manager_id: "",
         site_id: "", department_id: "",
@@ -197,6 +210,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
   }, [form, branches, profile?.tenant_id]);
 
   const onSubmit = form.handleSubmit(async (data) => {
+    const isInternal = data.project_type === 'internal';
     const submitData = {
       ...data,
       project_name_ar: data.project_name_ar || null,
@@ -206,6 +220,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
       branch_id: data.branch_id || null,
       site_id: data.site_id || null,
       department_id: data.department_id || null,
+      company_id: isInternal ? null : (data.company_id || null),
     };
     try {
       if (isEditing) {
@@ -216,6 +231,7 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
       onOpenChange(false);
     } catch (error) {
       console.error("[ProjectFormDialog] Submit failed:", error);
+      toast.error(t("contractors.projects.createError", "Project creation failed due to invalid contractor configuration. Please check project type and required fields."));
     }
   });
 
@@ -233,6 +249,36 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
             </TabsList>
 
             <TabsContent value="details" className="space-y-4 mt-4">
+              {/* 0. Project Type */}
+              <div className="space-y-2">
+                <Label>{t("contractors.projects.projectType", "Project Type")} *</Label>
+                <Controller
+                  name="project_type"
+                  control={form.control}
+                  render={({ field }) => (
+                    <RadioGroup
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      className="flex gap-6"
+                      disabled={isCompleted}
+                    >
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="internal" id="type-internal" />
+                        <Label htmlFor="type-internal" className="cursor-pointer font-normal">
+                          {t("contractors.projectType.internal", "Internal")}
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="contractor" id="type-contractor" />
+                        <Label htmlFor="type-contractor" className="cursor-pointer font-normal">
+                          {t("contractors.projectType.contractor", "Contractor")}
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  )}
+                />
+              </div>
+
               {/* 1. Branch (required, first) */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -275,25 +321,27 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                 </div>
               </div>
 
-              {/* 3. Company (filtered by branch) */}
-              <div className="space-y-2">
-                <Label>{t("contractors.projects.company", "Company")} *</Label>
-                <Controller
-                  name="company_id"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <>
-                      <Select value={field.value} onValueChange={field.onChange} disabled={!watchedBranchId || isCompleted}>
-                        <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectCompany", "Select company")} /></SelectTrigger>
-                        <SelectContent>
-                          {filteredCompanies.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      {fieldState.error && <span className="text-destructive text-sm">{fieldState.error.message}</span>}
-                    </>
-                  )}
-                />
-              </div>
+              {/* 3. Contractor Company (only for contractor type) */}
+              {watchedProjectType === 'contractor' && (
+                <div className="space-y-2">
+                  <Label>{t("contractors.projects.contractorCompany", "Contractor Company")} *</Label>
+                  <Controller
+                    name="company_id"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <Select value={field.value} onValueChange={field.onChange} disabled={!watchedBranchId || isCompleted}>
+                          <SelectTrigger><SelectValue placeholder={t("contractors.projects.selectCompany", "Select contractor company")} /></SelectTrigger>
+                          <SelectContent>
+                            {filteredCompanies.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        {fieldState.error && <span className="text-destructive text-sm">{fieldState.error.message}</span>}
+                      </>
+                    )}
+                  />
+                </div>
+              )}
 
               {/* 4. Project Manager (filtered by branch) */}
               <div className="space-y-2">

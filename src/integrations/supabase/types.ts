@@ -5019,7 +5019,7 @@ export type Database = {
           assigned_workers_count: number
           boundary_polygon: Json | null
           branch_id: string | null
-          company_id: string
+          company_id: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -5035,6 +5035,7 @@ export type Database = {
           project_manager_id: string | null
           project_name: string
           project_name_ar: string | null
+          project_type: string
           required_safety_officers: number
           site_id: string | null
           start_date: string
@@ -5046,7 +5047,7 @@ export type Database = {
           assigned_workers_count?: number
           boundary_polygon?: Json | null
           branch_id?: string | null
-          company_id: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -5062,6 +5063,7 @@ export type Database = {
           project_manager_id?: string | null
           project_name: string
           project_name_ar?: string | null
+          project_type?: string
           required_safety_officers?: number
           site_id?: string | null
           start_date: string
@@ -5073,7 +5075,7 @@ export type Database = {
           assigned_workers_count?: number
           boundary_polygon?: Json | null
           branch_id?: string | null
-          company_id?: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -5089,6 +5091,7 @@ export type Database = {
           project_manager_id?: string | null
           project_name?: string
           project_name_ar?: string | null
+          project_type?: string
           required_safety_officers?: number
           site_id?: string | null
           start_date?: string
