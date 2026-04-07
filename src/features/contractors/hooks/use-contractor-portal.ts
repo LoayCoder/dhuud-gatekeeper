@@ -247,6 +247,9 @@ export function useContractorPortalCreateWorker() {
       photo_path?: string | null;
       project_id?: string;
       expiry_date?: string | null;
+      user_type?: string;
+      access_start_date?: string | null;
+      access_end_date?: string | null;
     }) => {
       if (!profile?.tenant_id) throw new Error("No tenant");
 
