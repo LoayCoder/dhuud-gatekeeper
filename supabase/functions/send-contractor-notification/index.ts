@@ -119,7 +119,25 @@ Deno.serve(async (req) => {
         }
         
         if (!worker) {
-          console.log("Worker not found, trying to find reps via companyId from request");
+          // Fallback: check if the ID belongs to a contractor representative
+          console.log("Worker not found, checking contractor_representatives...");
+          const { data: rep, error: repError } = await supabase
+            .from("contractor_representatives")
+            .select("company_id, mobile_number, full_name, user_id")
+            .eq("id", requestData.workerId)
+            .is("deleted_at", null)
+            .maybeSingle();
+
+          if (repError) {
+            console.error("Failed to find representative:", repError);
+          }
+
+          if (rep) {
+            console.log(`Found representative: ${rep.full_name}, company_id: ${rep.company_id}`);
+            companyId = rep.company_id;
+          } else {
+            console.log("Neither worker nor representative found, trying companyId from request");
+          }
         } else {
           companyId = worker.company_id;
         }
