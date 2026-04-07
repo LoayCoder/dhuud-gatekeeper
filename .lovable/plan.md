@@ -1,57 +1,42 @@
 
 
-# Replace Old Gate Pass Dialog with Enhanced Wizard
+# Enhance Public Gate Pass Item Form
 
-## Problem
+## Overview
 
-Both `/my-gate-passes` (List.tsx) and `/contractors/gate-passes` (GatePasses.tsx) use the **old** `GatePassFormDialog` — a basic dialog-based form that lacks all the recent enhancements (structured vehicle plate, driver phone input, approval flow preview, item validation, etc.).
+Align the public gate pass item form (`PublicGatePassItemForm.tsx`) with the internal form's improved item handling. The public form already has structured vehicle plate and driver phone validation — the gap is in the items section.
 
-The new `GatePassCreateWizard` with all those features exists but is only wired to `Create.tsx`, which the router redirects away from. So users never see the new form.
+## Current State vs Target
 
-## Solution
-
-Replace `GatePassFormDialog` usage in both pages with `GatePassCreateWizard`, rendered inside a full-screen dialog (or sheet).
+| Feature | Public Form (Current) | Internal Form (Target) |
+|---------|----------------------|----------------------|
+| Label | "Item Name / Material" | "Item Description" |
+| Qty validation | `type="number"`, no required error | `type="text" inputMode="decimal"`, numeric-only sanitization, required with error |
+| Unit validation | No required error shown | Required with error highlighting |
+| Unit options | 10 options (PCS, BOX, KG...) | 11 options including Bags, Tons, Pallets |
+| Qty/Unit errors | Not shown | Per-field destructive border + error text |
 
 ## Changes
 
-### 1. Create `GatePassCreateDialog.tsx` (New wrapper component)
+### 1. Update `PublicGatePassItemForm.tsx`
 
-A new `Dialog` (or full-screen sheet) component that wraps `GatePassCreateWizard`:
-- Props: `open`, `onOpenChange`
-- Renders `GatePassCreateWizard` inside a `DialogContent` with full height
-- Passes `onCancel={() => onOpenChange(false)}` and `onSuccess={() => onOpenChange(false)}` to the wizard
-- The wizard already handles all form logic, validation, and submission
+- Rename label "Item Name / Material" → "Item Description"
+- Change Qty input from `type="number"` to `type="text" inputMode="decimal"` with numeric sanitization (digits + decimal only, no multiple dots)
+- Add `hasQtyError` and `hasUnitError` flags based on `showValidation`
+- Add destructive border + error text for Qty and Unit when invalid
+- Expand unit dropdown to match internal form options (add Bags, Tons, Pallets)
+- Update item completeness check in card border color
 
-### 2. Update `src/pages/my-gate-passes/List.tsx`
+### 2. Update `publicRequestSchema.ts`
 
-- Replace `import { GatePassFormDialog }` with the new `GatePassCreateDialog`
-- Remove the `projects`, `canCreateInternal`, `canCreateExternal` props (wizard handles internally)
-- Keep the same `createDialogOpen` / `setCreateDialogOpen` state
-
-### 3. Update `src/pages/contractors/GatePasses.tsx`
-
-- Replace `GatePassFormDialog` with `GatePassCreateDialog`
-- Remove project/permission props passed to the old dialog
-
-### 4. Restore `/my-gate-passes/create` route
-
-- Remove the redirect in `my-gate-passes.routes.tsx`
-- Restore the route to render `MyGatePassCreate` page (the wizard as a full page)
-- Keep menu item pointing to `/my-gate-passes/create`
+- Make `quantity` required with min(1) instead of optional string
+- Make `unit` required with min(1) instead of optional string
+- This ensures step 3 validation catches incomplete items
 
 ### Files Modified
 
 | File | Change |
 |------|--------|
-| New: `src/features/contractors/components/GatePassCreateDialog.tsx` | Dialog wrapper around `GatePassCreateWizard` |
-| `src/pages/my-gate-passes/List.tsx` | Swap `GatePassFormDialog` → `GatePassCreateDialog` |
-| `src/pages/contractors/GatePasses.tsx` | Swap `GatePassFormDialog` → `GatePassCreateDialog` |
-| `src/routes/my-gate-passes.routes.tsx` | Restore `/create` route instead of redirect |
-| `src/features/contractors/components/index.ts` | Export new dialog |
-
-### Technical Notes
-
-- `GatePassCreateWizard` already has all enhanced features: structured plate, `DhuudPhoneInput`, `ApprovalFlowPreview`, item validation with qty/unit/photos enforcement
-- The old `GatePassFormDialog` (663 lines) remains in codebase for now but is no longer used — can be removed in a cleanup pass
-- The wizard's `onCancel` and `onSuccess` callbacks handle dialog close and list refresh
+| `src/pages/public-gate-pass/components/PublicGatePassItemForm.tsx` | Rename label, fix qty input, add validation errors, expand units |
+| `src/pages/public-gate-pass/publicRequestSchema.ts` | Make quantity and unit required in schema |
 
