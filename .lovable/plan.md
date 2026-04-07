@@ -1,60 +1,38 @@
 
 
-# Simplify Gate Pass Approval to 2-Step Flow
+# Fix Gate Pass Approval Dialog: Missing Items, Photos, Timeline & Vehicle Details
 
-## Summary
-Remove the middle "Club Management Acknowledgment" step from the gate pass approval workflow, making it: **Department Manager → Security Supervisor → Approved (QR Generated)**.
+## Problems Identified
 
-## Current Flow (3 steps)
-```text
-Dept Manager Approval → Club Mgmt Acknowledgment → Security Approval → Approved
-```
+1. **Timeline always empty** — `events={[]}` is hardcoded in the dialog; no timeline events are ever constructed from the pass's approval data
+2. **Vehicle plate split fields missing** — `vehicle_plate_letters` and `vehicle_plate_numbers` are not fetched by the details query, so the split plate display for public passes doesn't work
+3. **No timeline generation logic** — There's no code to build timeline events from the existing approval timestamps (created_at, pm_approved_at, security_approved_at, etc.)
 
-## New Flow (2 steps)
-```text
-Dept Manager Approval → Security Approval → Approved
-```
+The items and photos queries should work correctly for same-tenant authenticated users viewing public gate passes (RLS permits it, data exists). If they're not showing, it may be a UI rendering issue in the Items tab when photos exist but are linked to items.
 
-## Changes Required
+## Changes
 
-### 1. Database Migration — Update RPC functions
+### 1. Add missing columns to details query (`gatePassQueryService.ts`)
+Add `vehicle_plate_letters, vehicle_plate_numbers` to the SELECT statement in `getGatePassDetails`.
 
-**`approve_gate_pass_unified`**: Change transitions so:
-- `dept_approval` stage → sets status to `pending_security_approval` (was `pending_club_mgmt_ack`)
-- `contractor` stage → sets status to `pending_security_approval` (was `pending_club_mgmt_ack`)
-- Remove `club_mgmt_ack` case entirely (keep for backward compat but skip to security)
+### 2. Build timeline events from pass data (`GatePassDetailDialog.tsx`)
+Generate timeline events from the pass details approval timestamps:
+- **Created** — `created_at`
+- **Dept Manager Approved** — `pm_approved_at` + `pm_approver`
+- **Security Approved** — `security_approved_at` + `security_approver`
+- **Rejected** — `rejected_at` + `rejector`
+- **Guard Verified** — `guard_verified_at` + `guard`
+- **Entry/Exit** — `entry_time`, `exit_time`
 
-**`submit_public_gate_pass`**: Change initial status from `pending_club_mgmt_ack` to `pending_dept_approval` so public requests also go through Dept Manager first.
+Build an array of `TimelineEvent` objects sorted by timestamp and pass to `TimelineTab`.
 
-**`can_approve_gate_pass`**: Keep `club_mgmt_ack` and `dept_ack` cases for backward compatibility with existing passes, but no new passes will enter these states.
+### 3. Verify Items & Photos rendering for public passes
+Ensure the `ItemsPhotosTab` correctly shows item-attached photos for public gate passes. The current logic filters `photos?.filter(p => p.item_id === item.id)` — this should work since the photo service sets `item_id: item.id` for public passes. Add console logging if needed for debugging.
 
-**Existing passes**: Migrate any currently stuck in `pending_club_mgmt_ack` to `pending_security_approval`.
-
-### 2. Frontend — UI Label Updates (~12 files)
-
+### Files to modify
 | File | Change |
 |------|--------|
-| `ApprovalFlowPreview.tsx` | Remove "Club Management" step, show only 2 steps |
-| `GatePassApprovalQueue.tsx` | Remove `pending_club_mgmt_ack` from stage labels |
-| `GatePassApprovalActions.tsx` | Remove `pending_club_mgmt_ack` action label |
-| `GatePassDetailDialog.tsx` | Remove `pending_club_mgmt_ack` from status map |
-| `MyGatePassesTab.tsx` | Remove Club Mgmt filter/badge |
-| `GatePassListTable.tsx` | Remove from status badge map |
-| `materialGatePassQueryService.ts` | Remove `pending_club_mgmt_ack` from approval queue queries for dept reps |
-| `use-dept-gate-pass-queries.ts` | Remove `pending_club_mgmt_ack` query |
-| `use-dept-stats-queries.ts` | Remove from stats |
-| `gatePassVerificationService.ts` | Remove from status messages |
-| `stat-fetchers.ts` | Remove from pending stats |
-| `use-my-workflow-tasks.ts` | Remove from status filter |
-| `GatePassPDFTemplate.tsx` | Update approval chain display |
-
-### 3. Public Request Flow Fix
-
-Currently public gate pass submissions start at `pending_club_mgmt_ack` (skipping dept manager). With the new flow, they should start at `pending_dept_approval` and route to the tenant's department manager, then to security.
-
-### What stays the same
-- The `club_mgmt_ack_by/at/notes` columns remain in the database (no destructive changes)
-- Legacy `pending_pm_approval` / `pending_safety_approval` backward compatibility remains
-- The `can_approve_gate_pass` function keeps legacy case handling
-- Security approval as the final step remains unchanged
+| `gatePassQueryService.ts` | Add `vehicle_plate_letters, vehicle_plate_numbers` to SELECT |
+| `GatePassDetailDialog.tsx` | Build timeline events from passDetails data instead of `[]` |
+| `types.ts` (GatePassDetailDialog) | Verify `TimelineEvent` type supports what we need |
 
