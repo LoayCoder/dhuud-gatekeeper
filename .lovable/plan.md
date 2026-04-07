@@ -1,81 +1,161 @@
 
 
-# Fix: Profile Data Not Populated for Invitation-Based Users
+# Expanded Worker Form + RLS Fix + PTW Access Request Flow
 
-## Problem
+## Overview
 
-The user `l.r.love07@gmail.com` logged in successfully, but their profile page shows empty fields (no name, phone, photo, branch). The profile row exists but has `NULL` for all data columns because:
+Rebuild the contractor portal "Add Worker" form with comprehensive fields, fix the RLS violation, improve mobile input, auto-link company, and add a PTW certification access request workflow.
 
-1. When the profile was created during login, `invitationEmail` was null (session context had been lost)
-2. The invitation metadata didn't contain `full_name` or branch info — those fields exist on the `contractor_representatives` table, not the invitation
-3. The profile creation code at line 574-591 only uses `metadata.full_name` and `invitationEmail`, both of which were empty
-4. Now that the profile exists (with nulls), the `!existingProfile` check on line 511 prevents re-running the population logic
+---
 
-## Data Situation
+## Problem 1: RLS Violation
 
-The representative record (`85deed09`) has all the correct data:
-- `full_name`: لؤي ابراهيم محمد مدخلي
-- `mobile_number`: +966537249823
-- `email`: l.r.love07@gmail.com
-- `photo_path`: exists (uploaded photo)
-- `company.assigned_branch_id`: db84436e
+The `ContractorWorkerForm.tsx` imports `useCreateContractorWorker` from `@/hooks/contractor-management` (line 12), which does NOT include `tenant_id`. The correct hook is `useContractorPortalCreateWorker` in `src/features/contractors/hooks/use-contractor-portal.ts` (line 220) which already supplies `tenant_id`. Fix: change the import to use the portal version via `@/hooks/contractor-management/index.ts` which re-exports it.
 
-But the profile has all NULLs except `tenant_id`, `user_id`, and `is_active`.
+## Problem 2: Missing Database Columns
 
-## Fix Plan
+Add new columns to `contractor_workers` via migration.
 
-### Change 1: Enrich profile creation from representative data
-**File:** `src/pages/Login.tsx` (lines 556-591)
+## Problem 3: PTW Access Flow
 
-When creating a profile for a `contractor_representative` invitation, fetch the full representative record (not just `mobile_number`) and use it to populate profile fields:
+When a worker has "PTW" in their training certifications, the contractor representative can request PTW platform access. This triggers an approval request to an HSSE Expert. Upon approval, the worker receives an invitation (email + WhatsApp) to access the platform as a PTW Receiver.
 
+---
+
+## Database Migration
+
+Add columns to `contractor_workers`:
+
+| Column | Type | Default |
+|--------|------|---------|
+| `id_type` | text | `'national_id'` |
+| `date_of_birth` | date | null |
+| `gender` | text | null |
+| `email` | text | null |
+| `emergency_contact_name` | text | null |
+| `emergency_contact_phone` | text | null |
+| `worker_role` | text | `'laborer'` |
+| `expiry_date` | date | null |
+| `fitness_to_work` | text | null |
+| `training_certifications` | text[] | `'{}'` |
+| `ptw_access_status` | text | null |
+| `ptw_access_requested_at` | timestamptz | null |
+| `ptw_access_approved_by` | uuid | null |
+| `ptw_access_approved_at` | timestamptz | null |
+
+Create a new table `ptw_access_requests`:
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | PK |
+| `tenant_id` | uuid | NOT NULL |
+| `worker_id` | uuid | FK → contractor_workers |
+| `company_id` | uuid | FK → contractor_companies |
+| `requested_by` | uuid | The rep who requested |
+| `status` | text | pending / approved / rejected |
+| `reviewed_by` | uuid | HSSE Expert who reviewed |
+| `reviewed_at` | timestamptz | |
+| `rejection_reason` | text | |
+| `created_at` | timestamptz | default now() |
+
+RLS policies on `ptw_access_requests`:
+- SELECT: `tenant_id = get_auth_tenant_id()`
+- INSERT: `tenant_id = get_auth_tenant_id()`
+- UPDATE: `tenant_id = get_auth_tenant_id()` (for HSSE expert approval)
+
+---
+
+## File Changes
+
+### 1. `ContractorWorkerForm.tsx` — Full Rebuild
+
+- Fix import: use the portal-aware `useCreateContractorWorker` (from `@/hooks/contractor-management/index.ts`)
+- Expand dialog to `max-w-2xl` with `ScrollArea`
+- Organize into 4 sections using two-column grid:
+
+**Personal Information**: Full Name, ID Type (National ID / Iqama / Passport), ID Number, Date of Birth, Gender, Nationality, Profile Photo (`WorkerPhotoUpload`)
+
+**Contact Information**: Mobile Number (`DhuudPhoneInput` with SA default), Email, Emergency Contact Name, Emergency Contact Number (`DhuudPhoneInput`)
+
+**Work Details**: Company Name (auto-filled read-only from `companyId`), Worker Role (Manager / Supervisor / Laborer / Engineer / Leader), Preferred Language, Expiry Date (auto-calculated from active project end_date), Fitness to Work (Yes / No / Optional / PTW)
+
+**Training & Certifications**: Multi-select checkboxes (First Aid, Fire Safety, PTW, Confined Space, Working at Height). When "PTW" is selected, show a highlighted info banner: "This worker will be eligible for PTW Receiver access after approval."
+
+### 2. `useContractorPortalCreateWorker` in `use-contractor-portal.ts`
+
+- Expand the mutation's `data` type to include all new fields
+- Pass them in the insert payload
+- After successful creation, if `training_certifications` includes `'ptw'`, automatically insert a row into `ptw_access_requests` with status `'pending'`
+
+### 3. PTW Access Request Approval UI
+
+Create `src/components/contractor-portal/PTWAccessRequestButton.tsx`:
+- Shown on worker cards that have PTW certification but no active access
+- When clicked by the rep, creates a `ptw_access_requests` record
+- Shows status badge (Pending / Approved / Rejected)
+
+Create `src/components/contractors/PTWAccessApprovalList.tsx`:
+- Admin/HSSE Expert view showing pending PTW access requests
+- Approve/Reject actions with reason field
+- On approval: updates `ptw_access_status` on the worker, triggers invitation
+
+### 4. PTW Access Invitation (on approval)
+
+Update or create Edge Function logic (within existing `send-contractor-invitation` or a new handler in the approval mutation):
+- On HSSE Expert approval of a PTW access request:
+  - Send invitation email to the worker's email using existing email infrastructure
+  - Send WhatsApp notification to the worker's mobile via existing `wasender-whatsapp.ts` utility
+  - Message content: "You have been approved as a PTW Receiver. Click here to access the platform."
+  - Create an `invitations` record with metadata `{ type: 'ptw_receiver', worker_id, company_id }`
+
+### 5. Workers page (`contractor-portal/Workers.tsx`)
+
+- Pass `companyName` to the form for auto-display
+- Show PTW access status badge on worker cards that have PTW certification
+
+### 6. Update `ContractorWorkerEditForm.tsx`
+
+- Add matching fields so edits cover the same schema
+
+---
+
+## PTW Access Request Flow Diagram
+
+```text
+Worker Created with PTW Certification
+         │
+         ▼
+  ptw_access_requests row created (status: pending)
+         │
+         ▼
+  HSSE Expert reviews in PTW Access Approval List
+         │
+    ┌────┴────┐
+    ▼         ▼
+ Approve    Reject
+    │         │
+    ▼         ▼
+ Update    Update status
+ worker    to 'rejected'
+ ptw_access_status = 'approved'
+    │
+    ▼
+ Send Email + WhatsApp invitation
+ to worker as PTW Receiver
+    │
+    ▼
+ Worker accesses platform
+ via invitation link
 ```
-- full_name → representative.full_name
-- email → representative.email or user.email
-- phone_number → representative.mobile_number
-- avatar_url → signed URL from representative.photo_path
-- assigned_branch_id → company.assigned_branch_id
-```
 
-This ensures the profile is fully populated even if `invitationEmail` and `metadata.full_name` are null.
+---
 
-### Change 2: Add a repair path for existing empty profiles
-**File:** `src/pages/Login.tsx` (around line 511)
+## Technical Notes
 
-Currently: if `existingProfile` exists, skip everything.
-
-Change to: if `existingProfile` exists but has null email/full_name, and the user has an unused or recently-used contractor invitation, update the profile with data from the representative record. This repairs the current broken profile and any future cases where profile creation partially succeeded.
-
-```
-if (existingProfile) {
-  // Check if profile needs repair (missing critical fields)
-  const { data: fullProfile } = await supabase
-    .from('profiles')
-    .select('email, full_name')
-    .eq('user_id', user.id)
-    .maybeSingle();
-    
-  if (!fullProfile?.email && !fullProfile?.full_name) {
-    // Find invitation for this user and repair profile from representative data
-    // ... repair logic using representative record
-  }
-}
-```
-
-### Change 3: Use user.email as reliable fallback
-**File:** `src/pages/Login.tsx` (line 578)
-
-Change `email: invitationEmail` to `email: invitationEmail || user.email` so the email is never null even if invitation context was lost.
-
-## Files to Modify
-
-| File | Change |
-|------|--------|
-| `src/pages/Login.tsx` | Enrich profile from representative record; add repair path for empty profiles; use user.email fallback |
-
-## Expected Outcome
-
-- The existing profile for `l.r.love07@gmail.com` will be repaired on next login with name, email, phone, photo, and branch from the representative record
-- Future contractor representative signups will have fully populated profiles from the start
-- The profile page will correctly display all information and photo
+- `DhuudPhoneInput` exists at `src/components/ui/phone-input.tsx` with SA default
+- `WorkerPhotoUpload` exists at `src/features/contractors/components/WorkerPhotoUpload.tsx`
+- WhatsApp sending uses `supabase/functions/_shared/wasender-whatsapp.ts`
+- Email uses existing `send-contractor-invitation` Edge Function pattern
+- Form uses two-column grid on desktop, single column on mobile
+- Training certifications stored as PostgreSQL `text[]`, rendered as checkboxes
 
