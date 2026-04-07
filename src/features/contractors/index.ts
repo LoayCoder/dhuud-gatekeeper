@@ -28,6 +28,7 @@ export * from './components/GatePassDetailDialog/tabs/TimelineTab';
 export * from './components/GatePassDetailDialog/GatePassDetailDialog';
 export * from './components/GatePassDetailDialog';
 export * from './components/GatePassDetailDialog/types';
+export * from './components/GatePassCreateDialog';
 export * from './components/AddWorkerToBlacklistDialog';
 export * from './components/BulkRejectDialog';
 export * from './components/ChangeWorkerStatusDialog';
