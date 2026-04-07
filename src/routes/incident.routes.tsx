@@ -18,6 +18,7 @@ const HSSEEventDashboard = lazyWithRetry(() => import("@/pages/incidents/HSSEEve
 // Risk Assessment pages
 const RiskAssessments = lazyWithRetry(() => import("@/pages/RiskAssessments"));
 const RiskAssessmentCreate = lazyWithRetry(() => import("@/pages/RiskAssessmentCreate"));
+const RiskAssessmentDetail = lazyWithRetry(() => import("@/pages/RiskAssessmentDetail"));
 
 // Dashboard pages
 const Leaderboard = lazyWithRetry(() => import("@/pages/Leaderboard"));
@@ -50,5 +51,9 @@ export const riskRoutes: RouteObject[] = [
   {
     path: "risk-assessments/create",
     element: <HSSERoute><RiskAssessmentCreate /></HSSERoute>
+  },
+  {
+    path: "risk-assessments/:id",
+    element: <HSSERoute><RiskAssessmentDetail /></HSSERoute>
   },
 ];
