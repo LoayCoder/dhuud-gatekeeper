@@ -53,9 +53,9 @@ export default function SiteClearanceDetail() {
   const tenantId = profile?.tenant_id;
 
   const [activeTab, setActiveTab] = useState("risk-verification");
-  const [knownRisks, setKnownRisks] = useState("");
-  const [controlMeasures, setControlMeasures] = useState("");
-  const [risksEdited, setRisksEdited] = useState(false);
+  const [newRiskDesc, setNewRiskDesc] = useState("");
+  const [newRiskSeverity, setNewRiskSeverity] = useState("medium");
+  const [newRiskControls, setNewRiskControls] = useState("");
 
   const { data: detail, isLoading: detailLoading } = useMobilizationDetail(projectId);
   const ensureMob = useEnsureMobilization();
