@@ -111,6 +111,10 @@ export async function updateSiteRiskVerification(
     underground_utilities_identified?: boolean;
     high_risk_zones_marked?: boolean;
     work_boundaries_defined?: boolean;
+    utility_verified_notes?: string;
+    underground_utilities_notes?: string;
+    high_risk_zones_notes?: string;
+    work_boundaries_notes?: string;
   }
 ) {
   const { data, error } = await supabase
@@ -252,4 +256,55 @@ export async function getClearanceAuditLogs(mobilizationId: string) {
 
   if (error) throw error;
   return data;
+}
+
+// ==================== Site Clearance Risks ====================
+
+export type RiskSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export async function getSiteClearanceRisks(mobilizationId: string) {
+  const { data, error } = await supabase
+    .from('site_clearance_risks')
+    .select(`
+      id, risk_description, severity, control_measures, created_at,
+      creator:profiles!site_clearance_risks_created_by_fkey(full_name)
+    `)
+    .eq('mobilization_id', mobilizationId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function addSiteClearanceRisk(
+  mobilizationId: string,
+  tenantId: string,
+  userId: string,
+  risk: { risk_description: string; severity: RiskSeverity; control_measures?: string }
+) {
+  const { data, error } = await supabase
+    .from('site_clearance_risks')
+    .insert({
+      mobilization_id: mobilizationId,
+      tenant_id: tenantId,
+      risk_description: risk.risk_description,
+      severity: risk.severity,
+      control_measures: risk.control_measures || null,
+      created_by: userId,
+    } as any)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteSiteClearanceRisk(riskId: string) {
+  const { error } = await supabase
+    .from('site_clearance_risks')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', riskId);
+
+  if (error) throw error;
 }
