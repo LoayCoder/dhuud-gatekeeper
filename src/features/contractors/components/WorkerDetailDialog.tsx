@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen, UserCheck, Loader2, CreditCard, Globe, Phone, MapPin } from "lucide-react";
+import { FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen, UserCheck, Loader2, CreditCard, Globe, Phone, MapPin, ArrowRight, ShieldAlert } from "lucide-react";
 import { format } from "date-fns";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 import { WorkerQRCode } from "./WorkerQRCode";
@@ -47,6 +47,7 @@ function AssignedProjectBadge({ projectName, t }: { projectName: string; t: (key
 
 export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = false }: WorkerDetailDialogProps) {
   const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState("details");
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
   const [isSendingInduction, setIsSendingInduction] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -64,6 +65,11 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
   const hasAutoLinkedProject = !!projectAssignment?.project_id;
   const autoLinkedProjectName = projectAssignment?.project?.project_name || "";
   const effectiveProjectId = hasAutoLinkedProject ? projectAssignment.project_id : selectedProjectId;
+
+  // Reset tab when dialog opens
+  useEffect(() => {
+    if (open) setActiveTab("details");
+  }, [open]);
 
   useEffect(() => {
     if (projectAssignment?.project_id && !selectedProjectId) {
@@ -125,8 +131,6 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
     }
     setIsSendingInduction(true);
     try {
-      // Use send-induction-video which delegates to shared induction-sender module
-      // No need to manually select video — the shared module handles language-based selection
       const { error } = await supabase.functions.invoke("send-induction-video", {
         body: { workerId: worker.id, projectId: effectiveProjectId },
       });
@@ -172,12 +176,12 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="details" className="mt-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="details">{t("contractors.workers.details", "Details")}</TabsTrigger>
             <TabsTrigger value="documents">{t("contractors.workers.documents", "Documents")}</TabsTrigger>
-            <TabsTrigger value="qr">{t("contractors.workers.qrCode", "QR Code")}</TabsTrigger>
             <TabsTrigger value="induction">{t("contractors.workers.induction", "Induction")}</TabsTrigger>
+            <TabsTrigger value="qr">{t("contractors.workers.idCard", "ID Card")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="mt-4">
@@ -198,110 +202,35 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
             </Card>
           </TabsContent>
 
-          <TabsContent value="qr" className="mt-4 space-y-4">
-            {needsPhotoGate && !readOnly ? (
-              <WorkerPhotoGate worker={worker} onVerified={() => onOpenChange(false)} />
-            ) : worker.approval_status === "approved" ? (
-              <>
-                {!readOnly && (
-                <Card className="border-primary/20 bg-primary/5">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <UserCheck className="h-4 w-4" />
-                      {t("contractors.workers.quickOnboard", "Quick Onboard")}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      {t("contractors.workers.onboardDescription", "Send induction video and generate QR code in one step.")}
-                    </p>
-                    {hasAutoLinkedProject ? (
-                      <AssignedProjectBadge projectName={autoLinkedProjectName} t={t} />
-                    ) : (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        {t("contractors.workers.selectProjectForQR", "Select Project")}
-                      </label>
-                      <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("contractors.workers.selectProject", "Select a project...")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {projects.map((project) => (
-                            <SelectItem key={project.id} value={project.id}>{project.project_name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {projects.length === 0 && (
-                        <p className="text-sm text-muted-foreground">{t("contractors.workers.noProjects", "No projects assigned to this company")}</p>
-                      )}
-                    </div>
-                    )}
-                    <Button
-                      onClick={() => onboardWorker.mutate({ workerId: worker.id, projectId: effectiveProjectId }, { onSuccess: () => refetchQRCode() })}
-                      disabled={!effectiveProjectId || onboardWorker.isPending}
-                      className="w-full"
-                    >
-                      {onboardWorker.isPending ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <UserCheck className="h-4 w-4 me-2" />}
-                      {t("contractors.workers.onboardWorker", "Onboard Worker")}
-                    </Button>
-                  </CardContent>
-                </Card>
-                )}
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center justify-between">
-                      <span className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4" />
-                        {t("contractors.workers.idCard", "ID Card")}
-                      </span>
-                      {existingQRCode && !readOnly && (
-                        <IDCardActionButton
-                          cardType="worker"
-                          entityId={worker.id}
-                          personData={{
-                            id: worker.id, fullName: worker.full_name, fullNameAr: worker.full_name_ar || undefined,
-                            photo: photoUrl || undefined, company: worker.company?.company_name,
-                            role: worker.worker_type || t("contractors.workers.worker", "Worker"),
-                            nationalId: worker.national_id, project: existingQRCode.project_name,
-                            validUntil: existingQRCode.expires_at, qrToken: existingQRCode.qr_token,
-                            qrUrl: `https://www.dhuud.com/worker-access/${existingQRCode.qr_token}`,
-                            inductionCompleted: hasCompletedInduction,
-                          }}
-                          tenantId={worker.tenant_id}
-                          tenantData={{ id: worker.tenant_id, name: '' }}
-                          recipientPhone={worker.mobile_number}
-                        />
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-2">
-                    <WorkerQRCode
-                      workerId={worker.id} workerName={worker.full_name}
-                      qrData={existingQRCode ? { token: existingQRCode.qr_token, expires_at: existingQRCode.expires_at, is_active: existingQRCode.is_active, project_name: existingQRCode.project_name } : null}
-                      onGenerateQR={handleGenerateQR} isGenerating={isGeneratingQR} disabled={!selectedProjectId || readOnly}
-                    />
-                  </CardContent>
-                </Card>
-              </>
-            ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-sm text-muted-foreground">
-                    {t("contractors.workers.approvalRequiredForQr", "Worker must be approved before QR code can be generated")}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
+          {/* ── Induction Tab ── */}
           <TabsContent value="induction" className="mt-4 space-y-4">
             {needsPhotoGate && !readOnly ? (
               <WorkerPhotoGate worker={worker} onVerified={() => window.location.reload()} />
             ) : (
             <>
+            {/* Success banner when induction is completed */}
+            {hasCompletedInduction && (
+              <Card className="border-green-500/30 bg-green-500/10">
+                <CardContent className="py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="text-sm font-medium text-green-700">
+                      {t("contractors.induction.completedBanner", "Induction complete")}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-green-500/50 text-green-700 hover:bg-green-500/10"
+                    onClick={() => setActiveTab("qr")}
+                  >
+                    {t("contractors.workers.goToIdCard", "Go to ID Card")}
+                    <ArrowRight className="h-4 w-4 ms-1 rtl:rotate-180" />
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
@@ -399,6 +328,73 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
             </Card>
             )}
             </>
+            )}
+          </TabsContent>
+
+          {/* ── ID Card Tab (gated by induction completion) ── */}
+          <TabsContent value="qr" className="mt-4 space-y-4">
+            {!hasCompletedInduction ? (
+              <Card>
+                <CardContent className="py-12 text-center space-y-4">
+                  <ShieldAlert className="h-12 w-12 mx-auto text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    {t("contractors.workers.inductionRequiredForId", "Worker must complete induction before ID card can be generated.")}
+                  </p>
+                  <Button variant="outline" onClick={() => setActiveTab("induction")}>
+                    <Video className="h-4 w-4 me-2" />
+                    {t("contractors.workers.goToInduction", "Go to Induction")}
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : needsPhotoGate && !readOnly ? (
+              <WorkerPhotoGate worker={worker} onVerified={() => onOpenChange(false)} />
+            ) : worker.approval_status === "approved" ? (
+              <>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        {t("contractors.workers.idCard", "ID Card")}
+                      </span>
+                      {existingQRCode && !readOnly && (
+                        <IDCardActionButton
+                          cardType="worker"
+                          entityId={worker.id}
+                          personData={{
+                            id: worker.id, fullName: worker.full_name, fullNameAr: worker.full_name_ar || undefined,
+                            photo: photoUrl || undefined, company: worker.company?.company_name,
+                            role: worker.worker_type || t("contractors.workers.worker", "Worker"),
+                            nationalId: worker.national_id, project: existingQRCode.project_name,
+                            validUntil: existingQRCode.expires_at, qrToken: existingQRCode.qr_token,
+                            qrUrl: `https://www.dhuud.com/worker-access/${existingQRCode.qr_token}`,
+                            inductionCompleted: hasCompletedInduction,
+                          }}
+                          tenantId={worker.tenant_id}
+                          tenantData={{ id: worker.tenant_id, name: '' }}
+                          recipientPhone={worker.mobile_number}
+                        />
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-2">
+                    <WorkerQRCode
+                      workerId={worker.id} workerName={worker.full_name}
+                      qrData={existingQRCode ? { token: existingQRCode.qr_token, expires_at: existingQRCode.expires_at, is_active: existingQRCode.is_active, project_name: existingQRCode.project_name } : null}
+                      onGenerateQR={handleGenerateQR} isGenerating={isGeneratingQR} disabled={!effectiveProjectId || readOnly}
+                    />
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-sm text-muted-foreground">
+                    {t("contractors.workers.approvalRequiredForQr", "Worker must be approved before QR code can be generated")}
+                  </p>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
         </Tabs>
