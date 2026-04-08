@@ -56,7 +56,7 @@ function getEntityLink(entry: IntegrationAuditEntry): string | null {
     case 'permit':
       return `/ptw/view/${entry.entity_id}`;
     case 'project':
-      return `/mobilization/${entry.entity_id}`;
+      return `/site-clearance/${entry.entity_id}`;
     case 'worker':
       return `/contractor/workers/${entry.entity_id}`;
     case 'contractor':
