@@ -131,7 +131,7 @@ export default function AccessControlDashboard() {
   ];
 
   return (
-    <div className="container mx-auto py-4 px-4 md:px-6 space-y-4">
+    <div className="container mx-auto py-3 px-3 sm:px-4 md:px-6 space-y-4">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -302,7 +302,7 @@ export default function AccessControlDashboard() {
 
         {/* Approvals Tab */}
         <TabsContent value="approvals" className="space-y-4 mt-4">
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-3 grid-cols-1 lg:grid-cols-2">
             {/* Visitor Approvals */}
             <Card>
               <CardHeader className="pb-3 px-3 sm:px-6">
