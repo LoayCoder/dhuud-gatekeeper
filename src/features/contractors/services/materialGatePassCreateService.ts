@@ -75,7 +75,7 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
         // Insert items one-by-one to guarantee order mapping for photo uploads
         const insertedItemIds: string[] = [];
         for (const item of data.items) {
-            const { data: inserted, error: itemError } = await supabase
+            const { data: inserted } = await supabase
                 .from("gate_pass_items")
                 .insert({
                     gate_pass_id: result.id,
@@ -86,14 +86,10 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
                     tenant_id: tenantId,
                 })
                 .select("id")
-                .single();
+                .single()
+                .throwOnError();
 
-            if (itemError) {
-                console.error("Item insert error:", itemError);
-                insertedItemIds.push('');
-            } else {
-                insertedItemIds.push(inserted.id);
-            }
+            insertedItemIds.push(inserted!.id);
         }
 
         // Upload photos for each item using the guaranteed-order IDs
@@ -131,14 +127,10 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
             }
 
             if (photoRecords.length > 0) {
-                const { error: photosError } = await supabase
+                await supabase
                     .from("gate_pass_item_photos")
-                    .insert(photoRecords);
-
-                if (photosError) {
-                    console.error("Item photos insert error:", photosError);
-                    toast.error(`Failed to save photo records for item "${data.items[i].item_name}"`);
-                }
+                    .insert(photoRecords)
+                    .throwOnError();
             }
         }
     }
@@ -168,11 +160,15 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
                     });
             }
         }
+    }
+
+    // Upload general photos if provided
+    if (data.photos && data.photos.length > 0) {
         const photoRecords = [];
 
         for (const photo of data.photos) {
             const compressedPhoto = await compressImage(photo, 1280, 0.75);
-            const fileName = `${result.id}/${crypto.randomUUID()}-${photo.name}`;
+            const fileName = `${tenantId}/${result.id}/${crypto.randomUUID()}-${photo.name}`;
             const { error: uploadError } = await supabase.storage
                 .from("gate-pass-photos")
                 .upload(fileName, compressedPhoto);
@@ -194,11 +190,10 @@ export const createGatePass = async (data: CreateGatePassData, tenantId: string,
         }
 
         if (photoRecords.length > 0) {
-            const { error: photosError } = await supabase
+            await supabase
                 .from("gate_pass_photos")
-                .insert(photoRecords);
-
-            if (photosError) console.error("Photos insert error:", photosError);
+                .insert(photoRecords)
+                .throwOnError();
         }
     }
 
