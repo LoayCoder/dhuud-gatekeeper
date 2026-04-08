@@ -1,86 +1,34 @@
 
 
-# Legacy & Dead Code Cleanup
+# Mobile Responsiveness Fix — Security Approval Queue
 
-## Summary of Findings
+## Problems (from screenshot)
+1. "Pending Security Review" badge overflows/clips on the right side of worker cards
+2. "Return with Comments" button text gets cut off even with the mobile shortening
+3. Worker name + badge row doesn't wrap properly on narrow screens
+4. Card content has insufficient breathing room on small devices
 
-After scanning the codebase, here are the categories of legacy code that can be cleaned up:
+## Changes
 
----
+### File 1: `src/features/contractors/components/WorkerSecurityApprovalQueue.tsx`
 
-## Category 1: Stub Components That Render Nothing
+**Badge overflow fix:** The worker card header currently places the avatar, name, and a status badge in a single flex row. On mobile, the badge overflows. Fix by:
+- Removing the inline "Pending Security Review" badge from the header row
+- Moving any status indicator below the name as a small block-level badge that wraps naturally
 
-These components exist only as empty stubs (`return null`) and provide zero functionality:
+**Button layout fix:** Change buttons from side-by-side (`flex`) to stacked vertically on mobile (`flex-col sm:flex-row`), ensuring both "Grant Security Clearance" / "Approve" and "Return with Comments" / "Reject" buttons get full width on small screens.
 
-| File | Used By | Verdict |
-|------|---------|---------|
-| `src/components/notifications/ChannelIcon.tsx` | `NotificationDeliveryLog.tsx` | Stub — renders nothing in the delivery log page |
-| `src/components/notifications/DeliveryStatusBadge.tsx` | `NotificationDeliveryLog.tsx` | Stub — renders nothing |
-| `src/components/notifications/DeliveryLogStatsCards.tsx` | `NotificationDeliveryLog.tsx` | Stub — renders nothing |
-| `src/components/notifications/DeliveryLogDetailDialog.tsx` | `NotificationDeliveryLog.tsx` | Stub — renders nothing |
-| `src/components/notifications/NotificationPermissionPrompt.tsx` | Exported from index, no real consumer | Stub — renders nothing |
-| `src/components/layout/AppSidebar/AppSidebarModals.tsx` | `AppSidebar.tsx` | Stub — renders nothing |
+**Worker info section:** Ensure all info rows (ID, phone, nationality) use `break-all` on values to prevent long IDs from overflowing.
 
-**Action:** These are placeholders for features not yet built. They should be kept if there's intent to implement them, but flagged as "not yet implemented" rather than legacy. **No action needed** unless you want to remove placeholders.
+**Pre-approved text:** Add `break-words` and ensure the timestamp line wraps cleanly.
 
----
+### File 2: `src/pages/security/AccessControlDashboard.tsx`
 
-## Category 2: Deprecated Functions Still Called (Migrate Callers)
+**Approvals tab grid:** Change `grid gap-4 lg:grid-cols-2` to `grid gap-3 grid-cols-1 lg:grid-cols-2` — on mobile the two approval cards (Visitor + Worker) should always stack vertically with tighter gaps.
 
-These are marked `@deprecated` but still have active callers:
-
-| Deprecated Function | Replacement | Active Callers |
-|---------------------|-------------|----------------|
-| `generatePDFFromElement` (pdf-utils.ts) | `generateBrandedPDFFromElement` | 3 files: `generate-session-report-pdf.ts`, `generate-audit-report-pdf.ts`, `ExecutiveReport.tsx`, `generate-witness-statement-pdf.ts` |
-| `sendEmailViaSES` (email-sender.ts) | `sendEmail` / `sendEmailToOne` | 7 edge functions still call it |
-| `formatSAR` / `formatSARArabic` (pricing-engine.ts) | `formatCurrency` from currency-utils.ts | `BillingOverview.tsx` still uses `formatSAR` |
-| `useGatePassItems` / `useGatePassPhotos` (use-gate-pass-details.ts) | `useGatePassMedia` | 3 components: `GatePassApprovalCard`, `ItemsPhotosTab`, `GatePassDetailDialog` |
-
-**Action:** Migrate callers to the new functions, then remove the deprecated ones.
+**Container padding:** Reduce `py-4 px-4` to `py-3 px-3 sm:px-4 md:px-6` for tighter mobile fit.
 
 ---
 
-## Category 3: Redirect-Only Page (Can Remove Route)
-
-| File | Purpose |
-|------|---------|
-| `src/pages/inspections/MyInspectionActions.tsx` | Only redirects to `/incidents/my-actions` — the route `/inspections/my-actions` could be removed from `inspection.routes.tsx` and the sidebar menu, and the file deleted |
-
-**Action:** Remove the redirect page, its route entry, and update the sidebar menu link to point directly to `/incidents/my-actions`.
-
----
-
-## Category 4: Massive Inspection Stubs File
-
-| File | Lines | Purpose |
-|------|-------|---------|
-| `src/features/incidents/hooks/use-inspection-stubs.ts` | ~450+ | Contains ~40 stub hooks/functions for inspection features that were "removed during migration" |
-
-**Action:** This file is actively imported by `src/features/incidents/index.ts` and `src/features/assets/index.ts`. It provides no real functionality. These stubs should be replaced with real implementations or the consuming components should be updated to not depend on them. **Keep for now** — removing would break imports.
-
----
-
-## Recommended Cleanup Plan (Safe to Execute)
-
-### Step 1: Migrate `useGatePassItems`/`useGatePassPhotos` callers → `useGatePassMedia`
-- Update `GatePassApprovalCard.tsx`, `ItemsPhotosTab.tsx`, `GatePassDetailDialog.tsx`
-- Remove the deprecated exports from `use-gate-pass-details.ts`
-
-### Step 2: Migrate `formatSAR` → `formatCurrency`
-- Update `BillingOverview.tsx` to use `formatCurrency` from `currency-utils.ts`
-- Remove `formatSAR`/`formatSARArabic` from `pricing-engine.ts`
-
-### Step 3: Remove redirect page `MyInspectionActions.tsx`
-- Remove route from `inspection.routes.tsx`
-- Update sidebar menu in `useHsseMenu.ts` to point to `/incidents/my-actions`
-- Delete the file
-
-### Step 4: Migrate `sendEmailViaSES` → `sendEmailToOne` in edge functions
-- Update 7 edge functions to use `sendEmailToOne`
-- Remove the deprecated wrapper from `email-sender.ts`
-
-### Step 5: Remove `AppSidebarModals` empty stub
-- Remove from `AppSidebar.tsx` and delete the file
-
-**Files changed:** ~15 files modified, 3 files deleted
+**Files changed:** 2 files updated
 
