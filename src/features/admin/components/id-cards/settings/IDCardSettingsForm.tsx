@@ -56,6 +56,7 @@ const BACK_FIELDS: BackFieldKey[] = [
   'safety_instructions',
   'induction_status',
   'contract_validity',
+  'valid_until',
   'company_contact',
   'office_location',
   'custom_text',

@@ -97,6 +97,7 @@ const SAMPLE_PERSON_DATA: Record<IDCardType, IDCardPersonData> = {
     role: 'Project Manager',
     roleAr: 'مدير المشروع',
     validUntil: new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0],
+    badgeNumber: 'CTR-2024-088',
     qrToken: 'CTR-SAMPLE-001',
     emergencyContact: '+966 55 555 6666',
   },
