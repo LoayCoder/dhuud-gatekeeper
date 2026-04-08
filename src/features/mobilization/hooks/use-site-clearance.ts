@@ -215,6 +215,26 @@ export function useAddSiteClearanceRisk() {
   });
 }
 
+export function useUpdateSiteClearanceRisk() {
+  const queryClient = useQueryClient();
+  const { user, profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ riskId, mobilizationId, fields }: { riskId: string; mobilizationId: string; fields: { risk_description?: string; severity?: string; control_measures?: string } }) => {
+      if (!user?.id || !profile?.tenant_id) throw new Error("Not authenticated");
+      const { updateSiteClearanceRisk, logClearanceAudit } = await import("../services/siteClearanceService");
+      const result = await updateSiteClearanceRisk(riskId, fields as any);
+      await logClearanceAudit(mobilizationId, profile.tenant_id, user.id, 'update_risk', undefined, { riskId, ...fields });
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["site-clearance-risks"] });
+      toast.success("Risk updated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
 export function useDeleteSiteClearanceRisk() {
   const queryClient = useQueryClient();
   const { user, profile } = useAuth();

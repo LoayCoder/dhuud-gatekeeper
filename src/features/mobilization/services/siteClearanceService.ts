@@ -300,6 +300,21 @@ export async function addSiteClearanceRisk(
   return data;
 }
 
+export async function updateSiteClearanceRisk(
+  riskId: string,
+  fields: { risk_description?: string; severity?: RiskSeverity; control_measures?: string }
+) {
+  const { data, error } = await supabase
+    .from('site_clearance_risks')
+    .update(fields as any)
+    .eq('id', riskId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function deleteSiteClearanceRisk(riskId: string) {
   const { error } = await supabase
     .from('site_clearance_risks')
