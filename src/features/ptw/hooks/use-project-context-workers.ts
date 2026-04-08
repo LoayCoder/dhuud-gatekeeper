@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface ProjectContextWorker {
   id: string;
@@ -16,6 +17,10 @@ export interface ProjectContextResult {
   isInternalWork: boolean;
 }
 
+/**
+ * Fetch workers for a contractor project (single source of truth).
+ * No longer queries ptw_projects.
+ */
 export function useProjectContextWorkers(projectId: string | undefined) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
@@ -25,29 +30,47 @@ export function useProjectContextWorkers(projectId: string | undefined) {
     queryFn: async (): Promise<ProjectContextResult> => {
       if (!tenantId || !projectId) return { workers: [], isInternalWork: false };
 
-      const { getProjectContextWorkers } = await import("@/features/ptw/services/ptwProjectService");
-      const { project, workers, assignments } = await getProjectContextWorkers(projectId, tenantId);
+      // Read from contractor_projects directly
+      const { data: project, error: projectError } = await supabase
+        .from("contractor_projects")
+        .select("id, company_id, project_type")
+        .eq("id", projectId)
+        .eq("tenant_id", tenantId)
+        .is("deleted_at", null)
+        .single();
 
-      if (!project) return { workers: [], isInternalWork: false };
+      if (projectError || !project) return { workers: [], isInternalWork: false };
 
-      const isInternalWork = !!(project as any).is_internal_work;
+      const isInternalWork = project.project_type === "internal";
 
-      // Internal projects return no workers — that's expected
-      if (isInternalWork || !workers || workers.length === 0) {
+      if (isInternalWork || !project.company_id) {
         return { workers: [], isInternalWork };
       }
 
-      let assignedWorkerIds = new Set<string>();
+      const { data: workers, error: workersError } = await supabase
+        .from("contractor_workers")
+        .select("id, full_name, full_name_ar, national_id, mobile_number, approval_status")
+        .eq("tenant_id", tenantId)
+        .eq("company_id", project.company_id)
+        .eq("approval_status", "approved")
+        .is("deleted_at", null)
+        .order("full_name");
 
-      if (assignments) {
-        assignedWorkerIds = new Set(assignments.map(a => a.worker_id));
-      }
+      if (workersError) throw workersError;
 
-      const mappedWorkers = (workers || []).map(worker => ({
+      // Get assigned workers for this project
+      const { data: assignments } = await supabase
+        .from("project_worker_assignments")
+        .select("worker_id")
+        .eq("project_id", projectId)
+        .eq("is_active", true)
+        .is("deleted_at", null);
+
+      const assignedWorkerIds = new Set((assignments || []).map((a: any) => a.worker_id));
+
+      const mappedWorkers = (workers || []).map((worker: any) => ({
         ...worker,
-        is_assigned: (project as any).linked_contractor_project_id
-          ? assignedWorkerIds.has(worker.id)
-          : true,
+        is_assigned: assignedWorkerIds.size > 0 ? assignedWorkerIds.has(worker.id) : true,
       }));
 
       return { workers: mappedWorkers, isInternalWork };

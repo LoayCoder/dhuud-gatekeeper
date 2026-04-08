@@ -98,7 +98,7 @@ export function MobilizationStatusBanner({
             {/* Link to Mobilization Page */}
             {projectId && (
               <Button variant="outline" size="sm" asChild className="mt-2">
-                <Link to={`/ptw/projects/${projectId}/clearance`}>
+                <Link to={`/mobilization/${projectId}`}>
                   {t("ptw.mobilization.completeMobilization", "Complete Mobilization")}
                 </Link>
               </Button>

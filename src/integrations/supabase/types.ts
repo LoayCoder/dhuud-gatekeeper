@@ -16656,6 +16656,7 @@ export type Database = {
           id: string
           is_completed: boolean | null
           item_id: string | null
+          mobilization_id: string | null
           note: string | null
           project_id: string
           risk_assessment_id: string | null
@@ -16679,6 +16680,7 @@ export type Database = {
           id?: string
           is_completed?: boolean | null
           item_id?: string | null
+          mobilization_id?: string | null
           note?: string | null
           project_id: string
           risk_assessment_id?: string | null
@@ -16702,6 +16704,7 @@ export type Database = {
           id?: string
           is_completed?: boolean | null
           item_id?: string | null
+          mobilization_id?: string | null
           note?: string | null
           project_id?: string
           risk_assessment_id?: string | null
@@ -16727,10 +16730,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "project_clearance_execution_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "project_clearance_execution_mobilization_id_fkey"
+            columns: ["mobilization_id"]
             isOneToOne: false
-            referencedRelation: "ptw_projects"
+            referencedRelation: "project_mobilizations"
             referencedColumns: ["id"]
           },
           {
@@ -16759,6 +16762,92 @@ export type Database = {
             columns: ["witness_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_mobilizations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          mobilization_percentage: number
+          pre_checks_completed: boolean
+          project_id: string
+          ptw_enabled: boolean
+          rejection_reason: string | null
+          risk_assessment_required: boolean
+          site_clearance_approved: boolean
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          mobilization_percentage?: number
+          pre_checks_completed?: boolean
+          project_id: string
+          ptw_enabled?: boolean
+          rejection_reason?: string | null
+          risk_assessment_required?: boolean
+          site_clearance_approved?: boolean
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          mobilization_percentage?: number
+          pre_checks_completed?: boolean
+          project_id?: string
+          ptw_enabled?: boolean
+          rejection_reason?: string | null
+          risk_assessment_required?: boolean
+          site_clearance_approved?: boolean
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_mobilizations_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_mobilizations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_mobilizations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_mobilizations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -17065,13 +17154,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ptw_audit_logs_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "ptw_projects"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ptw_audit_logs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -17091,7 +17173,8 @@ export type Database = {
           document_url: string | null
           id: string
           is_mandatory: boolean | null
-          project_id: string
+          mobilization_id: string | null
+          project_id: string | null
           rejection_reason: string | null
           requirement_name: string
           requirement_name_ar: string | null
@@ -17110,7 +17193,8 @@ export type Database = {
           document_url?: string | null
           id?: string
           is_mandatory?: boolean | null
-          project_id: string
+          mobilization_id?: string | null
+          project_id?: string | null
           rejection_reason?: string | null
           requirement_name: string
           requirement_name_ar?: string | null
@@ -17129,7 +17213,8 @@ export type Database = {
           document_url?: string | null
           id?: string
           is_mandatory?: boolean | null
-          project_id?: string
+          mobilization_id?: string | null
+          project_id?: string | null
           rejection_reason?: string | null
           requirement_name?: string
           requirement_name_ar?: string | null
@@ -17147,10 +17232,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ptw_clearance_checks_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "ptw_clearance_checks_mobilization_id_fkey"
+            columns: ["mobilization_id"]
             isOneToOne: false
-            referencedRelation: "ptw_projects"
+            referencedRelation: "project_mobilizations"
             referencedColumns: ["id"]
           },
           {
@@ -17687,6 +17772,7 @@ export type Database = {
           closed_at: string | null
           closed_by: string | null
           closure_notes: string | null
+          contractor_project_id: string | null
           created_at: string | null
           created_by: string | null
           deleted_at: string | null
@@ -17705,9 +17791,10 @@ export type Database = {
           issuer_id: string | null
           job_description: string | null
           location_details: string | null
+          mobilization_id: string | null
           planned_end_time: string
           planned_start_time: string
-          project_id: string
+          project_id: string | null
           qr_code_token: string | null
           reference_id: string
           requested_at: string | null
@@ -17733,6 +17820,7 @@ export type Database = {
           closed_at?: string | null
           closed_by?: string | null
           closure_notes?: string | null
+          contractor_project_id?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
@@ -17751,9 +17839,10 @@ export type Database = {
           issuer_id?: string | null
           job_description?: string | null
           location_details?: string | null
+          mobilization_id?: string | null
           planned_end_time: string
           planned_start_time: string
-          project_id: string
+          project_id?: string | null
           qr_code_token?: string | null
           reference_id: string
           requested_at?: string | null
@@ -17779,6 +17868,7 @@ export type Database = {
           closed_at?: string | null
           closed_by?: string | null
           closure_notes?: string | null
+          contractor_project_id?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
@@ -17797,9 +17887,10 @@ export type Database = {
           issuer_id?: string | null
           job_description?: string | null
           location_details?: string | null
+          mobilization_id?: string | null
           planned_end_time?: string
           planned_start_time?: string
-          project_id?: string
+          project_id?: string | null
           qr_code_token?: string | null
           reference_id?: string
           requested_at?: string | null
@@ -17845,6 +17936,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ptw_permits_contractor_project_id_fkey"
+            columns: ["contractor_project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ptw_permits_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -17873,10 +17971,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ptw_permits_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "ptw_permits_mobilization_id_fkey"
+            columns: ["mobilization_id"]
             isOneToOne: false
-            referencedRelation: "ptw_projects"
+            referencedRelation: "project_mobilizations"
             referencedColumns: ["id"]
           },
           {

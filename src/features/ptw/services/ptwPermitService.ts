@@ -25,7 +25,7 @@ export async function getPTWPermits(tenantId: string, filters: PTWPermitFilters 
     let query = supabase
         .from("ptw_permits")
         .select(`
-      id, tenant_id, branch_id, reference_id, project_id, type_id, status,
+      id, tenant_id, branch_id, reference_id, project_id, contractor_project_id, mobilization_id, type_id, status,
       site_id, building_id, floor_zone_id, location_details, gps_lat, gps_lng,
       applicant_id, endorser_id, issuer_id,
       planned_start_time, planned_end_time, actual_start_time, actual_end_time,
@@ -36,7 +36,7 @@ export async function getPTWPermits(tenantId: string, filters: PTWPermitFilters 
       closed_at, closed_by, closure_notes,
       created_by, created_at, updated_at,
       permit_type:ptw_types(name, code, color),
-      project:ptw_projects(name, reference_id),
+      contractor_project:contractor_projects(project_name, project_code),
       applicant:profiles!ptw_permits_applicant_id_fkey(full_name),
       issuer:profiles!ptw_permits_issuer_id_fkey(full_name),
       site:sites(name)
@@ -50,7 +50,7 @@ export async function getPTWPermits(tenantId: string, filters: PTWPermitFilters 
     }
     if (filters.status) query = query.eq("status", filters.status);
     if (filters.typeId) query = query.eq("type_id", filters.typeId);
-    if (filters.projectId) query = query.eq("project_id", filters.projectId);
+    if (filters.projectId) query = query.eq("contractor_project_id", filters.projectId);
     if (filters.siteId) query = query.eq("site_id", filters.siteId);
 
     const { data, error } = await query;
@@ -62,7 +62,7 @@ export async function getPTWPermit(permitId: string) {
     const { data, error } = await supabase
         .from("ptw_permits")
         .select(`
-      id, tenant_id, reference_id, project_id, type_id, status,
+      id, tenant_id, reference_id, project_id, contractor_project_id, mobilization_id, type_id, status,
       site_id, building_id, floor_zone_id, location_details, gps_lat, gps_lng,
       applicant_id, endorser_id, issuer_id,
       planned_start_time, planned_end_time, actual_start_time, actual_end_time,
@@ -73,7 +73,7 @@ export async function getPTWPermit(permitId: string) {
       closed_at, closed_by, closure_notes,
       created_by, created_at, updated_at,
       permit_type:ptw_types(name, code, color),
-      project:ptw_projects(name, reference_id),
+      contractor_project:contractor_projects(project_name, project_code),
       applicant:profiles!ptw_permits_applicant_id_fkey(full_name),
       issuer:profiles!ptw_permits_issuer_id_fkey(full_name),
       site:sites(name)
@@ -86,6 +86,7 @@ export async function getPTWPermit(permitId: string) {
 }
 
 export async function createPTWPermit(data: {
+    contractor_project_id?: string;
     project_id?: string;
     type_id?: string;
     worker_ids?: string[];
@@ -140,7 +141,7 @@ export async function createPTWPermit(data: {
     }
 
     const insertData = {
-        project_id: data.project_id!,
+        contractor_project_id: data.contractor_project_id || data.project_id || null,
         type_id: data.type_id!,
         applicant_id: userId,
         job_description: data.job_description,

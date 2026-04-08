@@ -7,9 +7,11 @@ import type { PTWPermitFilters } from '@/features/ptw';
 export interface PTWPermit {
   id: string;
   tenant_id: string;
-  branch_id: string | null;
+  branch_id?: string | null;
   reference_id: string;
-  project_id: string;
+  project_id?: string | null;
+  contractor_project_id?: string | null;
+  mobilization_id?: string | null;
   type_id: string;
   status: string;
   site_id: string | null;
@@ -47,6 +49,8 @@ export interface PTWPermit {
   created_at: string;
   updated_at: string;
   permit_type?: { name: string; code: string; color: string } | null;
+  contractor_project?: { project_name: string; project_code: string } | null;
+  /** @deprecated use contractor_project */
   project?: { name: string; reference_id: string } | null;
   applicant?: { full_name: string } | null;
   issuer?: { full_name: string } | null;

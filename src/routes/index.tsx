@@ -14,6 +14,7 @@ export { securityRoutes } from "./security.routes";
 export { contractorRoutes, contractorManagementRoutes, contractorPortalRoutes, clientSiteRepRoutes } from "./contractor.routes";
 export { inspectionRoutes } from "./inspection.routes";
 export { ptwRoutes } from "./ptw.routes";
+export { mobilizationRoutes } from "./mobilization.routes";
 export { visitorRoutes } from "./visitor.routes";
 export { adminRoutes } from "./admin.routes";
 export { deptGatePassRoutes } from "./dept-gate-passes.routes";
@@ -29,6 +30,7 @@ import { securityRoutes } from "./security.routes";
 import { contractorRoutes } from "./contractor.routes";
 import { inspectionRoutes } from "./inspection.routes";
 import { ptwRoutes } from "./ptw.routes";
+import { mobilizationRoutes } from "./mobilization.routes";
 import { visitorRoutes } from "./visitor.routes";
 import { adminRoutes } from "./admin.routes";
 import { deptGatePassRoutes } from "./dept-gate-passes.routes";
@@ -49,6 +51,7 @@ export const protectedLayoutRoutes: RouteObject[] = [
   ...contractorRoutes,
   ...inspectionRoutes,
   ...ptwRoutes,
+  ...mobilizationRoutes,
   ...visitorRoutes,
   ...adminRoutes,
   ...deptGatePassRoutes,

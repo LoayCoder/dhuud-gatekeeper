@@ -289,7 +289,7 @@ export function ProjectClearanceDialog({ projectId, open, onOpenChange }: Projec
 
         {/* Footer with Full Page Link */}
         <DialogFooter className="sm:justify-between">
-          <Link to={`/ptw/projects/${projectId}/clearance`}>
+          <Link to={`/mobilization/${projectId}`}>
             <Button variant="outline" size="sm">
               <ExternalLink className="me-2 h-4 w-4" />
               {t("ptw.clearance.openFullPage", "Open Full Page")}

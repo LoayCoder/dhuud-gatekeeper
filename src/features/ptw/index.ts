@@ -33,7 +33,7 @@ export * from './components/PermitListView';
 export * from './components/PermitPDFExportButton';
 export * from './components/PermitPDFTemplate';
 export * from './components/ProjectClearanceDialog';
-export * from './components/ProjectFormDialog';
+// ProjectFormDialog removed — projects created only in /contractors/projects
 export * from './components/PTWRealtimeIndicator';
 export * from './components/SIMOPSConflictWarning';
 export * from './services/ptwPermitService';

@@ -129,8 +129,8 @@ export function useContractorsPTWMenu() {
           menuCode: 'ptw_dashboard',
         },
         {
-          title: t('ptw.nav.projects', 'Project Mobilization'),
-          url: "/ptw/projects",
+          title: t('ptw.nav.mobilization', 'Site Mobilization'),
+          url: "/mobilization",
           icon: HardHat,
           menuCode: 'ptw_projects',
         },

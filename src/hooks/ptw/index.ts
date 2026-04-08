@@ -8,7 +8,6 @@ export { usePTWTypes } from "@/features/ptw/hooks/use-ptw-types";
 export {
   usePTWProjects,
   usePTWProjectClearances,
-  useCreatePTWProject,
   useApproveClearanceCheck,
   useRejectClearanceCheck,
 } from "@/features/ptw/hooks/use-ptw-projects";
