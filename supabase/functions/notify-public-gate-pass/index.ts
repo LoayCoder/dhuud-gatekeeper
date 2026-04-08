@@ -125,104 +125,84 @@ You will be notified when your request is reviewed.
       });
       console.log(`[notify-public-gate-pass] Requester notification: ${requesterResult.success ? 'sent' : 'failed'}`);
 
-      // 2. Find Golf Club Management department for this tenant
-      const { data: golfClubDepts, error: deptError } = await supabase
-        .from('departments')
-        .select('id, name')
-        .eq('tenant_id', tenant_id)
-        .or("name.eq.Golf Club Management,name.ilike.%golf%club%management%")
-        .is('deleted_at', null);
+      // 2. Find gate_pass_acknowledger users for this tenant (replaces legacy Golf Club Management lookup)
+      const { data: acknowledgerAssignments, error: ackError } = await supabase
+        .from('user_role_assignments')
+        .select(`
+          user_id,
+          roles!inner(code)
+        `)
+        .eq('tenant_id', tenant_id);
 
-      if (deptError) {
-        console.error('[notify-public-gate-pass] Failed to fetch departments:', deptError);
+      if (ackError) {
+        console.error('[notify-public-gate-pass] Failed to fetch role assignments:', ackError);
       }
 
-      console.log(`[notify-public-gate-pass] Found ${golfClubDepts?.length || 0} Golf Club Management departments`);
+      // Filter for gate_pass_acknowledger, department_representative, and department_manager roles
+      const relevantUserIds = (acknowledgerAssignments || [])
+        .filter((item: { user_id: string; roles: { code: string }[] }) => {
+          const roles = item.roles || [];
+          return roles.some((r) => 
+            r.code === 'gate_pass_acknowledger' || 
+            r.code === 'department_representative' || 
+            r.code === 'department_manager'
+          );
+        })
+        .map((item: { user_id: string }) => item.user_id);
 
-      if (golfClubDepts && golfClubDepts.length > 0) {
-        const deptIds = golfClubDepts.map(d => d.id);
-        
-        // 3. Get staff with department_representative or department_manager role in Golf Club Management
-        // Using the correct role assignment schema: user_role_assignments -> roles
-        const { data: roleAssignments, error: roleError } = await supabase
-          .from('user_role_assignments')
-          .select(`
-            user_id,
-            roles!inner(code)
-          `)
-          .eq('tenant_id', tenant_id);
+      console.log(`[notify-public-gate-pass] Found ${relevantUserIds.length} users with relevant roles`);
 
-        if (roleError) {
-          console.error('[notify-public-gate-pass] Failed to fetch role assignments:', roleError);
+      if (relevantUserIds.length > 0) {
+        // Get profiles of these users
+        const { data: staffUsers, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, full_name, phone_number, preferred_language, assigned_department_id, assigned_branch_id')
+          .in('id', relevantUserIds)
+          .eq('is_active', true)
+          .is('deleted_at', null);
+
+        if (profileError) {
+          console.error('[notify-public-gate-pass] Failed to fetch staff profiles:', profileError);
         }
 
-        // Filter for department representatives/managers
-        const repManagerUserIds = (roleAssignments || [])
-          .filter((item: { user_id: string; roles: { code: string }[] }) => {
-            const roles = item.roles || [];
-            return roles.some((r) => r.code === 'department_representative' || r.code === 'department_manager');
-          })
-          .map((item: { user_id: string }) => item.user_id);
+        let filteredStaff = staffUsers || [];
 
-        console.log(`[notify-public-gate-pass] Found ${repManagerUserIds.length} users with rep/manager roles`);
+        // Filter by branch if specified
+        if (branch_id && filteredStaff.length > 0) {
+          const { data: branchAssignments } = await supabase
+            .from('user_branch_assignments')
+            .select('user_id')
+            .eq('branch_id', branch_id);
 
-        if (repManagerUserIds.length > 0) {
-          // Get profiles of these users who are assigned to Golf Club Management department
-          const { data: staffUsers, error: profileError } = await supabase
+          const branchUserIds = new Set((branchAssignments || []).map(a => a.user_id));
+
+          const { data: directAssigned } = await supabase
             .from('profiles')
-            .select('id, full_name, phone_number, preferred_language, assigned_department_id')
-            .in('id', repManagerUserIds)
-            .in('assigned_department_id', deptIds)
-            .eq('is_active', true)
-            .is('deleted_at', null);
+            .select('id')
+            .eq('assigned_branch_id', branch_id)
+            .eq('is_active', true);
 
-          if (profileError) {
-            console.error('[notify-public-gate-pass] Failed to fetch staff profiles:', profileError);
-          }
+          (directAssigned || []).forEach(u => branchUserIds.add(u.id));
 
-          console.log(`[notify-public-gate-pass] Found ${staffUsers?.length || 0} Golf Club Management staff to notify`);
-
-          // Filter by branch if specified
-          let filteredStaff = staffUsers || [];
-          if (branch_id && filteredStaff.length > 0) {
-            // Get users assigned to this branch
-            const { data: branchAssignments } = await supabase
-              .from('user_branch_assignments')
-              .select('user_id')
-              .eq('branch_id', branch_id);
-
-            const branchUserIds = new Set((branchAssignments || []).map(a => a.user_id));
-
-            // Also include users directly assigned to the branch
-            const { data: directAssigned } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('assigned_branch_id', branch_id)
-              .eq('is_active', true);
-
-            (directAssigned || []).forEach(u => branchUserIds.add(u.id));
-
-            // Only filter if we found branch-specific assignments
-            if (branchUserIds.size > 0) {
-              const branchFilteredStaff = filteredStaff.filter(s => branchUserIds.has(s.id));
-              // Use branch-filtered if any match, otherwise use all Golf Club Management staff
-              if (branchFilteredStaff.length > 0) {
-                filteredStaff = branchFilteredStaff;
-              }
+          if (branchUserIds.size > 0) {
+            const branchFilteredStaff = filteredStaff.filter(s => branchUserIds.has(s.id));
+            if (branchFilteredStaff.length > 0) {
+              filteredStaff = branchFilteredStaff;
             }
           }
+        }
 
-          console.log(`[notify-public-gate-pass] Notifying ${filteredStaff.length} staff after branch filtering`);
+        console.log(`[notify-public-gate-pass] Notifying ${filteredStaff.length} staff after filtering`);
 
-          for (const staff of filteredStaff) {
-            if (!staff.phone_number) {
-              console.log(`[notify-public-gate-pass] Staff ${staff.full_name} has no phone number, skipping`);
-              continue;
-            }
+        for (const staff of filteredStaff) {
+          if (!staff.phone_number) {
+            console.log(`[notify-public-gate-pass] Staff ${staff.full_name} has no phone number, skipping`);
+            continue;
+          }
 
-            const isArabic = staff.preferred_language === 'ar';
-            const staffMessage = isArabic
-              ? `
+          const isArabic = staff.preferred_language === 'ar';
+          const staffMessage = isArabic
+            ? `
 🆕 *طلب تصريح دخول عام جديد*
 
 📋 المرجع: ${reference_number}
@@ -234,7 +214,7 @@ ${branchName ? `📍 الموقع: ${branchName}` : ''}
 
 ⚡ يرجى مراجعة الطلب واتخاذ الإجراء المناسب.
 `.trim()
-              : `
+            : `
 🆕 *New Public Gate Pass Request*
 
 📋 Reference: ${reference_number}
@@ -247,34 +227,33 @@ ${branchName ? `📍 Location: ${branchName}` : ''}
 ⚡ Please review and take appropriate action.
 `.trim();
 
-            const staffResult = await sendWaSenderTextMessage(staff.phone_number, staffMessage);
-            results.push({
-              type: `staff_whatsapp_${staff.id}`,
-              success: staffResult.success,
-              error: staffResult.error,
-            });
-            console.log(`[notify-public-gate-pass] Staff ${staff.full_name} (${staff.phone_number}) notification: ${staffResult.success ? 'sent' : 'failed'}`);
+          const staffResult = await sendWaSenderTextMessage(staff.phone_number, staffMessage);
+          results.push({
+            type: `staff_whatsapp_${staff.id}`,
+            success: staffResult.success,
+            error: staffResult.error,
+          });
+          console.log(`[notify-public-gate-pass] Staff ${staff.full_name} (${staff.phone_number}) notification: ${staffResult.success ? 'sent' : 'failed'}`);
 
-            // Also create in-app notification
-            await supabase
-              .from('user_notifications')
-              .insert({
-                user_id: staff.id,
-                title: isArabic ? 'طلب تصريح دخول عام جديد' : 'New Public Gate Pass Request',
-                body: isArabic
-                  ? `طلب جديد ${reference_number} من ${requester_name}`
-                  : `New request ${reference_number} from ${requester_name}`,
-                type: 'gate_pass',
-                data: {
-                  gate_pass_id,
-                  reference_number,
-                  requester_name,
-                  event_type: 'public_submitted',
-                  deep_link: '/dept-gate-passes',
-                },
-                is_read: false,
-              });
-          }
+          // Also create in-app notification
+          await supabase
+            .from('user_notifications')
+            .insert({
+              user_id: staff.id,
+              title: isArabic ? 'طلب تصريح دخول عام جديد' : 'New Public Gate Pass Request',
+              body: isArabic
+                ? `طلب جديد ${reference_number} من ${requester_name}`
+                : `New request ${reference_number} from ${requester_name}`,
+              type: 'gate_pass',
+              data: {
+                gate_pass_id,
+                reference_number,
+                requester_name,
+                event_type: 'public_submitted',
+                deep_link: '/dept-gate-passes',
+              },
+              is_read: false,
+            });
         }
       }
 
