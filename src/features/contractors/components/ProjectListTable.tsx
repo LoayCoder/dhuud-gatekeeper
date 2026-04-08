@@ -31,12 +31,21 @@ export function ProjectListTable({ projects, isLoading, onEdit }: ProjectListTab
     return <Badge variant={variants[status] || "secondary"}>{t(`contractors.projectStatus.${status}`, status)}</Badge>;
   };
 
+  const getTypeBadge = (type: string) => {
+    return (
+      <Badge variant={type === 'internal' ? 'outline' : 'default'} className={type === 'internal' ? 'border-blue-500 text-blue-600' : ''}>
+        {t(`contractors.projectType.${type}`, type === 'internal' ? 'Internal' : 'Contractor')}
+      </Badge>
+    );
+  };
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>{t("contractors.projects.code", "Code")}</TableHead>
           <TableHead>{t("contractors.projects.name", "Project Name")}</TableHead>
+          <TableHead>{t("contractors.projects.type", "Type")}</TableHead>
           <TableHead>{t("contractors.projects.company", "Company")}</TableHead>
           <TableHead>{t("contractors.projects.dates", "Dates")}</TableHead>
           <TableHead>{t("common.status", "Status")}</TableHead>
@@ -48,6 +57,7 @@ export function ProjectListTable({ projects, isLoading, onEdit }: ProjectListTab
           <TableRow key={project.id}>
             <TableCell className="font-mono text-sm">{project.project_code}</TableCell>
             <TableCell className="font-medium">{project.project_name}</TableCell>
+            <TableCell>{getTypeBadge(project.project_type || 'contractor')}</TableCell>
             <TableCell>{project.company?.company_name || "-"}</TableCell>
             <TableCell className="text-sm">
               {format(new Date(project.start_date), "dd/MM/yyyy")} - {format(new Date(project.end_date), "dd/MM/yyyy")}

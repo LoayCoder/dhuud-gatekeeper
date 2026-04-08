@@ -1,42 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-// P0.4: Secure CORS - Only allow requests from known origins
-const getAllowedOrigins = (): string[] => {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-  // Extract project ref from URL for lovable.app domain
-  const projectRef = supabaseUrl.match(/https:\/\/([^.]+)/)?.[1] || '';
-  
-  return [
-    // Production app URLs
-    `https://${projectRef}.lovable.app`,
-    `https://lovable.dev/projects/${projectRef}`,
-    // Local development
-    'http://localhost:5173',
-    'http://localhost:3000',
-    // Preview URLs (Lovable generates preview URLs with id prefix)
-    'https://preview--*.lovable.app',
-  ].filter(Boolean);
-};
-
-const getCorsHeaders = (origin: string | null): Record<string, string> => {
-  const allowedOrigins = getAllowedOrigins();
-  
-  // Check if the origin matches any allowed origin (including wildcards)
-  const isAllowed = origin && allowedOrigins.some(allowed => {
-    if (allowed.includes('*')) {
-      const regex = new RegExp('^' + allowed.replace('*', '.*') + '$');
-      return regex.test(origin);
-    }
-    return allowed === origin;
-  });
-  
-  return {
-    'Access-Control-Allow-Origin': isAllowed && origin ? origin : allowedOrigins[0] || '',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Max-Age': '86400',
-  };
-};
+import { corsHeaders } from 'https://esm.sh/@supabase/supabase-js@2/cors';
 
 interface AuditLogRequest {
   entity_type: 'contractor_company' | 'contractor_representative' | 'contractor_project' | 'contractor_worker' | 'worker_qr_code' | 'worker_induction' | 'material_gate_pass';
@@ -50,11 +13,8 @@ interface AuditLogRequest {
 }
 
 Deno.serve(async (req) => {
-  const origin = req.headers.get('Origin');
-  const corsHeaders = getCorsHeaders(origin);
-  
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
@@ -72,7 +32,27 @@ Deno.serve(async (req) => {
       const { data: { user } } = await supabase.auth.getUser(token);
       if (user) {
         actorId = user.id;
-        actorType = 'user';
+        // Resolve actor_type from user's role
+        const { data: roleData } = await supabase
+          .from('user_role_assignments')
+          .select('role_code')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+        
+        const roleCode = roleData?.role_code || '';
+        if (roleCode.includes('admin') || roleCode.includes('manager')) {
+          actorType = 'admin';
+        } else if (roleCode.includes('contractor') || roleCode.includes('rep')) {
+          actorType = 'contractor_rep';
+        } else if (roleCode.includes('security') || roleCode.includes('supervisor')) {
+          actorType = 'supervisor';
+        } else if (roleCode.includes('guard')) {
+          actorType = 'guard';
+        } else {
+          actorType = 'admin'; // safe default for authenticated users
+        }
       }
     }
 

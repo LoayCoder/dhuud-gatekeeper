@@ -31,12 +31,20 @@ interface WorkerAccessResponse {
   page_content: PageContent | null;
   worker: {
     full_name: string;
+    full_name_ar: string | null;
     nationality: string | null;
     company_name: string | null;
-    worker_type: string | null; // 'worker' | 'site_representative' | 'safety_officer'
+    company_name_ar: string | null;
+    worker_type: string | null;
+    role: string | null;
+    role_ar: string | null;
+    employee_id: string | null;
+    national_id: string | null;
+    photo_url: string | null;
   };
   project: {
     project_name: string;
+    project_name_ar: string | null;
     tenant_name: string | null;
     hsse_instructions_ar: string | null;
     hsse_instructions_en: string | null;
@@ -49,6 +57,7 @@ interface WorkerAccessResponse {
     hsse_department_name: string | null;
     hsse_department_name_ar: string | null;
   } | null;
+  id_card_settings: Record<string, unknown> | null;
   settings: {
     allow_download: boolean;
     allow_share: boolean;
@@ -117,14 +126,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch worker data including worker_type
+    // Fetch worker data including additional fields for ID card
     const { data: workerData, error: workerError } = await supabaseAdmin
       .from('contractor_workers')
       .select(`
         full_name,
+        full_name_ar,
         nationality,
         company_id,
-        worker_type
+        worker_type,
+        role,
+        role_ar,
+        employee_id,
+        national_id,
+        photo_url
       `)
       .eq('id', qrData.worker_id)
       .is('deleted_at', null)
@@ -136,13 +151,15 @@ Deno.serve(async (req) => {
 
     // Fetch company name if worker has company
     let companyName: string | null = null;
+    let companyNameAr: string | null = null;
     if (workerData?.company_id) {
       const { data: companyData } = await supabaseAdmin
         .from('contractor_companies')
-        .select('company_name')
+        .select('company_name, company_name_ar')
         .eq('id', workerData.company_id)
         .maybeSingle();
       companyName = companyData?.company_name || null;
+      companyNameAr = companyData?.company_name_ar || null;
     }
 
     // Fetch project and tenant data
@@ -150,6 +167,7 @@ Deno.serve(async (req) => {
       .from('contractor_projects')
       .select(`
         project_name,
+        project_name_ar,
         tenant_id
       `)
       .eq('id', qrData.project_id)
@@ -163,6 +181,7 @@ Deno.serve(async (req) => {
     // Fetch tenant data with branding
     let tenantData: {
       name: string | null;
+      name_ar: string | null;
       visitor_hsse_instructions_ar: string | null;
       visitor_hsse_instructions_en: string | null;
       emergency_contact_number: string | null;
@@ -181,6 +200,7 @@ Deno.serve(async (req) => {
         .from('tenants')
         .select(`
           name,
+          name_ar,
           visitor_hsse_instructions_ar,
           visitor_hsse_instructions_en,
           emergency_contact_number,
@@ -193,6 +213,26 @@ Deno.serve(async (req) => {
         .eq('id', projectData.tenant_id)
         .maybeSingle();
       tenantData = tenant;
+    }
+
+    // Fetch ID card settings for worker card type
+    let idCardSettings: Record<string, unknown> | null = null;
+    if (tenantId) {
+      const { data: cardSettings } = await supabaseAdmin
+        .from('tenant_id_card_settings')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('card_type', 'worker')
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .maybeSingle();
+      
+      if (cardSettings) {
+        idCardSettings = cardSettings;
+        console.log('[get-worker-access-pass] Found ID card settings for worker type');
+      } else {
+        console.log('[get-worker-access-pass] No ID card settings found, will use defaults');
+      }
     }
 
     // Fetch webpage notification settings for this tenant
@@ -291,12 +331,20 @@ Deno.serve(async (req) => {
       page_content: pageContent,
       worker: {
         full_name: workerData?.full_name || 'Unknown Worker',
+        full_name_ar: workerData?.full_name_ar || null,
         nationality: workerData?.nationality || null,
         company_name: companyName,
+        company_name_ar: companyNameAr,
         worker_type: workerData?.worker_type || 'worker',
+        role: workerData?.role || null,
+        role_ar: workerData?.role_ar || null,
+        employee_id: workerData?.employee_id || null,
+        national_id: workerData?.national_id || null,
+        photo_url: workerData?.photo_url || null,
       },
       project: {
         project_name: projectData?.project_name || 'Unknown Project',
+        project_name_ar: projectData?.project_name_ar || null,
         tenant_name: tenantData?.name || null,
         hsse_instructions_ar: tenantData?.visitor_hsse_instructions_ar || null,
         hsse_instructions_en: tenantData?.visitor_hsse_instructions_en || null,
@@ -309,6 +357,7 @@ Deno.serve(async (req) => {
         hsse_department_name: tenantData.hsse_department_name || null,
         hsse_department_name_ar: tenantData.hsse_department_name_ar || null,
       } : null,
+      id_card_settings: idCardSettings,
       settings: {
         allow_download: webpageSettings.worker_allow_download,
         allow_share: webpageSettings.worker_allow_share,

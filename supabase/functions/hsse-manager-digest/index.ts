@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { sendEmailViaSES, getAppUrl, emailButton } from "../_shared/email-sender.ts";
+import { sendEmailToOne, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
 
         if (authUser?.user?.email) {
           const html = generateDigestHtml(tenant.name, pendingClosures || [], escalatedActions || [], atRiskActions);
-          await sendEmailViaSES(authUser.user.email, `📊 Daily HSSE Manager Digest - ${tenant.name}`, html, 'hsse_digest');
+          await sendEmailToOne(authUser.user.email, `📊 Daily HSSE Manager Digest - ${tenant.name}`, html, 'hsse_digest');
           emailsSent++;
         }
       }

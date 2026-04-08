@@ -28,6 +28,7 @@ export * from './components/GatePassDetailDialog/tabs/TimelineTab';
 export * from './components/GatePassDetailDialog/GatePassDetailDialog';
 export * from './components/GatePassDetailDialog';
 export * from './components/GatePassDetailDialog/types';
+export * from './components/GatePassCreateDialog';
 export * from './components/AddWorkerToBlacklistDialog';
 export * from './components/BulkRejectDialog';
 export * from './components/ChangeWorkerStatusDialog';
@@ -48,7 +49,7 @@ export * from './components/GatePassApprovalQueue';
 export * from './components/GatePassBulkActionsToolbar';
 export * from './components/GatePassBulkApprovalDialog';
 export * from './components/GatePassBulkRejectionDialog';
-export * from './components/GatePassFormDialog';
+
 export * from './components/GatePassItemPhotoUpload';
 export * from './components/GatePassListTable';
 export * from './components/GatePassPDFExportButton';

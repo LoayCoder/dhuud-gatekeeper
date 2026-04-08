@@ -126,6 +126,8 @@ export const createIncident = async (data: IncidentFormData) => {
         });
     }
 
+
+
     const { data: incident, error } = await supabase
         .from('incidents')
         .insert(insertData)
@@ -156,9 +158,24 @@ export const createIncident = async (data: IncidentFormData) => {
         }
     }
 
+    // Dispatch notification for both incidents AND observations
+    const notificationEventType = isObservation ? 'observation_created' : 'incident_created';
     supabase.functions.invoke('dispatch-incident-notification', {
-        body: { incident_id: incident.id, event_type: 'incident_created' }
-    }).catch(err => console.warn('Failed to dispatch incident notification:', err));
+        body: { incident_id: incident.id, event_type: notificationEventType }
+    }).catch(err => console.warn('Failed to dispatch notification:', err));
+
+    // For observations: also trigger workflow notification to the assigned reviewer
+    if (isObservation && data.closed_on_spot_data?.closed_on_spot !== true) {
+        supabase.functions.invoke('send-workflow-notification', {
+            body: {
+                incident_id: incident.id,
+                event_type: 'observation',
+                new_status: insertData.status,
+                actor_id: freshUserId,
+                tenant_id: profile.tenant_id,
+            }
+        }).catch(err => console.warn('Failed to dispatch observation workflow notification:', err));
+    }
 
     return incident;
 };

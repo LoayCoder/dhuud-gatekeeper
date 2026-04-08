@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,6 +49,23 @@ export function ProfileForm({
       emergencyContactPhone: profile?.emergency_contact_phone || '',
     },
   });
+
+  useEffect(() => {
+    form.reset({
+      fullName: profile?.full_name || '',
+      avatarUrl: profile?.avatar_url || '',
+      phoneNumber: profile?.phone_number || '',
+      emergencyContactName: profile?.emergency_contact_name || '',
+      emergencyContactPhone: profile?.emergency_contact_phone || '',
+    });
+  }, [
+    form,
+    profile?.full_name,
+    profile?.avatar_url,
+    profile?.phone_number,
+    profile?.emergency_contact_name,
+    profile?.emergency_contact_phone,
+  ]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

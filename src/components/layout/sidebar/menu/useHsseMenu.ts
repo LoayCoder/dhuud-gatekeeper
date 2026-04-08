@@ -88,7 +88,7 @@ export function useHsseMenu() {
             },
             {
               title: t('navigation.myInspectionActions'),
-              url: "/inspections/my-actions",
+              url: "/incidents/my-actions",
               icon: ClipboardCheck,
               menuCode: 'my_inspection_actions',
             },

@@ -18,7 +18,6 @@ export function useWorkerQRCode(workerId: string) {
   return useQuery({
     queryKey: ["worker-qr-code", workerId],
     queryFn: async () => {
-      // Table uses valid_until and is_revoked
       const { data, error } = await supabase
         .from("worker_qr_codes")
         .select(`
@@ -34,7 +33,6 @@ export function useWorkerQRCode(workerId: string) {
       if (error) throw error;
       if (!data) return null;
       
-      // Map to interface
       return {
         id: data.id,
         worker_id: data.worker_id,
@@ -60,13 +58,11 @@ export function useGenerateWorkerQR() {
         body: { workerId, projectId },
       });
 
-      // Handle edge function error response in body
       if (data?.error) {
         throw new Error(data.error);
       }
 
       if (error) {
-        // Try to parse error message from edge function response
         const errorMessage = error.message || t("contractors.messages.qrError", "Failed to generate QR code");
         throw new Error(errorMessage);
       }
@@ -99,27 +95,6 @@ export function useRevokeWorkerQR() {
     onSuccess: (_, { workerId }) => {
       queryClient.invalidateQueries({ queryKey: ["worker-qr-code", workerId] });
       toast.success(t("contractors.messages.qrRevoked", "QR code revoked"));
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
-}
-
-export function useSendInductionVideo() {
-  const { t } = useTranslation();
-
-  return useMutation({
-    mutationFn: async ({ workerId, language }: { workerId: string; language: string }) => {
-      const { data, error } = await supabase.functions.invoke("send-induction-video", {
-        body: { workerId, language },
-      });
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.success(t("contractors.messages.inductionSent", "Induction video sent successfully"));
     },
     onError: (error: Error) => {
       toast.error(error.message);

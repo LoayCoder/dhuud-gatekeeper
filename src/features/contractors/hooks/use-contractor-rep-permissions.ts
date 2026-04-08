@@ -9,6 +9,7 @@ export interface ContractorRepPermissions {
   canChangeStatus: boolean;
   canBlacklist: boolean;
   canDelete: boolean;
+  canApproveEdits: boolean;
   isDocumentController: boolean;
   isLoading: boolean;
 }
@@ -35,12 +36,13 @@ export function useContractorRepPermissions(): ContractorRepPermissions {
     const isDocumentController = hasDocControllerAccess || isAdmin;
 
     return {
-      canAddWorkers: true, // All authenticated users with company access can add
-      canEditBasicInfo: true, // All can edit basic info
+      canAddWorkers: true,
+      canEditBasicInfo: true,
       canApprove: isDocumentController,
       canChangeStatus: isDocumentController,
       canBlacklist: isDocumentController,
       canDelete: isDocumentController,
+      canApproveEdits: isDocumentController,
       isDocumentController,
       isLoading,
     };

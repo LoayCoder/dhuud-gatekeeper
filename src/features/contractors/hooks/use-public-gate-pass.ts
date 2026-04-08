@@ -85,6 +85,7 @@ export function useSubmitPublicGatePass() {
         {
           p_tenant_slug: data.tenant_slug,
           p_branch_id: data.branch_id || null,
+          p_department_id: data.department_id || null,
           p_requester_name: data.requester_name,
           p_requester_phone: data.requester_phone,
           p_requester_email: data.requester_email || null,

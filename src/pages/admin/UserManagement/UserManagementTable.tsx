@@ -111,7 +111,13 @@ export function UserManagementTable(props: any) {
                       </div>
                     </TableCell>
                     <TableCell className="text-start">
-                      {user.branch_name || '-'}
+                      {user.has_full_branch_access ? (
+                        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                          {t('userManagement.allBranches', 'All Branches')}
+                        </Badge>
+                      ) : user.branch_name ? (
+                        <span>{user.branch_name}</span>
+                      ) : '-'}
                     </TableCell>
                     <TableCell className="text-start">
                       <div className="flex flex-wrap gap-1">

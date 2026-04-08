@@ -483,11 +483,11 @@ export const routeRegistry: RouteDefinition[] = [
     sortOrder: 3,
   },
   {
-    path: "/inspections/my-actions",
+    path: "/incidents/my-actions",
     menuCode: "my_inspection_actions",
     title: { en: "My Inspection Actions", ar: "إجراءات التفتيش الخاصة بي" },
     icon: ClipboardCheck,
-    component: lazyWithRetry(() => import("@/pages/inspections/MyInspectionActions")),
+    component: lazyWithRetry(() => import("@/pages/incidents/MyActions")),
     protection: "protected",
     parentCode: "audits_inspections",
     sortOrder: 4,
@@ -1035,8 +1035,6 @@ export const routeRegistry: RouteDefinition[] = [
     icon: Building2,
     component: lazyWithRetry(() => import("@/pages/contractor-portal/Dashboard")),
     protection: "protected",
-    hidden: true,
-    hiddenReason: "External portal for contractor users only",
   },
   {
     path: "/contractor-portal/workers",
@@ -1045,8 +1043,6 @@ export const routeRegistry: RouteDefinition[] = [
     icon: Users,
     component: lazyWithRetry(() => import("@/pages/contractor-portal/Workers")),
     protection: "protected",
-    hidden: true,
-    hiddenReason: "External portal for contractor users only",
   },
   {
     path: "/contractor-portal/projects",
@@ -1055,8 +1051,6 @@ export const routeRegistry: RouteDefinition[] = [
     icon: Briefcase,
     component: lazyWithRetry(() => import("@/pages/contractor-portal/Projects")),
     protection: "protected",
-    hidden: true,
-    hiddenReason: "External portal for contractor users only",
   },
   {
     path: "/contractor-portal/gate-passes",
@@ -1065,8 +1059,6 @@ export const routeRegistry: RouteDefinition[] = [
     icon: FileWarning,
     component: lazyWithRetry(() => import("@/pages/contractor-portal/GatePasses")),
     protection: "protected",
-    hidden: true,
-    hiddenReason: "External portal for contractor users only",
   },
   {
     path: "/contractor-portal/activity-log",
@@ -1075,8 +1067,6 @@ export const routeRegistry: RouteDefinition[] = [
     icon: History,
     component: lazyWithRetry(() => import("@/pages/contractor-portal/ActivityLog")),
     protection: "protected",
-    hidden: true,
-    hiddenReason: "External portal for contractor users only",
   },
 
   // Client Site Representative
@@ -1263,6 +1253,16 @@ export const routeRegistry: RouteDefinition[] = [
     protection: "hsse",
     hidden: true,
     hiddenReason: "Action page - accessed via risk assessments list",
+  },
+  {
+    path: "/risk-assessments/:id",
+    menuCode: "risk_assessment_detail",
+    title: { en: "Risk Assessment Detail", ar: "تفاصيل تقييم المخاطر" },
+    icon: FileText,
+    component: lazyWithRetry(() => import("@/pages/RiskAssessmentDetail")),
+    protection: "hsse",
+    hidden: true,
+    hiddenReason: "Dynamic detail page - accessed by clicking a risk assessment row",
   },
 
   // -------------------------------------------------------------------------

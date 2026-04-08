@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendInductionToWorker } from "../_shared/induction-sender.ts";
 import { sendWhatsAppText } from "../_shared/whatsapp-provider.ts";
 import { sendWaSenderMediaMessage } from "../_shared/wasender-whatsapp.ts";
 import { getRenderedTemplate } from "../_shared/template-helper.ts";
@@ -93,104 +94,17 @@ Deno.serve(async (req) => {
 
     const preferredLang = worker.preferred_language || 'ar';
 
-    // ========== STEP 1: SEND INDUCTION VIDEO ==========
-    console.log('[Onboard] Step 1: Sending induction video...');
+    // ========== STEP 1: SEND INDUCTION VIDEO (via shared module) ==========
+    console.log('[Onboard] Step 1: Sending induction video via shared module...');
+    
+    const inductionResult = await sendInductionToWorker(supabase, {
+      workerId: worker_id,
+      projectId: project_id,
+      videoId: video_id,
+      tenantId,
+    });
 
-    // Find appropriate video
-    let selectedVideo: any = null;
-
-    if (video_id) {
-      const { data: video } = await supabase
-        .from('induction_videos')
-        .select('id, title, video_url, language, duration_seconds, valid_for_days')
-        .eq('id', video_id)
-        .eq('is_active', true)
-        .is('deleted_at', null)
-        .single();
-      selectedVideo = video;
-    } else {
-      // Find video by language
-      const { data: videos } = await supabase
-        .from('induction_videos')
-        .select('id, title, video_url, language, duration_seconds, valid_for_days')
-        .eq('tenant_id', tenantId)
-        .eq('is_active', true)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
-
-      selectedVideo = videos?.find(v => v.language === preferredLang) 
-        || videos?.find(v => v.language === 'ar') 
-        || videos?.find(v => v.language === 'en') 
-        || videos?.[0];
-    }
-
-    let inductionResult = { success: false, error: 'No video available' as string | null, inductionId: null as string | null };
-
-    if (selectedVideo) {
-      // Calculate expiry
-      const validForDays = selectedVideo.valid_for_days || 365;
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + validForDays);
-
-      // Create induction record
-      const { data: induction, error: inductionError } = await supabase
-        .from('worker_inductions')
-        .insert({
-          worker_id,
-          project_id,
-          video_id: selectedVideo.id,
-          status: 'sent',
-          sent_at: new Date().toISOString(),
-          sent_via: 'whatsapp',
-          expires_at: expiresAt.toISOString(),
-          tenant_id: tenantId,
-        })
-        .select('id')
-        .single();
-
-      if (!inductionError && induction) {
-        inductionResult.inductionId = induction.id;
-
-        // Try to get template first, fallback to hardcoded message
-        const durationMin = Math.round((selectedVideo.duration_seconds || 0) / 60);
-        
-        // Build the induction portal URL instead of direct video URL
-        const appUrl = Deno.env.get('APP_URL') || 'https://xdlowvfzhvjzbtgvurzj.lovableproject.com';
-        const inductionPortalUrl = `${appUrl}/worker-induction/${induction.id}`;
-        
-        console.log(`[Onboard] Induction portal URL: ${inductionPortalUrl}`);
-        
-        const templateResult = await getRenderedTemplate(supabase, tenantId, 'worker_induction_video', {
-          worker_name: worker.full_name,
-          project_name: project.project_name,
-          video_title: selectedVideo.title,
-          duration_min: String(durationMin),
-          video_url: inductionPortalUrl,  // Portal URL instead of direct video URL
-        });
-
-        const message = templateResult.found 
-          ? templateResult.content
-          : getLocalizedInductionMessage(
-              preferredLang,
-              worker.full_name,
-              project.project_name,
-              selectedVideo.title,
-              inductionPortalUrl,  // Portal URL instead of direct video URL
-              durationMin
-            );
-
-        const whatsappResult = await sendWhatsAppText(worker.mobile_number, message);
-        inductionResult.success = whatsappResult.success;
-        inductionResult.error = whatsappResult.error || null;
-
-        console.log(`[Onboard] Induction sent: ${whatsappResult.success ? 'success' : 'failed'} (template: ${templateResult.found})`);
-      } else {
-        console.error('Error creating induction record:', inductionError);
-        inductionResult.error = 'Failed to create induction record';
-      }
-    } else {
-      console.log('[Onboard] No induction video available, skipping...');
-    }
+    console.log('[Onboard] Induction result:', inductionResult);
 
     // ========== STEP 2: GENERATE QR CODE ==========
     console.log('[Onboard] Step 2: Generating QR code...');
@@ -240,13 +154,8 @@ Deno.serve(async (req) => {
     }
 
     // ========== STEP 3: GENERATE QR IMAGE AND SEND VIA WHATSAPP ==========
-    // Wait 30 seconds to avoid WaSender rate limit
-    console.log('[Onboard] Step 3: Waiting 30 seconds for WhatsApp rate limit...');
-    await new Promise(resolve => setTimeout(resolve, 30000));
-    
     console.log('[Onboard] Step 3: Generating QR image and sending to worker...');
 
-    // Generate QR code image and upload to storage
     const qrContent = getWorkerQRContent(qrToken);
     const qrFileName = `${qrToken}.gif`;
     
@@ -256,7 +165,6 @@ Deno.serve(async (req) => {
     const expiryDate = validUntil.toLocaleDateString('en-GB');
 
     if (qrUploadResult.success && qrUploadResult.publicUrl) {
-      // Get template for QR code message (used as caption)
       const qrTemplateResult = await getRenderedTemplate(supabase, tenantId, 'worker_qr_code_access', {
         worker_name: worker.full_name,
         project_name: project.project_name,
@@ -267,7 +175,6 @@ Deno.serve(async (req) => {
         ? qrTemplateResult.content
         : getLocalizedQRCaption(preferredLang, worker.full_name, project.project_name, expiryDate);
 
-      // Send QR code as image with caption
       const mediaResult = await sendWaSenderMediaMessage(
         worker.mobile_number,
         qrUploadResult.publicUrl,
@@ -280,19 +187,14 @@ Deno.serve(async (req) => {
         error: mediaResult.error 
       };
       
-      console.log(`[Onboard] QR image sent: ${mediaResult.success ? 'success' : 'failed'} (template: ${qrTemplateResult.found})`);
+      console.log(`[Onboard] QR image sent: ${mediaResult.success ? 'success' : 'failed'}`);
     } else {
-      // Fallback: send as text with link if QR image generation fails
       console.log('[Onboard] QR image generation failed, falling back to link...');
       const appUrl = Deno.env.get('APP_URL') || 'https://www.dhuud.com';
       const accessUrl = `${appUrl}/worker-access/${qrToken}`;
       
       const fallbackMessage = getLocalizedQRLinkMessage(
-        preferredLang, 
-        worker.full_name, 
-        project.project_name, 
-        accessUrl, 
-        validUntil
+        preferredLang, worker.full_name, project.project_name, accessUrl, validUntil
       );
       
       const textResult = await sendWhatsAppText(worker.mobile_number, fallbackMessage);
@@ -313,7 +215,7 @@ Deno.serve(async (req) => {
         induction_sent: inductionResult.success,
         qr_code_sent: qrWhatsappResult.success,
         qr_image_url: qrUploadResult.publicUrl,
-        video_id: selectedVideo?.id,
+        video_title: inductionResult.videoTitle,
       },
     });
 
@@ -324,17 +226,15 @@ Deno.serve(async (req) => {
         success: true,
         worker_name: worker.full_name,
         project_name: project.project_name,
-        // QR Code data
         qr_code_id: qrCode.id,
         qr_token: qrToken,
         qr_valid_from: validFrom.toISOString(),
         qr_valid_until: validUntil.toISOString(),
         qr_image_url: qrUploadResult.publicUrl,
-        // Induction data
         induction_sent: inductionResult.success,
         induction_id: inductionResult.inductionId,
         induction_error: inductionResult.error,
-        video_title: selectedVideo?.title,
+        video_title: inductionResult.videoTitle,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -348,32 +248,10 @@ Deno.serve(async (req) => {
   }
 });
 
-// Fallback message functions when templates are not found
-
-function getLocalizedInductionMessage(
-  language: string,
-  workerName: string,
-  projectName: string,
-  videoTitle: string,
-  videoUrl: string,
-  durationMin: number
-): string {
-  const messages: Record<string, string> = {
-    ar: `مرحباً ${workerName}،\n\nمطلوب منك إكمال فيديو السلامة التالي قبل بدء العمل في مشروع ${projectName}:\n\n🎬 ${videoTitle}\n⏱️ ${durationMin} دقيقة\n🔗 ${videoUrl}\n\nيرجى مشاهدة الفيديو والموافقة على شروط السلامة.`,
-    ur: `السلام علیکم ${workerName}،\n\nآپ کو ${projectName} پروجیکٹ میں کام شروع کرنے سے پہلے درج ذیل حفاظتی ویڈیو مکمل کرنی ہوگی:\n\n🎬 ${videoTitle}\n⏱️ ${durationMin} منٹ\n🔗 ${videoUrl}\n\nبراہ کرم ویڈیو دیکھیں اور حفاظتی شرائط سے اتفاق کریں۔`,
-    hi: `नमस्ते ${workerName},\n\n${projectName} प्रोजेक्ट में काम शुरू करने से पहले आपको निम्नलिखित सुरक्षा वीडियो पूरा करना होगा:\n\n🎬 ${videoTitle}\n⏱️ ${durationMin} मिनट\n🔗 ${videoUrl}\n\nकृपया वीडियो देखें और सुरक्षा शर्तों से सहमत हों।`,
-    fil: `Kumusta ${workerName},\n\nKailangan mong kumpletuhin ang sumusunod na safety video bago magsimula ng trabaho sa ${projectName} project:\n\n🎬 ${videoTitle}\n⏱️ ${durationMin} minuto\n🔗 ${videoUrl}\n\nMangyaring panoorin ang video at sumang-ayon sa mga safety terms.`,
-    en: `Hello ${workerName},\n\nYou are required to complete the following safety induction video before starting work on ${projectName} project:\n\n🎬 ${videoTitle}\n⏱️ ${durationMin} min\n🔗 ${videoUrl}\n\nPlease watch the video and acknowledge the safety terms.`,
-  };
-
-  return messages[language] || messages.ar;
-}
+// QR-specific fallback messages (kept here as they are QR-specific, not induction)
 
 function getLocalizedQRCaption(
-  language: string,
-  workerName: string,
-  projectName: string,
-  expiryDate: string
+  language: string, workerName: string, projectName: string, expiryDate: string
 ): string {
   const messages: Record<string, string> = {
     ar: `✅ ${workerName}، تم إنشاء رمز QR الخاص بك!\n\n🏗️ المشروع: ${projectName}\n📅 صالح حتى: ${expiryDate}\n\n📱 أظهر رمز QR هذا عند البوابة للدخول.`,
@@ -382,19 +260,13 @@ function getLocalizedQRCaption(
     fil: `✅ ${workerName}, handa na ang iyong QR code!\n\n🏗️ Proyekto: ${projectName}\n📅 Valid hanggang: ${expiryDate}\n\n📱 Ipakita ang QR code na ito sa gate para sa pagpasok.`,
     en: `✅ ${workerName}, your QR code is ready!\n\n🏗️ Project: ${projectName}\n📅 Valid until: ${expiryDate}\n\n📱 Show this QR code at the gate for entry.`,
   };
-
   return messages[language] || messages.ar;
 }
 
 function getLocalizedQRLinkMessage(
-  language: string,
-  workerName: string,
-  projectName: string,
-  accessUrl: string,
-  validUntil: Date
+  language: string, workerName: string, projectName: string, accessUrl: string, validUntil: Date
 ): string {
   const expiryDate = validUntil.toLocaleDateString('en-GB');
-  
   const messages: Record<string, string> = {
     ar: `✅ ${workerName}، تم إنشاء رمز QR الخاص بك!\n\n🏗️ المشروع: ${projectName}\n\n🔑 رابط الدخول للموقع:\n${accessUrl}\n\n📅 صالح حتى: ${expiryDate}\n\n📱 افتح الرابط وأظهر رمز QR عند البوابة للدخول.`,
     ur: `✅ ${workerName}، آپ کا QR کوڈ تیار ہے!\n\n🏗️ پروجیکٹ: ${projectName}\n\n🔑 سائٹ تک رسائی کا لنک:\n${accessUrl}\n\n📅 درست ہے تک: ${expiryDate}\n\n📱 لنک کھولیں اور گیٹ پر QR کوڈ دکھائیں۔`,
@@ -402,6 +274,5 @@ function getLocalizedQRLinkMessage(
     fil: `✅ ${workerName}, handa na ang iyong QR code!\n\n🏗️ Proyekto: ${projectName}\n\n🔑 Site access link:\n${accessUrl}\n\n📅 Valid hanggang: ${expiryDate}\n\n📱 Buksan ang link at ipakita ang QR code sa gate.`,
     en: `✅ ${workerName}, your QR code is ready!\n\n🏗️ Project: ${projectName}\n\n🔑 Site Access Link:\n${accessUrl}\n\n📅 Valid until: ${expiryDate}\n\n📱 Open the link and show the QR code at the gate for entry.`,
   };
-
   return messages[language] || messages.ar;
 }

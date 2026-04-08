@@ -134,7 +134,7 @@ export default function ProjectClearance() {
       {/* Project Context Card */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                 <Building2 className="h-5 w-5 text-primary" />
@@ -142,7 +142,9 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.contractor", "Contractor")}</p>
                 <p className="font-medium text-sm">
-                  {(project as Record<string, unknown> & { contractor_company?: { company_name?: string } })?.contractor_company?.company_name || t("common.na", "N/A")}
+                  {project?.contractor_company?.company_name 
+                    || (project as any)?.linked_contractor_project?.company?.company_name
+                    || t("common.na", "N/A")}
                 </p>
               </div>
             </div>
@@ -154,7 +156,9 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.site", "Site")}</p>
                 <p className="font-medium text-sm">
-                  {(project as Record<string, unknown> & { site?: { name?: string } })?.site?.name || t("common.na", "N/A")}
+                  {project?.site?.name 
+                    || (project as any)?.linked_contractor_project?.cp_site?.name
+                    || t("common.na", "N/A")}
                 </p>
               </div>
             </div>
@@ -166,7 +170,9 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.projectManager", "Project Manager")}</p>
                 <p className="font-medium text-sm">
-                  {(project as Record<string, unknown> & { project_manager?: { full_name?: string } })?.project_manager?.full_name || t("common.na", "N/A")}
+                  {project?.project_manager?.full_name 
+                    || (project as any)?.linked_contractor_project?.cp_manager?.full_name
+                    || t("common.na", "N/A")}
                 </p>
               </div>
             </div>
@@ -178,8 +184,8 @@ export default function ProjectClearance() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("ptw.clearance.duration", "Duration")}</p>
                 <p className="font-medium text-sm">
-                  {(project as Record<string, unknown>)?.start_date && (project as Record<string, unknown>)?.end_date 
-                    ? `${format(new Date(String((project as Record<string, unknown>).start_date)), "MMM d")} - ${format(new Date(String((project as Record<string, unknown>).end_date)), "MMM d, yyyy")}`
+                  {project?.start_date && project?.end_date 
+                    ? `${format(new Date(project.start_date), "MMM d")} - ${format(new Date(project.end_date), "MMM d, yyyy")}`
                     : t("common.na", "N/A")
                   }
                 </p>
@@ -190,7 +196,7 @@ export default function ProjectClearance() {
       </Card>
 
       {/* Progress Overview */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
         <Card className="md:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
@@ -244,7 +250,7 @@ export default function ProjectClearance() {
 
       {/* Filter Tabs */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
+        <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto overflow-x-auto">
           <TabsList>
             <TabsTrigger value="all">
               {t("common.all", "All")} ({totalCount})
@@ -321,9 +327,9 @@ export default function ProjectClearance() {
       {/* Completion Banner */}
       {progress === 100 && (
         <Card className="border-green-500/50 bg-green-500/10">
-          <CardContent className="flex items-center gap-4 py-6">
-            <CheckCircle2 className="h-10 w-10 text-green-600" />
-            <div>
+          <CardContent className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center">
+            <CheckCircle2 className="h-10 w-10 text-green-600 shrink-0" />
+            <div className="flex-1">
               <p className="font-semibold text-green-700 dark:text-green-400">
                 {t("ptw.clearance.allApproved", "All Clearances Approved!")}
               </p>
@@ -331,8 +337,8 @@ export default function ProjectClearance() {
                 {t("ptw.clearance.readyForActivation", "This project is now ready for permit creation.")}
               </p>
             </div>
-            <Link to={`/ptw/create?projectId=${projectId}`} className="ms-auto">
-              <Button>
+            <Link to={`/ptw/create?projectId=${projectId}`} className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto">
                 {t("ptw.clearance.createPermit", "Create Permit")}
               </Button>
             </Link>

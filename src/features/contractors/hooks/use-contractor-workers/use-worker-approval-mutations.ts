@@ -5,13 +5,22 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { ContractorWorker } from "./types";
 
+interface CreateWorkerData extends Partial<ContractorWorker> {
+    expiry_date?: string | null;
+    medical_certificate_path?: string | null;
+    user_type?: string | null;
+    access_start_date?: string | null;
+    access_end_date?: string | null;
+    project_id?: string;
+}
+
 export function useCreateContractorWorker() {
     const queryClient = useQueryClient();
     const { t } = useTranslation();
     const { profile } = useAuth();
 
     return useMutation({
-        mutationFn: async (data: Partial<ContractorWorker>) => {
+        mutationFn: async (data: CreateWorkerData) => {
             if (!profile?.tenant_id) throw new Error("No tenant");
 
             const { data: result, error } = await supabase
@@ -26,6 +35,21 @@ export function useCreateContractorWorker() {
                     preferred_language: data.preferred_language || "en",
                     tenant_id: profile.tenant_id,
                     approval_status: "pending",
+                    id_type: data.id_type || "national_id",
+                    date_of_birth: data.date_of_birth || null,
+                    gender: data.gender || null,
+                    email: data.email || null,
+                    emergency_contact_name: data.emergency_contact_name || null,
+                    emergency_contact_phone: data.emergency_contact_phone || null,
+                    worker_role: data.worker_role || null,
+                    fitness_to_work: data.fitness_to_work || null,
+                    fitness_acknowledged: data.fitness_acknowledged || false,
+                    medical_check_date: data.medical_check_date || null,
+                    fitness_expiry_date: data.fitness_expiry_date || null,
+                    medical_certificate_path: data.medical_certificate_path || null,
+                    training_certifications: data.training_certifications || [],
+                    photo_path: data.photo_path || null,
+                    project_id: data.project_id || null,
                 })
                 .select()
                 .single();
@@ -102,6 +126,9 @@ export function useApproveWorker() {
 }
 
 // Stage 2: Security Supervisor OR Security Manager final approval
+// After security approval, ONLY onboard-worker is called.
+// onboard-worker handles BOTH induction sending AND QR generation via shared module.
+// NO separate send-induction-video call — eliminates duplicate messages.
 export function useSecurityApproveWorker() {
     const queryClient = useQueryClient();
     const { t } = useTranslation();
@@ -126,7 +153,7 @@ export function useSecurityApproveWorker() {
                     security_approved_by: user?.id,
                 })
                 .eq("id", workerId)
-                .select("id, full_name, tenant_id, company_id, mobile_number, preferred_language")
+                .select("id, full_name, tenant_id, company_id, mobile_number, preferred_language, project_id")
                 .single();
 
             if (error) throw error;
@@ -138,6 +165,7 @@ export function useSecurityApproveWorker() {
             queryClient.invalidateQueries({ queryKey: ["pending-security-approvals"] });
             toast.success(t("contractors.messages.workerApprovedBySecurity", "Worker approved by security"));
 
+            // Audit log
             try {
                 await supabase.functions.invoke("contractor-audit-log", {
                     body: {
@@ -153,6 +181,7 @@ export function useSecurityApproveWorker() {
                 console.error("Failed to log audit event:", e);
             }
 
+            // Send approval notification to contractor
             try {
                 await supabase.functions.invoke("send-contractor-notification", {
                     body: {
@@ -166,19 +195,43 @@ export function useSecurityApproveWorker() {
                 console.error("Failed to send notification:", e);
             }
 
+            // Resolve project ID: assignment table → worker.project_id fallback
+            let projectId: string | null = null;
             try {
-                await supabase.functions.invoke("send-induction-video", {
-                    body: {
-                        workerId: data.id,
-                        workerName: data.full_name,
-                        workerMobile: data.mobile_number,
-                        workerLanguage: data.preferred_language || "en",
-                        tenant_id: data.tenant_id,
-                    },
-                });
-                toast.info(t("contractors.messages.inductionSentToWorker", "Safety induction sent to worker"));
+                const { data: assignment } = await supabase
+                    .from("project_worker_assignments")
+                    .select("project_id")
+                    .eq("worker_id", data.id)
+                    .eq("is_active", true)
+                    .is("deleted_at", null)
+                    .limit(1)
+                    .maybeSingle();
+                projectId = assignment?.project_id || null;
             } catch (e) {
-                console.error("Failed to send induction video:", e);
+                console.error("Failed to fetch project assignment:", e);
+            }
+
+            // Fallback to worker's direct project_id
+            if (!projectId && data.project_id) {
+                projectId = data.project_id;
+            }
+
+            // Auto-trigger onboarding (induction + QR) — SINGLE call, no duplicate
+            if (projectId) {
+                try {
+                    await supabase.functions.invoke("onboard-worker", {
+                        body: {
+                            worker_id: data.id,
+                            project_id: projectId,
+                            tenant_id: data.tenant_id,
+                        },
+                    });
+                    toast.info(t("contractors.messages.inductionSentToWorker", "Safety induction sent to worker"));
+                } catch (e) {
+                    console.error("Failed to auto-onboard worker:", e);
+                }
+            } else {
+                console.warn("[SecurityApprove] No project assigned to worker, skipping onboarding");
             }
         },
         onError: (error: Error) => {

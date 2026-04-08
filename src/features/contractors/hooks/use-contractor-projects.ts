@@ -11,10 +11,11 @@ interface Coordinate {
 export interface ContractorProject {
   id: string;
   tenant_id: string;
-  company_id: string;
+  company_id: string | null;
   project_code: string;
   project_name: string;
   project_name_ar: string | null;
+  project_type: string;
   branch_id: string | null;
   site_id: string | null;
   department_id: string | null;
@@ -43,6 +44,7 @@ export interface ContractorProjectFilters {
   search?: string;
   companyId?: string;
   status?: string;
+  projectType?: string;
 }
 
 export function useContractorProjects(filters: ContractorProjectFilters = {}) {
@@ -58,6 +60,7 @@ export function useContractorProjects(filters: ContractorProjectFilters = {}) {
         .from("contractor_projects")
         .select(`
           id, tenant_id, company_id, project_code, project_name, project_name_ar,
+          project_type,
           branch_id, site_id, department_id, location_description, start_date, end_date, status,
           assigned_workers_count, required_safety_officers, notes, project_manager_id,
           latitude, longitude, boundary_polygon, geofence_radius_meters,
@@ -77,11 +80,11 @@ export function useContractorProjects(filters: ContractorProjectFilters = {}) {
       }
       if (filters.companyId) query = query.eq("company_id", filters.companyId);
       if (filters.status) query = query.eq("status", filters.status);
+      if (filters.projectType) query = query.eq("project_type", filters.projectType);
 
       const { data, error } = await query;
       if (error) throw error;
       
-      // Map boundary_polygon from Json to Coordinate[]
       return (data ?? []).map(item => ({
         ...item,
         boundary_polygon: item.boundary_polygon as unknown as Coordinate[] | null,
@@ -99,11 +102,14 @@ export function useCreateContractorProject() {
     mutationFn: async (data: Partial<ContractorProject>) => {
       if (!profile?.tenant_id) throw new Error("No tenant");
 
+      const isInternal = data.project_type === 'internal';
+
       const insertPayload = {
-        company_id: data.company_id!,
+        company_id: isInternal ? null : data.company_id!,
         project_code: data.project_code!,
         project_name: data.project_name!,
         project_name_ar: data.project_name_ar,
+        project_type: data.project_type || 'contractor',
         branch_id: data.branch_id,
         site_id: data.site_id,
         department_id: data.department_id,
@@ -117,7 +123,7 @@ export function useCreateContractorProject() {
         boundary_polygon: data.boundary_polygon as unknown,
         geofence_radius_meters: data.geofence_radius_meters ?? 100,
         tenant_id: profile.tenant_id,
-        status: "planned",
+        status: "active",
       };
 
       const { data: result, error } = await supabase
@@ -134,7 +140,8 @@ export function useCreateContractorProject() {
       toast.success("Project created");
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.error("Project creation failed. Please check project type and required fields.");
+      console.error("[useCreateContractorProject] Error:", error);
     },
   });
 }
@@ -144,8 +151,11 @@ export function useUpdateContractorProject() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<ContractorProject> }) => {
+      const isInternal = data.project_type === 'internal';
+
       const updatePayload = {
         ...data,
+        company_id: isInternal ? null : data.company_id,
         boundary_polygon: data.boundary_polygon as unknown,
       };
       
@@ -164,7 +174,8 @@ export function useUpdateContractorProject() {
       toast.success("Project updated");
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.error("Project update failed. Please check project type and required fields.");
+      console.error("[useUpdateContractorProject] Error:", error);
     },
   });
 }

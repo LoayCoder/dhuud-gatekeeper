@@ -2,6 +2,7 @@ import React from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { FIELD_LABELS } from "@/types/id-card.types";
 import { LayoutProps } from "../types";
+import { CARD_TYPE_COLORS } from "../utils";
 
 export function LandscapeFrontLayout({
   cardType,
@@ -19,8 +20,9 @@ export function LandscapeFrontLayout({
   isRTL,
   getFieldValue,
 }: LayoutProps) {
-  const qrSize = Math.round(height * 0.55);
-  const photoSize = Math.round(height * 0.45);
+  const qrSize = Math.round(height * 0.45);
+  const photoSize = Math.round(height * 0.35);
+  const accentColor = CARD_TYPE_COLORS[cardType] || settings.front_accent_color;
 
   return (
     <div
@@ -39,66 +41,45 @@ export function LandscapeFrontLayout({
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
       }}
     >
-      {/* Header with accent color */}
+      {/* Header: Logo + Color Bar */}
       <div
         style={{
-          backgroundColor: settings.front_accent_color,
-          padding: `${6 * scale}px ${10 * scale}px`,
+          backgroundColor: '#f5f5f5',
+          padding: `${8 * scale}px ${10 * scale}px`,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8 * scale,
+          gap: 10 * scale,
+          borderBottom: `2px solid #e0e0e0`,
         }}
       >
-        {/* Logo */}
         {settings.show_logo && tenantData.logoUrl && (
           <img
             src={tenantData.logoUrl}
             alt="Logo"
+            crossOrigin="anonymous"
             style={{
-              height: 24 * scale,
+              height: 32 * scale,
               width: 'auto',
               objectFit: 'contain',
+              flexShrink: 0,
             }}
           />
         )}
-        
-        {/* Tenant Name - Bilingual */}
-        {settings.show_tenant_name && (
-          <div
-            style={{
-              color: '#FFFFFF',
-              fontSize: 9 * scale,
-              fontWeight: 600,
-              flex: 1,
-              textAlign: isRTL ? 'right' : 'left',
-            }}
-          >
-            {bilingualTenantName}
-          </div>
-        )}
-        
-        {/* Card Type Badge - Bilingual */}
         <div
           style={{
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            color: '#FFFFFF',
-            padding: `${2 * scale}px ${8 * scale}px`,
+            flex: 1,
+            height: 32 * scale,
+            backgroundColor: accentColor,
             borderRadius: 4 * scale,
-            fontSize: 6 * scale,
-            fontWeight: 600,
-            textTransform: 'uppercase',
           }}
-        >
-          {bilingualCardTypeLabel}
-        </div>
+        />
       </div>
 
       {/* Main Content */}
       <div
         style={{
           flex: 1,
-          padding: `${8 * scale}px ${10 * scale}px`,
+          padding: `${10 * scale}px ${12 * scale}px`,
           display: 'flex',
           gap: 10 * scale,
         }}
@@ -113,13 +94,14 @@ export function LandscapeFrontLayout({
               overflow: 'hidden',
               flexShrink: 0,
               backgroundColor: '#f3f4f6',
-              border: `1px solid ${settings.front_accent_color}`,
+              border: `3px solid ${accentColor}`,
             }}
           >
             {personData.photo ? (
               <img
                 src={personData.photo}
                 alt="Photo"
+                crossOrigin="anonymous"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -134,13 +116,14 @@ export function LandscapeFrontLayout({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: settings.front_accent_color,
+                  backgroundColor: accentColor,
                   color: '#FFFFFF',
-                  fontSize: 24 * scale,
-                  fontWeight: 700,
                 }}
               >
-                {personData.fullName.charAt(0).toUpperCase()}
+                <svg width={28 * scale} height={28 * scale} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
               </div>
             )}
           </div>
@@ -152,35 +135,41 @@ export function LandscapeFrontLayout({
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            gap: 3 * scale,
+            gap: 4 * scale,
             minWidth: 0,
           }}
         >
-          {/* Name - Bilingual (always show both) */}
-          <div
-            style={{
-              fontSize: 10 * scale,
-              fontWeight: 700,
-              color: settings.front_text_color,
-              lineHeight: 1.2,
-            }}
-          >
-            {personData.fullName}
-          </div>
+          {/* Name - Arabic primary, English secondary */}
           {personData.fullNameAr && (
             <div
               style={{
-                fontSize: 9 * scale,
-                fontWeight: 600,
+                fontSize: 13 * scale,
+                fontWeight: 700,
                 color: settings.front_text_color,
-                opacity: 0.85,
+                lineHeight: 1.2,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
                 direction: 'rtl',
-                marginTop: 1 * scale,
               }}
             >
               {personData.fullNameAr}
             </div>
           )}
+          <div
+            style={{
+              fontSize: 10 * scale,
+              fontWeight: 600,
+              color: settings.front_text_color,
+              opacity: 0.7,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              marginTop: 1 * scale,
+            }}
+          >
+            {personData.fullName}
+          </div>
           
           {/* Other fields */}
           {settings.front_fields
@@ -194,7 +183,7 @@ export function LandscapeFrontLayout({
                   key={field}
                   style={{
                     display: 'flex',
-                    fontSize: 7 * scale,
+                    fontSize: 8 * scale,
                     color: settings.front_text_color,
                     gap: 4 * scale,
                   }}
@@ -202,7 +191,7 @@ export function LandscapeFrontLayout({
                   <span style={{ opacity: 0.7 }}>
                     {FIELD_LABELS[field][language]}:
                   </span>
-                  <span style={{ fontWeight: 500 }}>{value}</span>
+                  <span style={{ fontWeight: 600 }}>{value}</span>
                 </div>
               );
             })}
@@ -224,7 +213,7 @@ export function LandscapeFrontLayout({
                 backgroundColor: '#FFFFFF',
                 padding: 4 * scale,
                 borderRadius: 4 * scale,
-                border: `1px solid ${settings.front_accent_color}`,
+                border: `2px solid ${accentColor}`,
               }}
             >
               <QRCodeSVG
@@ -253,7 +242,7 @@ export function LandscapeFrontLayout({
             padding: `${4 * scale}px`,
             display: 'flex',
             justifyContent: 'center',
-            borderTop: `1px solid ${settings.front_accent_color}20`,
+            borderTop: `1px solid ${accentColor}20`,
           }}
         >
           <div
@@ -261,6 +250,7 @@ export function LandscapeFrontLayout({
               backgroundColor: '#FFFFFF',
               padding: 3 * scale,
               borderRadius: 4 * scale,
+              border: `2px solid ${accentColor}`,
             }}
           >
             <QRCodeSVG
@@ -274,4 +264,3 @@ export function LandscapeFrontLayout({
     </div>
   );
 }
-

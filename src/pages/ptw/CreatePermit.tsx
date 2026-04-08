@@ -13,6 +13,7 @@ import { PermitReviewStep } from '@/features/ptw';
 import { useCreatePTWPermit } from "@/hooks/ptw/index";
 import { useSIMOPSCheck } from "@/features/ptw/hooks/use-simops-check";
 import { useMobilizationCheck } from "@/features/ptw/hooks/use-mobilization-check";
+import { useProjectContextWorkers } from "@/features/ptw/hooks/use-project-context-workers";
 import { SIMOPSConflictWarning } from '@/features/ptw';
 
 import { permitFormSchema, type PermitFormData } from './permitSchema';
@@ -39,6 +40,10 @@ export default function CreatePermit() {
 
   // Mobilization status check
   const { data: mobilizationStatus } = useMobilizationCheck(formData.project_id);
+
+  // Project context (internal vs contractor)
+  const { data: projectContext } = useProjectContextWorkers(formData.project_id);
+  const isInternalWork = projectContext?.isInternalWork || false;
 
   // SIMOPS conflict checking
   const { conflicts, isChecking, checkConflicts } = useSIMOPSCheck();
@@ -127,7 +132,9 @@ export default function CreatePermit() {
           formData.job_description
         );
       case 2:
-        // Require at least 1 worker and a permit holder
+        // Internal projects don't require workers
+        if (isInternalWork) return true;
+        // Contractor projects require at least 1 worker and a permit holder
         return !!(
           formData.worker_ids &&
           formData.worker_ids.length > 0 &&
@@ -231,18 +238,19 @@ export default function CreatePermit() {
       </Card>
 
       {/* Navigation */}
-      <div className="flex justify-between">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
         <Button
           variant="outline"
           onClick={handleBack}
           disabled={currentStep === 1}
+          className="w-full sm:w-auto min-h-[48px]"
         >
           <ArrowLeft className="me-2 h-4 w-4 rtl:rotate-180" />
           {t("common.back", "Back")}
         </Button>
 
         {currentStep < STEPS.length ? (
-          <Button onClick={handleNext} disabled={!canProceed()}>
+          <Button onClick={handleNext} disabled={!canProceed()} className="w-full sm:w-auto min-h-[48px]">
             {t("common.next", "Next")}
             <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
           </Button>
@@ -250,6 +258,7 @@ export default function CreatePermit() {
           <Button
             onClick={handleSubmit}
             disabled={createPermit.isPending}
+            className="w-full sm:w-auto min-h-[48px]"
           >
             {createPermit.isPending
               ? t("common.submitting", "Submitting...")

@@ -7,7 +7,7 @@ import type { ContractorWorker, ContractorWorkerFilters } from "./types";
 export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
     const { profile } = useAuth();
     const tenantId = profile?.tenant_id;
-    const { queryKey: branchQueryKey } = useBranchFilter();
+    const { queryKey: branchQueryKey, branchIds, isAllBranchesMode } = useBranchFilter();
 
     return useQuery({
         queryKey: ["contractor-workers", tenantId, filters, ...branchQueryKey],
@@ -20,6 +20,11 @@ export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
           id, tenant_id, company_id, full_name, full_name_ar, national_id, nationality,
           mobile_number, photo_path, preferred_language, approval_status, approved_at,
           rejection_reason, created_at, worker_type, safety_officer_id,
+          edit_pending_approval, edited_by, edited_at,
+          photo_verified_by, photo_verified_at,
+          security_approval_status,
+          fitness_to_work, fitness_acknowledged, medical_check_date,
+          fitness_expiry_date, medical_certificate_path, training_certifications,
           company:contractor_companies(company_name, assigned_branch_id),
           latest_induction:worker_inductions(id, status, expires_at)
         `)
@@ -36,8 +41,17 @@ export function useContractorWorkers(filters: ContractorWorkerFilters = {}) {
             const { data, error } = await query;
             if (error) throw error;
 
+            // Apply client-side branch filter via company.assigned_branch_id
+            let filteredData = data || [];
+            if (!isAllBranchesMode && branchIds && branchIds.length > 0) {
+                filteredData = filteredData.filter((worker) => {
+                    const company = worker.company as unknown as { company_name: string; assigned_branch_id: string | null } | null;
+                    return company?.assigned_branch_id && branchIds.includes(company.assigned_branch_id);
+                });
+            }
+
             // Transform latest_induction array to single object (prioritize acknowledged, then most recent)
-            return (data || []).map((worker) => {
+            return filteredData.map((worker) => {
                 let bestInduction = null;
 
                 if (Array.isArray(worker.latest_induction) && worker.latest_induction.length > 0) {
@@ -73,7 +87,16 @@ export function usePendingWorkerApprovals() {
 
             const { data, error } = await supabase
                 .from("contractor_workers")
-                .select(`id, full_name, national_id, nationality, mobile_number, created_at, company_id, company:contractor_companies(company_name)`)
+                .select(`
+                    id, tenant_id, full_name, full_name_ar, national_id, nationality, mobile_number,
+                    id_type, date_of_birth, gender, email,
+                    emergency_contact_name, emergency_contact_phone,
+                    worker_role, preferred_language, photo_path, photo_verified_at,
+                    fitness_to_work, fitness_acknowledged, medical_check_date,
+                    fitness_expiry_date, medical_certificate_path, training_certifications,
+                    worker_type, approval_status, created_at, company_id,
+                    company:contractor_companies(company_name)
+                `)
                 .eq("tenant_id", tenantId)
                 .eq("approval_status", "pending")
                 .is("deleted_at", null)
@@ -144,10 +167,15 @@ export function usePendingSecurityApprovals() {
             const { data, error } = await supabase
                 .from("contractor_workers")
                 .select(`
-          id, full_name, full_name_ar, national_id, nationality, mobile_number, 
-          created_at, approved_at, photo_path, worker_type, company_id,
-          company:contractor_companies(company_name)
-        `)
+                    id, tenant_id, full_name, full_name_ar, national_id, nationality, mobile_number,
+                    id_type, date_of_birth, gender, email,
+                    emergency_contact_name, emergency_contact_phone,
+                    worker_role, preferred_language, photo_path, photo_verified_at,
+                    fitness_to_work, fitness_acknowledged, medical_check_date,
+                    fitness_expiry_date, medical_certificate_path, training_certifications,
+                    worker_type, approval_status, approved_at, created_at, company_id,
+                    company:contractor_companies(company_name)
+                `)
                 .eq("tenant_id", tenantId)
                 .eq("approval_status", "pending_security")
                 .is("deleted_at", null)

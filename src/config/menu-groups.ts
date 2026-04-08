@@ -27,6 +27,7 @@ import {
   Clock,
   Database,
   Zap,
+  Building2,
 } from "lucide-react";
 
 export interface MenuGroup {
@@ -122,6 +123,15 @@ export const menuGroups: MenuGroup[] = [
     icon: Radio,
     parentCode: "security",
     sortOrder: 30,
+  },
+  
+  // Contractor Portal
+  {
+    code: "contractor_portal",
+    title: { en: "Contractor Portal", ar: "بوابة المقاول" },
+    translationKey: "navigation.contractorPortal",
+    icon: Building2,
+    sortOrder: 11,
   },
   
   // My Gate Passes (for all internal employees)

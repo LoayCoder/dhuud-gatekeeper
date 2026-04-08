@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-import { HardHat, Plus, Search, Filter, Clock, Upload } from "lucide-react";
+import { HardHat, Plus, Search, Filter, Clock, Upload, FileEdit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,8 +34,10 @@ import {
   useBulkRejectWorkers,
   useDeleteContractorWorker,
   useUpdateWorkerStatus,
+  useApproveWorkerEdits,
   ContractorWorker,
 } from "@/features/contractors/hooks/use-contractor-workers";
+import { useContractorRepPermissions } from "@/features/contractors/hooks/use-contractor-rep-permissions";
 import { useContractorCompanies } from "@/features/contractors/hooks/use-contractor-companies";
 import { useSecurityBlacklist, useAddToBlacklist } from '@/features/security';
 import { ShieldCheck } from "lucide-react";
@@ -72,11 +74,18 @@ export default function Workers() {
   const [pendingStatusChange, setPendingStatusChange] = useState<string>("");
   const [workerToBlacklist, setWorkerToBlacklist] = useState<ContractorWorker | null>(null);
 
-  const { data: workers = [], isLoading } = useContractorWorkers({
+  const { data: allWorkers = [], isLoading } = useContractorWorkers({
     search: search || undefined,
-    approvalStatus: statusFilter !== "all" ? statusFilter : undefined,
+    approvalStatus: statusFilter !== "all" && statusFilter !== "pending_edits" ? statusFilter : undefined,
     companyId: companyFilter !== "all" ? companyFilter : undefined,
   });
+
+  const workers = useMemo(() => {
+    if (statusFilter === "pending_edits") {
+      return allWorkers.filter(w => w.edit_pending_approval === true);
+    }
+    return allWorkers;
+  }, [allWorkers, statusFilter]);
 
   const { data: pendingApprovals = [] } = usePendingWorkerApprovals();
   const { data: pendingSecurityApprovals = [] } = usePendingSecurityApprovals();
@@ -88,6 +97,8 @@ export default function Workers() {
   const addToBlacklist = useAddToBlacklist();
   const deleteWorker = useDeleteContractorWorker();
   const updateWorkerStatus = useUpdateWorkerStatus();
+  const approveEdits = useApproveWorkerEdits();
+  const permissions = useContractorRepPermissions();
 
   // Create blacklist lookup maps
   const blacklistedIds = useMemo(
@@ -140,8 +151,10 @@ export default function Workers() {
 
   // Individual worker action handlers
   const handleStatusChange = (worker: ContractorWorker, status: string) => {
-    setWorkerToChangeStatus(worker);
-    setPendingStatusChange(status);
+    setTimeout(() => {
+      setWorkerToChangeStatus(worker);
+      setPendingStatusChange(status);
+    }, 0);
   };
 
   const handleConfirmStatusChange = (status: string, reason?: string) => {
@@ -218,6 +231,17 @@ export default function Workers() {
               </Badge>
             )}
           </TabsTrigger>
+          {permissions.isDocumentController && (
+            <TabsTrigger value="pending_edits" className="flex items-center gap-2">
+              <FileEdit className="h-4 w-4" />
+              {t("contractors.workers.pendingEdits", "Pending Edits")}
+              {allWorkers.filter(w => w.edit_pending_approval).length > 0 && (
+                <Badge variant="secondary" className="ms-1">
+                  {allWorkers.filter(w => w.edit_pending_approval).length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="all" className="mt-4">
@@ -257,6 +281,7 @@ export default function Workers() {
                       <SelectItem value="pending">{t("contractors.workerStatus.pending", "Pending")}</SelectItem>
                       <SelectItem value="approved">{t("contractors.workerStatus.approved", "Approved")}</SelectItem>
                       <SelectItem value="rejected">{t("contractors.workerStatus.rejected", "Rejected")}</SelectItem>
+                      <SelectItem value="pending_edits">{t("contractors.workers.pendingEdits", "Pending Edits")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -285,11 +310,19 @@ export default function Workers() {
                 onStatusChange={handleStatusChange}
                 onAddToBlacklist={handleAddToBlacklist}
                 onDelete={(worker) => setWorkerToDelete(worker)}
+                onApproveEdits={(worker) => approveEdits.mutate(worker.id)}
                 selectedIds={selectedWorkerIds}
                 onSelectionChange={setSelectedWorkerIds}
                 showSelection={showSelection}
                 blacklistedIds={blacklistedIds}
                 blacklistReasons={blacklistReasons}
+                permissions={{
+                  canEdit: permissions.canEditBasicInfo,
+                  canChangeStatus: permissions.canChangeStatus,
+                  canBlacklist: permissions.canBlacklist,
+                  canDelete: permissions.canDelete,
+                  canApproveEdits: permissions.canApproveEdits,
+                }}
               />
             </CardContent>
           </Card>
@@ -306,6 +339,41 @@ export default function Workers() {
         <TabsContent value="security" className="mt-4">
           <WorkerSecurityApprovalQueue />
         </TabsContent>
+
+        {permissions.isDocumentController && (
+          <TabsContent value="pending_edits" className="mt-4">
+            <Card>
+              <CardHeader className="pb-4">
+                <p className="text-sm text-muted-foreground">
+                  {t("contractors.workers.pendingEditsDescription", "Workers whose details were edited and require Document Controller re-approval.")}
+                </p>
+              </CardHeader>
+              <CardContent>
+                <WorkerListTable
+                  workers={allWorkers.filter(w => w.edit_pending_approval)}
+                  isLoading={isLoading}
+                  onEdit={(worker) => setEditingWorker(worker)}
+                  onStatusChange={handleStatusChange}
+                  onAddToBlacklist={handleAddToBlacklist}
+                  onDelete={(worker) => setWorkerToDelete(worker)}
+                  onApproveEdits={(worker) => approveEdits.mutate(worker.id)}
+                  selectedIds={selectedWorkerIds}
+                  onSelectionChange={setSelectedWorkerIds}
+                  showSelection={false}
+                  blacklistedIds={blacklistedIds}
+                  blacklistReasons={blacklistReasons}
+                  permissions={{
+                    canEdit: permissions.canEditBasicInfo,
+                    canChangeStatus: permissions.canChangeStatus,
+                    canBlacklist: permissions.canBlacklist,
+                    canDelete: permissions.canDelete,
+                    canApproveEdits: permissions.canApproveEdits,
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
 
       <WorkerFormDialog

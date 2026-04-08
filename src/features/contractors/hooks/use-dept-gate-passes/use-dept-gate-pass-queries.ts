@@ -138,7 +138,7 @@ export function useDeptPendingApprovals() {
                         .eq("tenant_id", tenantId)
                         .in("project_id", projectIds)
                         .eq("is_internal_request", false)
-                        .in("status", ["pending_contractor_approval", "pending_club_mgmt_ack"])
+                        .in("status", ["pending_contractor_approval"])
                         .is("deleted_at", null)
                         .order("created_at", { ascending: false });
 
@@ -147,29 +147,7 @@ export function useDeptPendingApprovals() {
                 }
             }
 
-            // 3. INTERNAL requests pending Golf Club Management acknowledgment
-            if (departmentId) {
-                const { data: userDept } = await supabase
-                    .from("departments")
-                    .select("id, name")
-                    .eq("id", departmentId)
-                    .maybeSingle();
-
-                const isGolfClubMgmt = userDept?.name?.toLowerCase().includes("golf club management");
-
-                if (isGolfClubMgmt) {
-                    const { data: clubMgmtPasses, error: clubMgmtError } = await supabase
-                        .from("material_gate_passes")
-                        .select(GATE_PASS_SELECT)
-                        .eq("tenant_id", tenantId)
-                        .eq("status", "pending_club_mgmt_ack")
-                        .is("deleted_at", null)
-                        .order("created_at", { ascending: false });
-
-                    if (clubMgmtError) throw clubMgmtError;
-                    if (clubMgmtPasses) allPending.push(...(clubMgmtPasses as MaterialGatePass[]));
-                }
-            }
+            // 3. (Removed) Club Management step no longer exists in 2-step flow
 
             // 4. PUBLIC requests pending security approval
             const { data: userRoles } = await supabase

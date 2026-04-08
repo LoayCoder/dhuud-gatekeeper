@@ -311,7 +311,7 @@ export default function PTWFieldInspection() {
       </div>
 
       {/* Fixed Submit Button */}
-      <div className="fixed bottom-0 inset-x-0 p-4 bg-background/95 backdrop-blur-sm border-t">
+      <div className="fixed bottom-0 inset-x-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur-sm border-t">
         <Button
           size="lg"
           className="w-full h-14 text-lg font-semibold"

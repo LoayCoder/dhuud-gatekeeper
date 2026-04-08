@@ -85,7 +85,7 @@ export default function ContractorAccess() {
 
   // Filter passes
   const pendingGatePasses = allGatePasses.filter(gp =>
-    gp.status === 'pending_pm_approval' || gp.status === 'pending_safety_approval'
+    gp.status === 'pending_acknowledgment' || gp.status === 'pending_security_approval'
   );
   const todayApprovedPasses = allGatePasses.filter(gp => {
     if (gp.status !== 'approved') return false;

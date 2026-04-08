@@ -20,11 +20,15 @@ import { format } from "date-fns";
 import { ClearanceDocumentUpload } from "./ClearanceDocumentUpload";
 
 /** Extended clearance check with optional joined fields from the database */
-interface ClearanceCheckWithDetails extends PTWClearanceCheck {
+type ClearanceCheckWithDetails = Partial<PTWClearanceCheck> & {
+  id: string;
+  requirement_name: string;
+  category: string;
+  is_mandatory: boolean;
+  status: string;
+  sort_order: number;
   approver?: { full_name?: string } | null;
-  approved_at?: string | null;
-  project_id?: string | null;
-}
+};
 
 interface ClearanceCheckCardProps {
   check: ClearanceCheckWithDetails;

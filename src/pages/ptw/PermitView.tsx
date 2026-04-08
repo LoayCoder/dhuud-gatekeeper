@@ -101,7 +101,7 @@ export default function PermitView() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:flex-wrap">
           <PermitPDFExportButton permitId={permit.id} />
           {canApprove && (
             <>
@@ -151,7 +151,7 @@ export default function PermitView() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         {/* Main Info */}
         <div className="lg:col-span-2 space-y-6">
           {/* Work Description */}

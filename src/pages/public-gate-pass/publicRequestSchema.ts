@@ -6,8 +6,8 @@ export const gatePassItemSchema = z.object({
   sr_number: z.string(),
   item_name: z.string().min(1, 'Item name is required'),
   description: z.string(),
-  quantity: z.string(),
-  unit: z.string(),
+  quantity: z.string().min(1, 'Quantity is required'),
+  unit: z.string().min(1, 'Unit is required'),
   photo: z.any().refine(
     (val) => val instanceof File,
     'Photo is required'
@@ -25,8 +25,9 @@ export const publicRequestSchema = z.object({
       'Invalid phone number'
     ),
   requesterEmail: z.string().email('Invalid email').optional().or(z.literal('')),
-  requesterCompany: z.string().optional().or(z.literal('')),
+  requesterCompany: z.string().min(2, 'Company name must be at least 2 characters'),
   branchId: z.string().optional().or(z.literal('')),
+  departmentId: z.string().min(1, 'Department selection is required'),
 
   // Step 2 — Vehicle
   vehiclePlateLetters: z.string().min(1, 'Plate letters required'),

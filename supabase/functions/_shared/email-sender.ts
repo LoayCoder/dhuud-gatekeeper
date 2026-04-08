@@ -202,10 +202,19 @@ export function getSenderName(module: EmailModule, tenantName?: string): string 
   return EMAIL_SENDERS[module] || EMAIL_SENDERS.default;
 }
 
+// Rate-limit retry configuration
+const MAX_RETRIES = 2;
+const BASE_RETRY_DELAY_MS = 250;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /**
  * Send email via Resend with module-based sender name
+ * Includes retry logic for rate-limit (429) errors with exponential backoff
  */
-export async function sendEmail(options: SendEmailOptions): Promise<EmailResult> {
+export async function sendEmail(options: SendEmailOptions, retryCount = 0): Promise<EmailResult> {
   const { to, subject, html, module, tenantName, attachments } = options;
   
   if (!RESEND_API_KEY) {
@@ -253,6 +262,17 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
     const { data, error } = await resend.emails.send(emailPayload);
 
     if (error) {
+      // Check for rate-limit (429) error and retry with backoff
+      const isRateLimit = error.message?.toLowerCase().includes('too many requests') ||
+                          (error as any).statusCode === 429;
+      
+      if (isRateLimit && retryCount < MAX_RETRIES) {
+        const delayMs = BASE_RETRY_DELAY_MS * Math.pow(2, retryCount);
+        console.warn(`[Email] Rate limited (429). Retry ${retryCount + 1}/${MAX_RETRIES} after ${delayMs}ms`);
+        await sleep(delayMs);
+        return sendEmail(options, retryCount + 1);
+      }
+
       console.error("Resend error:", error);
       return { success: false, error: error.message };
     }
@@ -264,7 +284,17 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
 
     return { success: true, messageId };
   } catch (error) {
+    // Also handle rate-limit errors thrown as exceptions
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const isRateLimit = errorMessage.toLowerCase().includes('too many requests');
+    
+    if (isRateLimit && retryCount < MAX_RETRIES) {
+      const delayMs = BASE_RETRY_DELAY_MS * Math.pow(2, retryCount);
+      console.warn(`[Email] Rate limited (exception). Retry ${retryCount + 1}/${MAX_RETRIES} after ${delayMs}ms`);
+      await sleep(delayMs);
+      return sendEmail(options, retryCount + 1);
+    }
+
     console.error("Resend request failed:", errorMessage);
     return { success: false, error: errorMessage };
   }
@@ -296,16 +326,4 @@ export async function sendEmailToMany(
   return sendEmail({ to, subject, html, module, tenantName });
 }
 
-/**
- * Legacy-compatible function name for backward compatibility
- * @deprecated Use sendEmail or sendEmailToOne instead
- */
-export async function sendEmailViaSES(
-  to: string,
-  subject: string,
-  html: string,
-  module: EmailModule = 'default',
-  tenantName?: string
-): Promise<EmailResult> {
-  return sendEmail({ to, subject, html, module, tenantName });
-}
+

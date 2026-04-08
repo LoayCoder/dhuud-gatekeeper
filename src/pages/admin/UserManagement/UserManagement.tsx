@@ -1,5 +1,6 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger";
 import {
@@ -42,7 +43,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Pencil, Plus, Search, Download, X, Upload, RefreshCw, Filter, ChevronDown, KeyRound } from "lucide-react";
+import { Loader2, Pencil, Plus, Search, Download, X, Upload, RefreshCw, Filter, ChevronDown, KeyRound, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,6 +76,7 @@ import { UserManagementModals } from './UserManagementModals';
 import { useUserManagementState, useUserManagementData, useUserManagementSaveActions, useUserManagementStatusActions, useUserManagementExtraActions } from './hooks/useUserManagement';
 
 export default function UserManagement() {
+  const navigate = useNavigate();
   const state = useUserManagementState();
   const data = useUserManagementData(state);
   const saveActions = useUserManagementSaveActions(state, data);
@@ -122,6 +124,10 @@ export default function UserManagement() {
           <p className="text-muted-foreground">{t('userManagement.description')}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => navigate('/admin/id-card-settings')} className="gap-2">
+            <CreditCard className="h-4 w-4" />
+            {t('userManagement.idCardSettings', 'ID Card Settings')}
+          </Button>
           <Button variant="outline" onClick={() => setIsImportDialogOpen(true)} className="gap-2">
             <Upload className="h-4 w-4" />
             {t('userManagement.importUsers')}

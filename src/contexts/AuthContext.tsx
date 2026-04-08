@@ -43,6 +43,7 @@ interface AuthContextType {
   validateTenantAccess: () => Promise<boolean>; // NEW: Validate access for current tenant
   isUsingCachedSession: boolean; // NEW: Indicates if using cached session (offline mode)
   refreshSession: () => Promise<boolean>; // NEW: Force refresh session from server
+  setMfaGracePeriod: (until: Date) => void; // NEW: Direct grace period setter
 }
 
 // Create context outside of component to ensure singleton across HMR
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // MULTI-TENANT: Query by user_id (not id) and optionally filter by tenant
     let query = supabase
       .from('profiles')
-      .select('id, full_name, avatar_url, tenant_id, preferred_language, assigned_branch_id, assigned_site_id, assigned_department_id, contractor_company_name, is_deleted, is_active')
+      .select('id, full_name, avatar_url, tenant_id, preferred_language, assigned_branch_id, assigned_site_id, assigned_department_id, contractor_company_name, is_deleted, is_active, has_full_branch_access, is_super_admin')
       .eq('user_id', userId) // Multi-tenant: use user_id
       .eq('is_deleted', false)
       .eq('is_active', true);
@@ -447,6 +448,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     validateTenantAccess,
     isUsingCachedSession,
     refreshSession,
+    setMfaGracePeriod: (until: Date) => setMfaGraceUntil(until),
   };
 
   // Watch for email changes from admin actions

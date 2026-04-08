@@ -26,7 +26,7 @@ import { Search, Filter, FileKey, Plus, History, Clock, CheckCircle2, XCircle, A
 import { useMyGatePasses } from "@/features/contractors/hooks/use-my-gate-passes";
 import { MaterialGatePass } from "@/features/contractors/hooks/use-material-gate-passes";
 import { GatePassDetailDialog } from '@/features/contractors';
-import { GatePassFormDialog } from '@/features/contractors';
+import { GatePassCreateDialog } from '@/features/contractors/components/GatePassCreateDialog';
 import { GatePassResubmitDialog } from '@/features/contractors';
 import { useContractorProjects } from "@/features/contractors/hooks/use-contractor-projects";
 import { GatePassTypeBadge } from '@/features/contractors';
@@ -80,7 +80,7 @@ function MyGatePassListContent() {
       pending: { variant: "warning", label: t("gatePasses.status.pending", "Pending"), icon: <Clock className="h-3 w-3" /> },
       pending_dept_approval: { variant: "warning", label: t("gatePasses.status.pending_dept_approval", "Pending Dept"), icon: <Clock className="h-3 w-3" /> },
       pending_contractor_approval: { variant: "warning", label: t("gatePasses.status.pending_contractor_approval", "Pending Contractor"), icon: <Clock className="h-3 w-3" /> },
-      pending_club_mgmt_ack: { variant: "warning", label: t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management"), icon: <AlertCircle className="h-3 w-3" /> },
+      pending_acknowledgment: { variant: "warning", label: t("gatePasses.status.pending_acknowledgment", "Pending Acknowledgment"), icon: <AlertCircle className="h-3 w-3" /> },
       pending_resubmission: { variant: "warning", label: t("gatePasses.status.pending_resubmission", "Resubmit Required"), icon: <RefreshCw className="h-3 w-3" /> },
       pm_approved: { variant: "secondary", label: t("gatePasses.status.pm_approved", "PM Approved"), icon: <CheckCircle2 className="h-3 w-3" /> },
       pending_security_approval: { variant: "warning", label: t("gatePasses.status.pending_security", "Pending Security"), icon: <AlertCircle className="h-3 w-3" /> },
@@ -264,17 +264,14 @@ function MyGatePassListContent() {
       />
 
       {/* Create Gate Pass Dialog */}
-      <GatePassFormDialog
+      <GatePassCreateDialog
         open={createDialogOpen}
         onOpenChange={(open) => {
           setCreateDialogOpen(open);
           if (!open) {
-            refetch(); // Refresh list after closing
+            refetch();
           }
         }}
-        projects={projects}
-        canCreateInternal={canCreateInternal}
-        canCreateExternal={canCreateExternal}
       />
 
       {/* Resubmit Dialog */}

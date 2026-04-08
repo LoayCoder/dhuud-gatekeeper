@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
-import { sendEmailViaSES, getAppUrl, emailButton } from "../_shared/email-sender.ts";
+import { sendEmailToOne, getAppUrl, emailButton } from "../_shared/email-sender.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
             </div>
           `;
 
-          const result = await sendEmailViaSES(inspectorEmail, `Inspection Reminder: ${schedule.name} due ${dueText}`, emailHtml, 'inspection_reminder');
+          const result = await sendEmailToOne(inspectorEmail, `Inspection Reminder: ${schedule.name} due ${dueText}`, emailHtml, 'inspection_reminder');
           
           if (result.success) {
             results.emailsSent++;

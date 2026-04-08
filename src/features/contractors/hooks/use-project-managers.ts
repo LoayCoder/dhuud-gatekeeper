@@ -8,16 +8,41 @@ export interface ProjectManager {
   email: string | null;
 }
 
-export function useProjectManagers() {
+export function useProjectManagers(branchId?: string) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
 
   return useQuery({
-    queryKey: ["project-managers", tenantId],
+    queryKey: ["project-managers", tenantId, branchId],
     queryFn: async () => {
       if (!tenantId) return [];
 
-      // Get users who can be project managers (managers, admins, or users with PM role)
+      if (branchId) {
+        // Two-step query: get user IDs from branch assignments, then fetch profiles
+        const { data: assignments, error: assignError } = await supabase
+          .from("user_branch_assignments" as any)
+          .select("user_id")
+          .eq("branch_id", branchId)
+          .is("deleted_at", null);
+
+        if (assignError) throw assignError;
+
+        const userIds = [...new Set((assignments as any[] ?? []).map((a: any) => a.user_id).filter(Boolean))];
+        if (userIds.length === 0) return [];
+
+        const { data: profiles, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", userIds)
+          .eq("tenant_id", tenantId)
+          .eq("is_active", true)
+          .order("full_name");
+
+        if (profileError) throw profileError;
+        return (profiles ?? []) as ProjectManager[];
+      }
+
+      // No branch filter — return all active profiles in tenant
       const { data, error } = await supabase
         .from("profiles")
         .select("id, full_name, email")

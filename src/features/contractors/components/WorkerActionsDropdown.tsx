@@ -21,7 +21,8 @@ import {
   XCircle,
   Clock,
   Ban,
-  ShieldOff
+  ShieldOff,
+  FileCheck
 } from "lucide-react";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 
@@ -30,6 +31,7 @@ export interface WorkerActionsPermissions {
   canChangeStatus?: boolean;
   canBlacklist?: boolean;
   canDelete?: boolean;
+  canApproveEdits?: boolean;
 }
 
 interface WorkerActionsDropdownProps {
@@ -39,6 +41,7 @@ interface WorkerActionsDropdownProps {
   onStatusChange: (status: string) => void;
   onAddToBlacklist: () => void;
   onDelete: () => void;
+  onApproveEdits?: () => void;
   permissions?: WorkerActionsPermissions;
 }
 
@@ -57,11 +60,13 @@ export function WorkerActionsDropdown({
   onStatusChange,
   onAddToBlacklist,
   onDelete,
+  onApproveEdits,
   permissions = {
     canEdit: true,
     canChangeStatus: true,
     canBlacklist: true,
     canDelete: true,
+    canApproveEdits: false,
   },
 }: WorkerActionsDropdownProps) {
   const { t } = useTranslation();
@@ -86,6 +91,16 @@ export function WorkerActionsDropdown({
             {t("common.edit", "Edit")}
           </DropdownMenuItem>
         )}
+
+        {permissions.canApproveEdits && worker.edit_pending_approval && onApproveEdits && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onApproveEdits}>
+              <FileCheck className="h-4 w-4 me-2" />
+              {t("contractors.workers.approveEdits", "Approve Edits")}
+            </DropdownMenuItem>
+          </>
+        )}
         
         {permissions.canChangeStatus && (
           <>
@@ -102,7 +117,10 @@ export function WorkerActionsDropdown({
                   return (
                     <DropdownMenuItem
                       key={option.value}
-                      onClick={() => onStatusChange(option.value)}
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        onStatusChange(option.value);
+                      }}
                       disabled={isCurrentStatus}
                       className={isCurrentStatus ? "opacity-50" : ""}
                     >

@@ -22,60 +22,61 @@ export function useSyncPersonnelToWorkers() {
         officerWorkerIds: [],
       };
 
-      // Sync Site Representative to BOTH contractor_site_representatives AND contractor_workers
+      // Sync Representative to contractor_representatives (primary source for portal invitations)
       if (siteRep && siteRep.full_name && siteRep.national_id) {
-        // 1. Sync to contractor_site_representatives table (new primary source)
-        const { data: existingSiteRepRecord } = await supabase
-          .from("contractor_site_representatives")
+        // 1. Sync to contractor_representatives table (primary rep for portal invitations)
+        const { data: existingRepRecord } = await supabase
+          .from("contractor_representatives")
           .select("id")
           .eq("company_id", companyId)
+          .eq("is_primary", true)
           .is("deleted_at", null)
           .maybeSingle();
 
-        if (existingSiteRepRecord) {
-          // Update existing site rep record
+        if (existingRepRecord) {
           const { error: updateError } = await supabase
-            .from("contractor_site_representatives")
+            .from("contractor_representatives")
             .update({
               full_name: siteRep.full_name,
               national_id: siteRep.national_id,
               mobile_number: siteRep.mobile_number || siteRep.phone || "N/A",
-              phone: siteRep.phone || null,
               email: siteRep.email || null,
+              photo_path: siteRep.photo_path || null,
               nationality: siteRep.nationality || null,
-              photo_path: siteRep.photo_path,
-              status: 'active',
+              phone: siteRep.phone || null,
+              updated_at: new Date().toISOString(),
             })
-            .eq("id", existingSiteRepRecord.id);
+            .eq("id", existingRepRecord.id)
+            .throwOnError();
 
           if (updateError) {
-            console.error("[useSyncPersonnelToWorkers] Error updating site rep record:", updateError);
+            console.error("[useSyncPersonnelToWorkers] Error updating rep record:", updateError);
           } else {
-            results.siteRepId = existingSiteRepRecord.id;
+            results.siteRepId = existingRepRecord.id;
           }
         } else {
-          // Create new site rep record
-          const { data: newSiteRepRecord, error: insertError } = await supabase
-            .from("contractor_site_representatives")
+          const { data: newRepRecord, error: insertError } = await supabase
+            .from("contractor_representatives")
             .insert({
               tenant_id: tenantId,
               company_id: companyId,
               full_name: siteRep.full_name,
               national_id: siteRep.national_id,
               mobile_number: siteRep.mobile_number || siteRep.phone || "N/A",
-              phone: siteRep.phone || null,
               email: siteRep.email || null,
+              photo_path: siteRep.photo_path || null,
               nationality: siteRep.nationality || null,
-              photo_path: siteRep.photo_path,
-              status: 'active',
+              phone: siteRep.phone || null,
+              is_primary: true,
             })
             .select("id")
-            .single();
+            .single()
+            .throwOnError();
 
           if (insertError) {
-            console.error("[useSyncPersonnelToWorkers] Error creating site rep record:", insertError);
+            console.error("[useSyncPersonnelToWorkers] Error creating rep record:", insertError);
           } else {
-            results.siteRepId = newSiteRepRecord.id;
+            results.siteRepId = newRepRecord.id;
           }
         }
 
@@ -98,26 +99,28 @@ export function useSyncPersonnelToWorkers() {
               mobile_number: siteRep.mobile_number || siteRep.phone,
               nationality: siteRep.nationality || null,
               photo_path: siteRep.photo_path,
+              ...(siteRep.photo_path ? {
+                photo_verified_at: new Date().toISOString(),
+                photo_verified_by: (await supabase.auth.getUser()).data.user?.id || null,
+              } : {
+                photo_verified_at: null,
+                photo_verified_by: null,
+              }),
               approval_status: "approved",
               approved_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
-            .eq("id", existingWorker.id);
+            .eq("id", existingWorker.id)
+            .throwOnError();
 
           if (updateError) {
             console.error("[useSyncPersonnelToWorkers] Error updating site rep worker:", updateError);
           } else {
             results.siteRepWorkerId = existingWorker.id;
-            // Link worker to site rep record
-            if (results.siteRepId) {
-              await supabase
-                .from("contractor_site_representatives")
-                .update({ worker_id: existingWorker.id })
-                .eq("id", results.siteRepId);
-            }
           }
         } else {
           // Create new worker
+          const currentUserId = (await supabase.auth.getUser()).data.user?.id || null;
           const { data: newWorker, error: insertError } = await supabase
             .from("contractor_workers")
             .insert({
@@ -128,24 +131,22 @@ export function useSyncPersonnelToWorkers() {
               mobile_number: siteRep.mobile_number || siteRep.phone || "N/A",
               nationality: siteRep.nationality || null,
               photo_path: siteRep.photo_path,
+              ...(siteRep.photo_path ? {
+                photo_verified_at: new Date().toISOString(),
+                photo_verified_by: currentUserId,
+              } : {}),
               worker_type: "site_representative",
               approval_status: "approved",
               approved_at: new Date().toISOString(),
             })
             .select("id")
-            .single();
+            .single()
+            .throwOnError();
 
           if (insertError) {
             console.error("[useSyncPersonnelToWorkers] Error creating site rep worker:", insertError);
           } else {
             results.siteRepWorkerId = newWorker.id;
-            // Link worker to site rep record
-            if (results.siteRepId) {
-              await supabase
-                .from("contractor_site_representatives")
-                .update({ worker_id: newWorker.id })
-                .eq("id", results.siteRepId);
-            }
           }
         }
       }
@@ -174,13 +175,21 @@ export function useSyncPersonnelToWorkers() {
               mobile_number: officer.mobile_number || officer.phone,
               nationality: officer.nationality || null,
               photo_path: officer.photo_path,
+              ...(officer.photo_path ? {
+                photo_verified_at: new Date().toISOString(),
+                photo_verified_by: (await supabase.auth.getUser()).data.user?.id || null,
+              } : {
+                photo_verified_at: null,
+                photo_verified_by: null,
+              }),
               worker_type: "safety_officer",
               safety_officer_id: officer.id || null,
               approval_status: "approved",
               approved_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
-            .eq("id", existingWorker.id);
+            .eq("id", existingWorker.id)
+            .throwOnError();
 
           if (updateError) {
             console.error("[useSyncPersonnelToWorkers] Error updating safety officer worker:", updateError);
@@ -189,6 +198,7 @@ export function useSyncPersonnelToWorkers() {
           results.officerWorkerIds.push(workerId);
         } else {
           // Create new worker
+          const officerUserId = (await supabase.auth.getUser()).data.user?.id || null;
           const { data: newWorker, error: insertError } = await supabase
             .from("contractor_workers")
             .insert({
@@ -199,13 +209,18 @@ export function useSyncPersonnelToWorkers() {
               mobile_number: officer.mobile_number || officer.phone || "N/A",
               nationality: officer.nationality || null,
               photo_path: officer.photo_path,
+              ...(officer.photo_path ? {
+                photo_verified_at: new Date().toISOString(),
+                photo_verified_by: officerUserId,
+              } : {}),
               worker_type: "safety_officer",
               safety_officer_id: officer.id || null,
               approval_status: "approved",
               approved_at: new Date().toISOString(),
             })
             .select("id")
-            .single();
+            .single()
+            .throwOnError();
 
           if (insertError) {
             console.error("[useSyncPersonnelToWorkers] Error creating safety officer worker:", insertError);
@@ -236,7 +251,8 @@ export function useSyncPersonnelToWorkers() {
               is_primary: officer.is_primary || false,
               updated_at: new Date().toISOString(),
             })
-            .eq("id", existingOfficerRecord.id);
+            .eq("id", existingOfficerRecord.id)
+            .throwOnError();
         } else {
           // Create new safety officer record
           await supabase
@@ -248,7 +264,8 @@ export function useSyncPersonnelToWorkers() {
               phone: officer.mobile_number || officer.phone,
               email: officer.email || null,
               is_primary: officer.is_primary || false,
-            });
+            })
+            .throwOnError();
         }
       }
 
@@ -256,7 +273,7 @@ export function useSyncPersonnelToWorkers() {
     },
     onSuccess: (_, { companyId }) => {
       queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
-      queryClient.invalidateQueries({ queryKey: ["contractor-site-rep", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["contractor-rep", companyId] });
       queryClient.invalidateQueries({ queryKey: ["contractor-safety-officers", companyId] });
       queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
     },

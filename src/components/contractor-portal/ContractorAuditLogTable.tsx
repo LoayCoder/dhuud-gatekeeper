@@ -100,62 +100,94 @@ export function ContractorAuditLogTable({ logs, isLoading }: ContractorAuditLogT
   }
 
   return (
-    <ScrollArea className="h-[600px]">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="text-start">
-              {t("contractorPortal.activityLog.columns.date", "Date")}
-            </TableHead>
-            <TableHead className="text-start">
-              {t("contractorPortal.activityLog.columns.action", "Action")}
-            </TableHead>
-            <TableHead className="text-start">
-              {t("contractorPortal.activityLog.columns.entity", "Entity")}
-            </TableHead>
-            <TableHead className="text-start">
-              {t("contractorPortal.activityLog.columns.actor", "Performed By")}
-            </TableHead>
-            <TableHead className="text-start">
-              {t("contractorPortal.activityLog.columns.details", "Details")}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {logs.map((log) => (
-            <TableRow key={log.id}>
-              <TableCell className="whitespace-nowrap">
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">
-                    {format(new Date(log.created_at), "PP", { locale: dateLocale })}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(log.created_at), {
-                      addSuffix: true,
-                      locale: dateLocale,
-                    })}
-                  </span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge className={actionColors[log.action] || "bg-muted text-muted-foreground"}>
-                  <span className="me-1">{actionIcons[log.action] || "📝"}</span>
-                  {getActionLabel(log.action)}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <span className="text-sm">{getEntityLabel(log.entity_type)}</span>
-              </TableCell>
-              <TableCell>
-                <span className="text-sm">{log.actor_name || t("common.system", "System")}</span>
-              </TableCell>
-              <TableCell className="max-w-[200px] truncate">
-                <span className="text-sm text-muted-foreground">{formatDetails(log)}</span>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </ScrollArea>
+    <>
+      {/* Desktop Table */}
+      <div className="hidden md:block">
+        <ScrollArea className="h-[600px]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-start">
+                  {t("contractorPortal.activityLog.columns.date", "Date")}
+                </TableHead>
+                <TableHead className="text-start">
+                  {t("contractorPortal.activityLog.columns.action", "Action")}
+                </TableHead>
+                <TableHead className="text-start">
+                  {t("contractorPortal.activityLog.columns.entity", "Entity")}
+                </TableHead>
+                <TableHead className="text-start">
+                  {t("contractorPortal.activityLog.columns.actor", "Performed By")}
+                </TableHead>
+                <TableHead className="text-start">
+                  {t("contractorPortal.activityLog.columns.details", "Details")}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {logs.map((log) => (
+                <TableRow key={log.id}>
+                  <TableCell className="whitespace-nowrap">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
+                        {format(new Date(log.created_at), "PP", { locale: dateLocale })}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(log.created_at), {
+                          addSuffix: true,
+                          locale: dateLocale,
+                        })}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={actionColors[log.action] || "bg-muted text-muted-foreground"}>
+                      <span className="me-1">{actionIcons[log.action] || "📝"}</span>
+                      {getActionLabel(log.action)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">{getEntityLabel(log.entity_type)}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">{log.actor_name || t("common.system", "System")}</span>
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate">
+                    <span className="text-sm text-muted-foreground">{formatDetails(log)}</span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      </div>
+
+      {/* Mobile Card List */}
+      <div className="md:hidden space-y-3 max-h-[600px] overflow-y-auto">
+        {logs.map((log) => (
+          <div key={log.id} className="border rounded-lg p-3 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <Badge className={`text-xs ${actionColors[log.action] || "bg-muted text-muted-foreground"}`}>
+                <span className="me-1">{actionIcons[log.action] || "📝"}</span>
+                {getActionLabel(log.action)}
+              </Badge>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {formatDistanceToNow(new Date(log.created_at), {
+                  addSuffix: true,
+                  locale: dateLocale,
+                })}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">{getEntityLabel(log.entity_type)}</span>
+              <span>{log.actor_name || t("common.system", "System")}</span>
+            </div>
+            {formatDetails(log) !== "-" && (
+              <p className="text-xs text-muted-foreground truncate">{formatDetails(log)}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
   );
 }

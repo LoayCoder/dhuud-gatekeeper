@@ -18,7 +18,12 @@ export async function getPTWProjects(tenantId: string, filters: PTWProjectFilter
       site:sites(name, branch_id),
       contractor_company:contractor_companies(company_name),
       project_manager:profiles!ptw_projects_project_manager_id_fkey(full_name),
-      linked_contractor_project:contractor_projects(project_code, project_name)
+      linked_contractor_project:contractor_projects(
+        project_code, project_name,
+        company:contractor_companies(company_name),
+        cp_site:sites(name),
+        cp_manager:profiles!contractor_projects_project_manager_id_fkey(full_name)
+      )
     `)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -72,13 +77,31 @@ export async function createPTWProject(data: {
     start_date?: string;
     end_date?: string;
 }, tenantId: string, userId: string) {
+    let resolvedCompanyId = data.contractor_company_id;
+    let resolvedSiteId = data.site_id;
+    let resolvedPMId = data.project_manager_id;
+
+    // Server-side resolution from linked contractor project
+    if (data.linked_contractor_project_id && !data.is_internal_work) {
+        const { data: cp } = await supabase
+            .from('contractor_projects')
+            .select('company_id, site_id, project_manager_id')
+            .eq('id', data.linked_contractor_project_id)
+            .single();
+        if (cp) {
+            resolvedCompanyId = resolvedCompanyId || cp.company_id;
+            resolvedSiteId = resolvedSiteId || cp.site_id;
+            resolvedPMId = resolvedPMId || cp.project_manager_id;
+        }
+    }
+
     const insertData = {
         name: data.name!,
         name_ar: data.name_ar,
         description: data.description,
-        site_id: data.site_id,
-        contractor_company_id: data.contractor_company_id,
-        project_manager_id: data.project_manager_id,
+        site_id: resolvedSiteId,
+        contractor_company_id: resolvedCompanyId,
+        project_manager_id: resolvedPMId,
         linked_contractor_project_id: data.linked_contractor_project_id,
         is_internal_work: data.is_internal_work ?? false,
         start_date: data.start_date!,
@@ -157,14 +180,19 @@ export async function getMobilizationProject(projectId: string, tenantId: string
 export async function getProjectContextWorkers(projectId: string, tenantId: string) {
     const { data: project, error: projectError } = await supabase
         .from("ptw_projects")
-        .select("contractor_company_id, linked_contractor_project_id")
+        .select("contractor_company_id, linked_contractor_project_id, is_internal_work")
         .eq("id", projectId)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
         .single();
 
-    if (projectError || !project?.contractor_company_id) {
+    if (projectError || !project) {
         return { project: null, workers: [], assignments: null };
+    }
+
+    // Internal projects have no contractor workers
+    if (project.is_internal_work || !project.contractor_company_id) {
+        return { project, workers: [], assignments: null };
     }
 
     const { data: workers, error: workersError } = await supabase

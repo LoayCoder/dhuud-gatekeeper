@@ -39,10 +39,10 @@ export function useCreateContractorCompany() {
                     assigned_department_id: data.assigned_department_id as string | undefined,
                     assigned_section_id: data.assigned_section_id as string | undefined,
                 })
-                .select()
-                .single();
+            .select()
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return result;
         },
         onSuccess: () => {
@@ -84,9 +84,9 @@ export function useUpdateContractorCompany() {
                 })
                 .eq("id", id)
                 .select()
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return result;
         },
         onSuccess: () => {
@@ -115,9 +115,9 @@ export function useSuspendContractorCompany() {
                 })
                 .eq("id", id)
                 .select()
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return data;
         },
         onSuccess: () => {
@@ -145,9 +145,9 @@ export function useActivateContractorCompany() {
                 })
                 .eq("id", id)
                 .select()
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return data;
         },
         onSuccess: () => {
@@ -178,9 +178,9 @@ export function useChangeContractorStatus() {
                 .update(updateData)
                 .eq("id", id)
                 .select()
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return data;
         },
         onSuccess: () => {
@@ -207,9 +207,8 @@ export function useCheckExpiredContracts() {
                 .lt("contract_end_date", today)
                 .eq("status", "active")
                 .is("deleted_at", null)
-                .select("id");
-
-            if (error) throw error;
+                .select("id")
+                .throwOnError();
             return data;
         },
         onSuccess: (data) => {
@@ -290,9 +289,9 @@ export function useApproveCompany() {
                 })
                 .eq("id", companyId)
                 .select("id, company_name, tenant_id")
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return data;
         },
         onSuccess: async (data) => {
@@ -362,9 +361,9 @@ export function useRejectCompany() {
                 })
                 .eq("id", companyId)
                 .select("id, company_name, tenant_id")
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return { ...data, reason, createdBy: companyData?.created_by };
         },
         onSuccess: async (data) => {

@@ -10,10 +10,11 @@ import {
   Route,
   CheckSquare,
   ClipboardCheck,
+  Building2,
 } from 'lucide-react';
 
 // Role categories that determine which cards to show
-export type RoleCardCategory = 'base' | 'security' | 'hsse';
+export type RoleCardCategory = 'base' | 'security' | 'hsse' | 'contractor';
 
 export type CardColorScheme = 'danger' | 'warning' | 'info' | 'success' | 'default' | 'primary';
 
@@ -127,5 +128,16 @@ export const ALL_HOME_CARDS: HomeActionCard[] = [
     colorScheme: 'success',
     categories: ['hsse'],
     requiredModule: 'audits',
+  },
+  
+  // Contractor Portal cards
+  {
+    id: 'contractor-portal',
+    labelKey: 'home.cards.contractorPortal',
+    descriptionKey: 'home.cards.contractorPortalDesc',
+    icon: Building2,
+    path: '/contractor-portal',
+    colorScheme: 'primary',
+    categories: ['contractor'],
   },
 ];

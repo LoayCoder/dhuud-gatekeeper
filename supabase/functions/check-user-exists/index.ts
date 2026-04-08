@@ -65,33 +65,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    // --- Authentication: Require valid JWT ---
+    // --- Authentication: Optional JWT (invitation flow is anonymous) ---
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-    // Verify the caller's JWT
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
-    const { data: { user: callerUser }, error: claimsError } = await supabaseAuth.auth.getUser();
-    if (claimsError || !callerUser?.id) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // If a JWT is present, verify it (but don't block if absent)
+    if (authHeader?.startsWith('Bearer ')) {
+      const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { data: { user: callerUser }, error: claimsError } = await supabaseAuth.auth.getUser();
+      if (claimsError) {
+        console.warn('JWT provided but invalid, proceeding without auth:', claimsError.message);
+      }
     }
-    // --- End authentication ---
+    // --- End authentication (anonymous access allowed for /invite flow) ---
 
     const body: CheckUserRequest = await req.json();
     const { email, tenant_id } = body;
@@ -145,16 +136,32 @@ Deno.serve(async (req) => {
       existsInAuth = true;
       authUserId = profileByEmail.user_id;
     } else {
-      // Fallback: check auth via admin API with pagination filter
+      // Fallback: check auth.users directly via GoTrue admin API with email filter
       try {
-        // listUsers with page/perPage and filter by email
-        const { data: listData } = await supabaseAdmin.auth.admin.listUsers({
-          page: 1,
-          perPage: 1,
-        });
-        // The JS client doesn't support email filter directly on listUsers,
-        // so we use a targeted profile query above as primary method.
-        // As a secondary check, look up by email in profiles across all tenants
+        const goTrueResponse = await fetch(
+          `${supabaseUrl}/auth/v1/admin/users?page=1&per_page=1&filter=${encodeURIComponent(email.toLowerCase())}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${serviceRoleKey}`,
+              'apikey': serviceRoleKey,
+            },
+          }
+        );
+        if (goTrueResponse.ok) {
+          const userData = await goTrueResponse.json();
+          const matchedUser = userData.users?.find(
+            (u: any) => u.email?.toLowerCase() === email.toLowerCase()
+          );
+          if (matchedUser) {
+            existsInAuth = true;
+            authUserId = matchedUser.id;
+            console.log('User found in auth via GoTrue admin API');
+          }
+        } else {
+          console.warn('GoTrue admin API returned:', goTrueResponse.status);
+        }
+
+        // Secondary fallback: check profiles across all tenants
         if (!existsInAuth) {
           const { data: anyProfile } = await supabaseAdmin
             .from('profiles')

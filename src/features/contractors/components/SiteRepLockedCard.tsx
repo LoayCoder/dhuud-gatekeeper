@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { WorkerPhotoUpload } from "./WorkerPhotoUpload";
 import { NATIONALITIES } from "@/lib/nationalities";
 import { Lock, Pencil, Phone, Mail, User, Check, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { SiteRepFormData } from "./SiteRepWorkerForm";
 
 interface SiteRepLockedCardProps {
@@ -21,6 +22,20 @@ export function SiteRepLockedCard({ data, onChange, isNew = false }: SiteRepLock
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(isNew);
   const [editData, setEditData] = useState<SiteRepFormData>(data);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (data.photo_path && !data.photo_path.startsWith("http") && !data.photo_path.startsWith("blob:")) {
+      supabase.storage
+        .from("worker-photos")
+        .createSignedUrl(data.photo_path, 3600)
+        .then(({ data: urlData }) => {
+          if (urlData?.signedUrl) setPhotoUrl(urlData.signedUrl);
+        });
+    } else {
+      setPhotoUrl(data.photo_path);
+    }
+  }, [data.photo_path]);
 
   const handleEdit = () => {
     setEditData(data);
@@ -58,7 +73,7 @@ export function SiteRepLockedCard({ data, onChange, isNew = false }: SiteRepLock
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <User className="h-4 w-4" />
-              {t("contractors.companies.contractorSiteRep", "Contractor's Site Representative")}
+               {t("contractors.companies.contractorRep", "Contractor's Representative")}
             </CardTitle>
             <div className="flex gap-1">
               <Button type="button" variant="ghost" size="sm" onClick={handleCancel}>
@@ -147,9 +162,9 @@ export function SiteRepLockedCard({ data, onChange, isNew = false }: SiteRepLock
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            {t("contractors.companies.siteRepRequired", "Each company must have exactly ONE site representative. This field is required.")}
-          </p>
+           <p className="text-xs text-muted-foreground">
+             {t("contractors.companies.repRequired", "Each company must have exactly ONE representative. This person will receive the portal invitation.")}
+           </p>
         </CardContent>
       </Card>
     );
@@ -162,7 +177,7 @@ export function SiteRepLockedCard({ data, onChange, isNew = false }: SiteRepLock
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Lock className="h-4 w-4 text-muted-foreground" />
-            {t("contractors.companies.contractorSiteRep", "Contractor's Site Representative")}
+            {t("contractors.companies.contractorRep", "Contractor's Representative")}
           </CardTitle>
           <div className="flex items-center gap-2">
             {hasData && (
@@ -180,9 +195,9 @@ export function SiteRepLockedCard({ data, onChange, isNew = false }: SiteRepLock
       <CardContent>
         {hasData ? (
           <div className="flex items-start gap-4">
-            {data.photo_path ? (
+            {photoUrl ? (
               <img
-                src={data.photo_path}
+                src={photoUrl}
                 alt={data.full_name}
                 className="w-16 h-16 rounded-full object-cover border-2 border-muted"
               />

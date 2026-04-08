@@ -8,9 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMyGatePasses } from "@/features/contractors/hooks/use-my-gate-passes";
-import { useContractorProjects } from "@/features/contractors/hooks/use-contractor-projects";
 import { GatePassListTable } from "./GatePassListTable";
-import { GatePassFormDialog } from "./GatePassFormDialog";
+import { GatePassCreateDialog } from "./GatePassCreateDialog";
 
 interface MyGatePassesTabProps {
   onRequestNew?: () => void;
@@ -30,7 +29,6 @@ export function MyGatePassesTab({ onRequestNew }: MyGatePassesTabProps) {
   const statusCounts = {
     pending_dept_approval: myPasses.filter((p) => p.status === "pending_dept_approval").length,
     pending_contractor_approval: myPasses.filter((p) => p.status === "pending_contractor_approval").length,
-    pending_club_mgmt_ack: myPasses.filter((p) => p.status === "pending_club_mgmt_ack").length,
     pending_security_approval: myPasses.filter((p) => p.status === "pending_security_approval").length,
     approved: myPasses.filter((p) => p.status === "approved").length,
     rejected: myPasses.filter((p) => p.status === "rejected").length,
@@ -76,10 +74,6 @@ export function MyGatePassesTab({ onRequestNew }: MyGatePassesTabProps) {
             <span className="font-bold">{statusCounts.pending_contractor_approval}</span>
           </Badge>
           <Badge variant="outline" className="gap-1">
-            {t("contractors.gatePasses.status.pendingClubMgmt", "Pending Golf Club")}
-            <span className="font-bold">{statusCounts.pending_club_mgmt_ack}</span>
-          </Badge>
-          <Badge variant="outline" className="gap-1">
             {t("contractors.gatePasses.status.pendingSecurity", "Pending Security")}
             <span className="font-bold">{statusCounts.pending_security_approval}</span>
           </Badge>
@@ -116,7 +110,7 @@ export function MyGatePassesTab({ onRequestNew }: MyGatePassesTabProps) {
               <SelectItem value="all">{t("common.allStatuses", "All Statuses")}</SelectItem>
               <SelectItem value="pending_dept_approval">{t("contractors.gatePasses.status.pendingDept", "Pending Dept")}</SelectItem>
               <SelectItem value="pending_contractor_approval">{t("contractors.gatePasses.status.pendingContractor", "Pending Contractor")}</SelectItem>
-              <SelectItem value="pending_club_mgmt_ack">{t("contractors.gatePasses.status.pendingClubMgmt", "Pending Golf Club")}</SelectItem>
+              
               <SelectItem value="pending_security_approval">{t("contractors.gatePasses.status.pendingSecurity", "Pending Security")}</SelectItem>
               <SelectItem value="approved">{t("contractors.gatePasses.status.approved", "Approved")}</SelectItem>
               <SelectItem value="rejected">{t("contractors.gatePasses.status.rejected", "Rejected")}</SelectItem>
@@ -146,29 +140,10 @@ export function MyGatePassesTab({ onRequestNew }: MyGatePassesTabProps) {
         )}
       </CardContent>
 
-      {/* Create Dialog - projects passed from hook */}
-      <GatePassFormDialogWrapper
+      <GatePassCreateDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
       />
     </Card>
-  );
-}
-
-// Wrapper component to fetch projects
-function GatePassFormDialogWrapper({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const { data: projects = [] } = useContractorProjects({ status: "active" });
-  return (
-    <GatePassFormDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      projects={projects}
-    />
   );
 }

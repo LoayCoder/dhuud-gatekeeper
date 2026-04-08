@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -33,6 +33,25 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   const { data: safetyOfficersFromTable = [] } = useContractorSafetyOfficers(company?.id ?? null);
   const { data: siteRepFromTable } = useContractorSiteRep(company?.id ?? null);
   const [sendingInvitation, setSendingInvitation] = useState(false);
+  const [siteRepPhotoUrl, setSiteRepPhotoUrl] = useState<string | undefined>(undefined);
+
+  // Generate signed URL for site rep photo
+  useEffect(() => {
+    if (!siteRepFromTable?.photo_path) {
+      setSiteRepPhotoUrl(undefined);
+      return;
+    }
+    if (siteRepFromTable.photo_path.startsWith("http")) {
+      setSiteRepPhotoUrl(siteRepFromTable.photo_path);
+      return;
+    }
+    supabase.storage
+      .from("worker-photos")
+      .createSignedUrl(siteRepFromTable.photo_path, 3600)
+      .then(({ data }) => {
+        if (data?.signedUrl) setSiteRepPhotoUrl(data.signedUrl);
+      });
+  }, [siteRepFromTable?.photo_path]);
 
   // Fetch contractor representatives for user linking
   const { data: representatives = [] } = useQuery({
@@ -100,6 +119,8 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
     return {
       id: siteRep.id || 'site_rep',
       fullName: siteRep.full_name || '',
+      fullNameAr: siteRep.full_name_ar || undefined,
+      photo: siteRepPhotoUrl || undefined,
       company: company.company_name,
       companyAr: company.company_name_ar || undefined,
       role: t("contractors.companies.siteRepresentative", "Site Representative"),
@@ -123,19 +144,20 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
   const handleSendPortalInvitation = async () => {
     if (!company || company.status !== 'active') return;
     
-    // Find the primary representative (site rep)
+    // Only use contractor_representatives (company reps) for portal invitations
     const primaryRep = representatives.find(r => r.is_primary);
-    if (!primaryRep) {
-      toast.error(t("contractors.invitation.noSiteRep", "No site representative found to invite"));
+    if (!primaryRep || !primaryRep.email) {
+      toast.error(t("contractors.invitation.noCompanyRep", "No company representative found. Please add a company representative with an email first."));
       return;
     }
+    const inviteTarget = { id: primaryRep.id, email: primaryRep.email, full_name: primaryRep.full_name };
     
     setSendingInvitation(true);
     try {
       const { data, error } = await supabase.functions.invoke('send-contractor-invitation', {
         body: {
           company_id: company.id,
-          representative_id: primaryRep.id,
+          representative_id: inviteTarget.id,
           tenant_id: company.tenant_id,
         },
       });
@@ -143,7 +165,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
       if (error) throw error;
       
       toast.success(
-        t("contractors.invitation.sent", "Portal invitation sent to {{email}}", { email: primaryRep.email })
+        t("contractors.invitation.sent", "Portal invitation sent to {{email}}", { email: inviteTarget.email })
       );
       
       queryClient.invalidateQueries({ queryKey: ["contractor-representatives-for-linking"] });
@@ -305,7 +327,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  {t("contractors.companies.contractorSiteRep", "Contractor's Site Representative")}
+                  {t("contractors.companies.contractorRep", "Contractor's Representative")}
                   {siteRep && (
                     <Badge variant="default" className="ms-auto text-xs">
                       {t("common.active", "Active")}
@@ -321,7 +343,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                         <User className="h-4 w-4 text-muted-foreground" />
                         {siteRep.full_name}
                       </div>
-                      {(siteRep.phone || siteRep.mobile_number) && getSiteRepPersonData() && (
+                      {siteRep.mobile_number && getSiteRepPersonData() && (
                         <IDCardActionButton
                           cardType="contractor_rep"
                           entityId={siteRep.id || company.id}
@@ -329,21 +351,20 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                           tenantId={company.tenant_id}
                           tenantData={{
                             id: company.tenant_id,
-                            name: company.company_name,
-                            nameAr: company.company_name_ar || undefined,
+                            name: '',
                           }}
-                          recipientPhone={siteRep.mobile_number || siteRep.phone || undefined}
+                          recipientPhone={siteRep.mobile_number || undefined}
                         />
                       )}
                     </div>
-                    {(siteRep.mobile_number || siteRep.phone) && (
+                    {siteRep.mobile_number && (
                       <button
                         type="button"
-                        onClick={() => window.location.href = `tel:${siteRep.mobile_number || siteRep.phone}`}
+                        onClick={() => window.location.href = `tel:${siteRep.mobile_number}`}
                         className="flex items-center gap-2 ps-6 text-primary hover:underline"
                       >
                         <Phone className="h-4 w-4" />
-                        {siteRep.mobile_number || siteRep.phone}
+                        {siteRep.mobile_number}
                       </button>
                     )}
                     {siteRep.email && (
@@ -411,8 +432,7 @@ export function CompanyDetailDialog({ company, open, onOpenChange, onEdit }: Com
                             tenantId={company.tenant_id}
                             tenantData={{
                               id: company.tenant_id,
-                              name: company.company_name,
-                              nameAr: company.company_name_ar || undefined,
+                              name: '',
                             }}
                             recipientPhone={officer.phone}
                           />

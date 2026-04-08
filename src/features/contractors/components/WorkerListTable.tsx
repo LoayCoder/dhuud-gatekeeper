@@ -4,9 +4,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ShieldAlert, AlertTriangle, Building, ShieldCheck, HardHat, Clock } from "lucide-react";
+import { ShieldAlert, AlertTriangle, Building, ShieldCheck, HardHat, Clock, Camera, ChevronDown, ChevronUp, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 import { WorkerDetailDialog } from "./WorkerDetailDialog";
 import { WorkerActionsDropdown, WorkerActionsPermissions } from "./WorkerActionsDropdown";
@@ -27,6 +29,7 @@ interface WorkerListTableProps {
   onStatusChange: (worker: ContractorWorker, status: string) => void;
   onAddToBlacklist: (worker: ContractorWorker) => void;
   onDelete: (worker: ContractorWorker) => void;
+  onApproveEdits?: (worker: ContractorWorker) => void;
   selectedIds?: string[];
   onSelectionChange?: (ids: string[]) => void;
   showSelection?: boolean;
@@ -42,6 +45,7 @@ export function WorkerListTable({
   onStatusChange,
   onAddToBlacklist,
   onDelete,
+  onApproveEdits,
   selectedIds = [],
   onSelectionChange,
   showSelection = false,
@@ -53,6 +57,7 @@ export function WorkerListTable({
   const isRTL = i18n.dir() === 'rtl';
   const [selectedWorker, setSelectedWorker] = useState<ContractorWorker | null>(null);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
   // Fetch signed URLs for photos
   useEffect(() => {
@@ -89,6 +94,15 @@ export function WorkerListTable({
     } else {
       onSelectionChange(selectedIds.filter(id => id !== workerId));
     }
+  };
+
+  const toggleCard = (workerId: string) => {
+    setExpandedCards(prev => {
+      const next = new Set(prev);
+      if (next.has(workerId)) next.delete(workerId);
+      else next.add(workerId);
+      return next;
+    });
   };
 
   if (isLoading) {
@@ -164,8 +178,131 @@ export function WorkerListTable({
   const allSelected = workers.length > 0 && selectedIds.length === workers.length;
   const someSelected = selectedIds.length > 0 && selectedIds.length < workers.length;
 
-  return (
-    <>
+  // Shared helper to check warnings
+  const getWorkerWarnings = (worker: ContractorWorker) => {
+    const isBlacklisted = blacklistedIds.includes(worker.national_id);
+    const inductionStatus = getInductionExpiryStatus(worker.latest_induction || null);
+    const daysRemaining = getDaysUntilExpiry(worker.latest_induction || null);
+    const needsPhoto = !isBlacklisted && (worker.approval_status === 'approved' || (worker as any).security_approval_status === 'approved') && !worker.photo_path;
+    return { isBlacklisted, inductionStatus, daysRemaining, needsPhoto };
+  };
+
+  // ─── Mobile Card Layout ───
+  const renderMobileCards = () => (
+    <div className="space-y-3 md:hidden">
+      {showSelection && (
+        <div className="flex items-center gap-2 px-1 pb-1">
+          <Checkbox
+            checked={allSelected}
+            ref={(el) => {
+              if (el) (el as HTMLButtonElement & { indeterminate: boolean }).indeterminate = someSelected;
+            }}
+            onCheckedChange={handleSelectAll}
+            aria-label={t("contractors.workers.selectAll", "Select all")}
+          />
+          <span className="text-sm text-muted-foreground">{t("contractors.workers.selectAll", "Select all")}</span>
+        </div>
+      )}
+      {workers.map((worker, index) => {
+        const { isBlacklisted, inductionStatus, daysRemaining, needsPhoto } = getWorkerWarnings(worker);
+        const isExpanded = expandedCards.has(worker.id);
+
+        return (
+          <Collapsible key={worker.id} open={isExpanded} onOpenChange={() => toggleCard(worker.id)}>
+            <div
+              className={cn(
+                "border rounded-lg bg-card overflow-hidden",
+                isBlacklisted && "border-destructive/40 bg-destructive/5",
+                inductionStatus === 'expiring_soon' && !isBlacklisted && "border-amber-400/40",
+                inductionStatus === 'expired' && !isBlacklisted && "border-destructive/30"
+              )}
+            >
+              {/* Card Header - always visible */}
+              <div className="flex items-center gap-3 p-3">
+                {showSelection && (
+                  <Checkbox
+                    checked={selectedIds.includes(worker.id)}
+                    onCheckedChange={(checked) => handleSelectOne(worker.id, checked === true)}
+                    aria-label={t("contractors.workers.selectWorker", "Select {{name}}", { name: worker.full_name })}
+                  />
+                )}
+                <Avatar className="h-10 w-10 shrink-0">
+                  <AvatarImage src={photoUrls[worker.id]} alt={worker.full_name} />
+                  <AvatarFallback className="text-xs">{getInitials(worker.full_name)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-medium text-sm truncate">{worker.full_name}</span>
+                    {isBlacklisted && <ShieldAlert className="h-3.5 w-3.5 text-destructive shrink-0" />}
+                    {needsPhoto && <Camera className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                    {getStatusBadge(worker.approval_status, isBlacklisted)}
+                    {worker.edit_pending_approval && worker.approval_status === 'approved' && (
+                      <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400 gap-1 text-xs">
+                        <Clock className="h-3 w-3" />
+                      </Badge>
+                    )}
+                    {getWorkerTypeBadge(worker.worker_type)}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <WorkerActionsDropdown
+                    worker={worker}
+                    onView={() => setSelectedWorker(worker)}
+                    onEdit={() => onEdit(worker)}
+                    onStatusChange={(status) => onStatusChange(worker, status)}
+                    onAddToBlacklist={() => onAddToBlacklist(worker)}
+                    onDelete={() => onDelete(worker)}
+                    onApproveEdits={onApproveEdits ? () => onApproveEdits(worker) : undefined}
+                    permissions={permissions}
+                  />
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+              </div>
+
+              {/* Expanded details */}
+              <CollapsibleContent>
+                <div className="border-t px-3 py-2.5 space-y-2 bg-muted/30">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground text-xs">{t("contractors.workers.company", "Company")}</span>
+                      <p className="font-medium truncate">{worker.company?.company_name || "-"}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground text-xs">{t("contractors.workers.nationalId", "National ID")}</span>
+                      <p className="font-mono">{worker.national_id}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground text-xs">{t("contractors.workers.nationality", "Nationality")}</span>
+                      <p>{getNationalityLabel(worker.nationality, isRTL ? 'ar' : 'en') || "-"}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground text-xs">{t("contractors.workers.induction", "Induction")}</span>
+                      <div className="mt-0.5">{getInductionBadge(inductionStatus, daysRemaining)}</div>
+                    </div>
+                  </div>
+                  {isBlacklisted && blacklistReasons[worker.national_id] && (
+                    <div className="text-xs text-destructive bg-destructive/10 rounded px-2 py-1">
+                      {t("contractors.workers.blacklistReason", "Blacklist reason")}: {blacklistReasons[worker.national_id]}
+                    </div>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+        );
+      })}
+    </div>
+  );
+
+  // ─── Desktop Table Layout ───
+  const renderDesktopTable = () => (
+    <div className="hidden md:block">
       <Table>
         <TableHeader>
           <TableRow>
@@ -195,9 +332,7 @@ export function WorkerListTable({
         </TableHeader>
         <TableBody>
           {workers.map((worker, index) => {
-            const isBlacklisted = blacklistedIds.includes(worker.national_id);
-            const inductionStatus = getInductionExpiryStatus(worker.latest_induction || null);
-            const daysRemaining = getDaysUntilExpiry(worker.latest_induction || null);
+            const { isBlacklisted, inductionStatus, daysRemaining, needsPhoto } = getWorkerWarnings(worker);
             const inductionExpiringSoon = inductionStatus === 'expiring_soon';
             const inductionExpired = inductionStatus === 'expired';
             
@@ -239,6 +374,17 @@ export function WorkerListTable({
                           {blacklistReasons[worker.national_id] && (
                             <p className="text-xs">{blacklistReasons[worker.national_id]}</p>
                           )}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                    {needsPhoto && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Camera className="h-4 w-4 text-amber-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="font-medium">{t("contractors.workers.photoMissing", "Photo Required")}</p>
+                          <p className="text-xs">{t("contractors.workers.photoMissingDesc", "Worker needs a photo before induction")}</p>
                         </TooltipContent>
                       </Tooltip>
                     )}
@@ -301,6 +447,7 @@ export function WorkerListTable({
                     onStatusChange={(status) => onStatusChange(worker, status)}
                     onAddToBlacklist={() => onAddToBlacklist(worker)}
                     onDelete={() => onDelete(worker)}
+                    onApproveEdits={onApproveEdits ? () => onApproveEdits(worker) : undefined}
                     permissions={permissions}
                   />
                 </TableCell>
@@ -309,6 +456,13 @@ export function WorkerListTable({
           })}
         </TableBody>
       </Table>
+    </div>
+  );
+
+  return (
+    <>
+      {renderMobileCards()}
+      {renderDesktopTable()}
 
       <WorkerDetailDialog
         open={!!selectedWorker}

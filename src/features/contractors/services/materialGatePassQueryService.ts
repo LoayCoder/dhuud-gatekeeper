@@ -54,10 +54,11 @@ export const getPendingGatePassApprovals = async (tenantId: string, userId: stri
     if (roleCodes.includes("security_supervisor") || roleCodes.includes("security_manager")) allowedStatuses.push("pending_security_approval");
     if (roleCodes.includes("contractor_consultant")) allowedStatuses.push("pending_contractor_approval");
     if (roleCodes.includes("department_representative") || roleCodes.includes("department_manager")) {
-        allowedStatuses.push("pending_dept_approval", "pending_club_mgmt_ack", "pending_dept_ack");
+        allowedStatuses.push("pending_dept_approval");
     }
+    if (roleCodes.includes("gate_pass_acknowledger")) allowedStatuses.push("pending_acknowledgment");
     if (roleCodes.includes("admin")) {
-        allowedStatuses.push("pending_dept_approval", "pending_contractor_approval", "pending_club_mgmt_ack", "pending_security_approval", "pending_dept_ack", "pending_pm_approval", "pending_safety_approval");
+        allowedStatuses.push("pending_dept_approval", "pending_contractor_approval", "pending_acknowledgment", "pending_security_approval");
     }
 
     if (allowedStatuses.length === 0) return [];

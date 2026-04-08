@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendEmailViaSES, type EmailModule } from "../_shared/email-sender.ts";
+import { sendEmailToOne, type EmailModule } from "../_shared/email-sender.ts";
 
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
 const RETRY_DELAYS = [5 * 60, 30 * 60, 2 * 60 * 60];
@@ -34,7 +34,7 @@ serve(async (req: Request) => {
       try {
         // Use the module from payload or default to system
         const module: EmailModule = emailLog.payload?.module || 'system';
-        const result = await sendEmailViaSES(emailLog.recipient_email, emailLog.subject, emailLog.payload.htmlContent, module);
+        const result = await sendEmailToOne(emailLog.recipient_email, emailLog.subject, emailLog.payload.htmlContent, module);
         if (result.success) {
           await supabase.from('email_delivery_logs').update({ status: 'sent', provider_message_id: result.messageId, delivered_at: new Date().toISOString(), next_retry_at: null }).eq('id', emailLog.id);
           successCount++;

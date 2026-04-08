@@ -42,6 +42,8 @@ export interface GatePassDetailData {
   material_description: string;
   quantity: string | null;
   vehicle_plate: string | null;
+  vehicle_plate_letters?: string | null;
+  vehicle_plate_numbers?: string | null;
   driver_name: string | null;
   driver_mobile: string | null;
   pass_date: string;
@@ -59,7 +61,7 @@ export interface GatePassDetailData {
   pm_approved_by: string | null;
   pm_approved_at: string | null;
   pm_notes: string | null;
-  // Club Management acknowledgment (new step)
+  // Gate Pass Acknowledgment (step 2 in unified workflow)
   club_mgmt_ack_by: string | null;
   club_mgmt_ack_at: string | null;
   club_mgmt_ack_notes: string | null;

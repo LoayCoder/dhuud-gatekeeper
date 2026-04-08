@@ -5,16 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import ContractorPortalLayout from "@/components/contractor-portal/ContractorPortalLayout";
 import { useContractorPortalData, useContractorGatePasses } from "@/hooks/contractor-management/index";
 import { ContractorPortalRoute } from "@/components/access-control";
+import { useContractorPortalHSSEStats } from "@/features/contractors/hooks/use-contractor-portal-hsse";
+import ContractorHSSESections from "@/components/contractor-portal/dashboard/ContractorHSSESections";
 
 function ContractorPortalDashboardContent() {
   const { t } = useTranslation();
   const { company, projects, workers, isLoading } = useContractorPortalData();
   const { data: gatePasses } = useContractorGatePasses(company?.id);
+  const hsse = useContractorPortalHSSEStats(company?.id);
 
   const activeProjects = projects?.filter(p => p.status === "active") || [];
   const approvedWorkers = workers?.filter(w => w.approval_status === "approved") || [];
   const pendingWorkers = workers?.filter(w => w.approval_status === "pending") || [];
-  const pendingGatePasses = gatePasses?.filter(gp => gp.status === "pending_pm_approval" || gp.status === "pending_safety_approval") || [];
+  const pendingGatePasses = gatePasses?.filter(gp => gp.status === "pending_acknowledgment" || gp.status === "pending_security_approval") || [];
 
   if (isLoading) {
     return (
@@ -30,7 +33,7 @@ function ContractorPortalDashboardContent() {
     <ContractorPortalLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-xl sm:text-2xl font-bold leading-tight break-words">
             {t("contractorPortal.dashboard.welcome", "Welcome")}, {company?.company_name}
           </h1>
           <p className="text-muted-foreground">
@@ -39,7 +42,7 @@ function ContractorPortalDashboardContent() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
@@ -135,12 +138,12 @@ function ContractorPortalDashboardContent() {
               ) : (
                 <div className="space-y-3">
                   {activeProjects.slice(0, 5).map((project) => (
-                    <div key={project.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{project.project_name}</p>
-                        <p className="text-sm text-muted-foreground">{project.project_code}</p>
+                    <div key={project.id} className="flex flex-col gap-3 p-3 border rounded-lg sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="font-medium break-words">{project.project_name}</p>
+                        <p className="text-sm text-muted-foreground break-words">{project.project_code}</p>
                       </div>
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="self-start">
                         {project.assigned_workers_count} {t("contractors.workers.title", "Workers")}
                       </Badge>
                     </div>
@@ -160,21 +163,21 @@ function ContractorPortalDashboardContent() {
             <CardContent>
               <div className="space-y-3">
                 {pendingWorkers.length > 0 && (
-                  <div className="flex items-center justify-between p-3 border border-warning/50 bg-warning/10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-warning" />
-                      <span>{t("contractorPortal.dashboard.workersAwaitingApproval", "Workers awaiting approval")}</span>
+                  <div className="flex flex-col gap-3 p-3 border border-warning/50 bg-warning/10 rounded-lg sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-2 min-w-0">
+                      <Users className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                      <span className="break-words text-sm">{t("contractorPortal.dashboard.workersAwaitingApproval", "Workers awaiting approval")}</span>
                     </div>
-                    <Badge variant="outline">{pendingWorkers.length}</Badge>
+                    <Badge variant="outline" className="self-start">{pendingWorkers.length}</Badge>
                   </div>
                 )}
                 {pendingGatePasses.length > 0 && (
-                  <div className="flex items-center justify-between p-3 border border-warning/50 bg-warning/10 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Truck className="h-4 w-4 text-warning" />
-                      <span>{t("contractorPortal.dashboard.gatePassesPending", "Gate passes pending")}</span>
+                  <div className="flex flex-col gap-3 p-3 border border-warning/50 bg-warning/10 rounded-lg sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-2 min-w-0">
+                      <Truck className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                      <span className="break-words text-sm">{t("contractorPortal.dashboard.gatePassesPending", "Gate passes pending")}</span>
                     </div>
-                    <Badge variant="outline">{pendingGatePasses.length}</Badge>
+                    <Badge variant="outline" className="self-start">{pendingGatePasses.length}</Badge>
                   </div>
                 )}
                 {pendingWorkers.length === 0 && pendingGatePasses.length === 0 && (
@@ -186,6 +189,16 @@ function ContractorPortalDashboardContent() {
             </CardContent>
           </Card>
         </div>
+
+        {/* HSSE Accountability Sections */}
+        <ContractorHSSESections
+          observations={hsse.observations}
+          incidents={hsse.incidents}
+          actions={hsse.actions}
+          violations={hsse.violations}
+          isLoading={hsse.isLoading}
+          companyId={company?.id || ""}
+        />
       </div>
     </ContractorPortalLayout>
   );

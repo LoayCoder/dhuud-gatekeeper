@@ -1,35 +1,47 @@
 
 
-# Fix Playwright Tests — Ready to Run
+# Utilize New ID Card System for Worker Access Pass + Add Settings Tab
 
-## Issues Found
-
-1. **`playwright.config.ts` has duplicate lines** (lines 33-36 repeat lines 29-32) — causes syntax error
-2. **`global-setup.ts` uses wrong email** — `luay.dhuud.com` (missing `@`) vs test file uses `luay@dhuud.com`
-3. **`global-setup.ts` uses wrong selectors** — `input[type="email"]` but login page uses `#email` (id-based)
-4. **`hsse-complete.spec.ts` uses wrong selectors** — `input[name="email"]` but login page has no `name` attribute, only `id="email"`
-5. **No `.auth` directory created** — global setup saves to `tests/.auth/` which may not exist
-6. **`global-teardown.ts` uses test import incorrectly** — imports `test as teardown` from `@playwright/test` but teardown files should export a function, not use test()
+## Problem
+1. The **Worker Access Pass** page (`/worker-access/:token`) uses an old hardcoded design (dark background, basic layout from the screenshot) instead of the new configurable ID card templates (`IDCardTemplate`)
+2. The **ID Card Settings** page exists at `/admin/id-card-settings` but the user wants it accessible under User Management as a Settings/Configuration tab
 
 ## Plan
 
-### Step 1: Fix `playwright.config.ts`
-Remove duplicate lines 33-36. The valid config ends at line 32.
+### Part 1: Update Worker Access Pass to Use New ID Card Template
 
-### Step 2: Fix `tests/global-setup.ts`
-- Fix email: `luay.dhuud.com` → `luay@dhuud.com`
-- Fix selectors: use `#email` and `#password` instead of `input[type="email"]` and `input[type="password"]`
-- Ensure `tests/.auth/` directory is created before saving state
+**File: `src/pages/WorkerAccessPass.tsx`**
 
-### Step 3: Fix `tests/global-teardown.ts`
-Convert to a simple export default function (standard Playwright global teardown pattern).
+Replace the old hardcoded badge design with the new `IDCardTemplate` component:
 
-### Step 4: Fix `tests/hsse-complete.spec.ts` login helper
-Change selectors from `input[name="email"]` / `input[name="password"]` to `#email` / `#password` to match actual login page.
+- Fetch the tenant's `tenant_id_card_settings` for `card_type = 'worker'` via the `get-worker-access-pass` edge function (add settings to the response)
+- Render `IDCardTemplate` (front side) instead of the manually coded dark card
+- Keep the Download and Share buttons working with `html2canvas` on the new template
+- Keep the status badges (Active/Expired/Revoked) above the card
+- Keep safety instructions and emergency contact sections below the card
 
-### Step 5: Create `tests/.auth/.gitkeep`
-Ensure the auth directory exists for storage state files.
+**File: `supabase/functions/get-worker-access-pass/index.ts`**
 
-## Summary
-5 files fixed, all selector mismatches resolved, config syntax error removed. After this, `npx playwright test` will be runnable.
+Add fetching of `tenant_id_card_settings` for `card_type = 'worker'` and include it in the response so the public page can render the correct template without authentication.
+
+### Part 2: Add ID Card Settings Tab to User Management
+
+**File: `src/pages/admin/UserManagement/UserManagement.tsx`**
+
+Add a new tab "ID Card Settings" (or a navigation link/button) that links to the existing `/admin/id-card-settings` page, or embed the settings form inline as a tab within User Management.
+
+Given the existing standalone page is well-built with all card types, the cleanest approach is to add a prominent link/button in User Management that navigates to `/admin/id-card-settings`.
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `supabase/functions/get-worker-access-pass/index.ts` | Add `tenant_id_card_settings` fetch for worker card type; include in response |
+| `src/pages/WorkerAccessPass.tsx` | Replace old hardcoded badge with `IDCardTemplate` component using settings from API |
+| `src/pages/admin/UserManagement/UserManagement.tsx` | Add "ID Card Settings" navigation button/link to `/admin/id-card-settings` |
+
+## What Changes for Users
+- Workers opening their access pass link see the **new professionally designed ID card** matching the tenant's configured template (colors, fields, logo, layout)
+- Admins can find ID Card Settings from the User Management page
+- All card types (Visitor, VIP, Worker, Employee, Contractor Rep) continue to be configurable from the settings page
 

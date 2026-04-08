@@ -23,6 +23,44 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
     if (error) throw error;
     const newStatus = data as string;
 
+    // Audit log: gate pass approved/rejected (with fallback direct insert)
+    const auditAction = action === 'approve' ? 'approved' : 'rejected';
+    const auditBody = {
+        entity_type: 'gate_pass',
+        entity_id: passId,
+        action: auditAction,
+        tenant_id: gatePass?.tenant_id,
+        new_value: { status: newStatus, notes },
+    };
+    supabase.functions.invoke('contractor-audit-log', { body: auditBody })
+        .then(res => {
+            if (res.error && gatePass?.tenant_id) {
+                supabase.from('contractor_module_audit_logs').insert({
+                    tenant_id: gatePass.tenant_id,
+                    entity_type: 'gate_pass',
+                    entity_id: passId,
+                    action: auditAction,
+                    actor_id: userId,
+                    actor_type: 'admin',
+                    new_value: auditBody.new_value,
+                }).then(({ error }) => { if (error) console.error('[GatePass] Audit fallback failed:', error); });
+            }
+        })
+        .catch(err => {
+            console.warn('[GatePass] Audit edge fn error, using fallback:', err);
+            if (gatePass?.tenant_id) {
+                supabase.from('contractor_module_audit_logs').insert({
+                    tenant_id: gatePass.tenant_id,
+                    entity_type: 'gate_pass',
+                    entity_id: passId,
+                    action: auditAction,
+                    actor_id: userId,
+                    actor_type: 'admin',
+                    new_value: auditBody.new_value,
+                }).then(({ error }) => { if (error) console.error('[GatePass] Audit fallback failed:', error); });
+            }
+        });
+
     // Trigger in-app notification for internal gate pass approvals
     if (!gatePass?.is_public_request && newStatus === "approved" && gatePass?.requested_by) {
         try {
@@ -42,6 +80,42 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
             }]);
         } catch (notifyErr) {
             console.error("[Gate Pass] Failed to send internal approval notification:", notifyErr);
+        }
+    }
+
+    // Send WhatsApp notification to the requester on approval/rejection
+    if (!gatePass?.is_public_request && gatePass?.requested_by && (newStatus === "approved" || newStatus === "rejected")) {
+        try {
+            // Fetch requester's phone number
+            const { data: requesterProfile } = await supabase
+                .from("profiles")
+                .select("phone_number, preferred_language, full_name")
+                .eq("id", gatePass.requested_by)
+                .single();
+
+            if (requesterProfile?.phone_number) {
+                const lang = requesterProfile.preferred_language || 'en';
+                const isApproved = newStatus === "approved";
+                const statusText = isApproved
+                    ? (lang === 'ar' ? 'تمت الموافقة ✅' : 'Approved ✅')
+                    : (lang === 'ar' ? 'مرفوض ❌' : 'Rejected ❌');
+                const message = lang === 'ar'
+                    ? `🚛 تصريح بوابة ${gatePass.reference_number}\n\nالحالة: ${statusText}\nالوصف: ${gatePass.material_description || '-'}\n${notes ? `ملاحظات: ${notes}` : ''}`
+                    : `🚛 Gate Pass ${gatePass.reference_number}\n\nStatus: ${statusText}\nDescription: ${gatePass.material_description || '-'}\n${notes ? `Notes: ${notes}` : ''}`;
+
+                await supabase.functions.invoke("send-gate-whatsapp", {
+                    body: {
+                        mobile_number: requesterProfile.phone_number,
+                        notification_type: 'gate_pass_status',
+                        message,
+                        tenant_id: gatePass.tenant_id,
+                        gate_pass_id: gatePass.id,
+                        reference_number: gatePass.reference_number,
+                    },
+                });
+            }
+        } catch (whatsappErr) {
+            console.error("[Gate Pass] Failed to send WhatsApp approval/rejection notification:", whatsappErr);
         }
     }
 
@@ -77,15 +151,7 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
 };
 
 export const rejectGatePass = async (passId: string, reason: string, userId: string): Promise<{ passId: string; newStatus: string }> => {
-    const { data, error } = await supabase.rpc("approve_gate_pass_unified", {
-        p_user_id: userId,
-        p_gate_pass_id: passId,
-        p_action: "reject",
-        p_notes: reason,
-    });
-
-    if (error) throw error;
-    return { passId, newStatus: data };
+    return approveGatePass(passId, "reject", reason, userId);
 };
 
 export const verifyGatePass = async (passId: string, action: "entry" | "exit", tenantId: string, userId: string): Promise<{ passId: string; action: string }> => {

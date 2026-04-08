@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendWaSenderMediaMessage, sendWaSenderTextMessage } from '../_shared/wasender-whatsapp.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -47,80 +48,49 @@ Deno.serve(async (req) => {
       console.error('[SendIDCard] Tenant fetch error:', tenantError);
     }
 
-    // Format phone number
-    let phone = recipient_phone.replace(/[\s\-\(\)]/g, '');
-    if (!phone.startsWith('+')) {
-      if (phone.startsWith('0')) {
-        phone = '+966' + phone.substring(1);
-      } else if (!phone.startsWith('966')) {
-        phone = '+966' + phone;
-      } else {
-        phone = '+' + phone;
-      }
-    }
-
     let whatsappSent = false;
 
-    // Send via WhatsApp if API key is configured
-    const wasenderApiKey = Deno.env.get('WASENDER_API_KEY');
-    if (wasenderApiKey && card_image_url) {
-      try {
-        // Determine message based on entity type
-        const entityLabels: Record<string, { en: string; ar: string }> = {
-          visitor: { en: 'Visitor', ar: 'زائر' },
-          visitor_vip: { en: 'VIP Visitor', ar: 'زائر VIP' },
-          worker: { en: 'Worker', ar: 'عامل' },
-          employee: { en: 'Employee', ar: 'موظف' },
-          contractor_rep: { en: 'Contractor Representative', ar: 'ممثل المقاول' },
-        };
+    if (card_image_url) {
+      // Build bilingual caption
+      const entityLabels: Record<string, { en: string; ar: string }> = {
+        visitor: { en: 'Visitor', ar: 'زائر' },
+        visitor_vip: { en: 'VIP Visitor', ar: 'زائر VIP' },
+        worker: { en: 'Worker', ar: 'عامل' },
+        employee: { en: 'Employee', ar: 'موظف' },
+        contractor_rep: { en: 'Contractor Representative', ar: 'ممثل المقاول' },
+      };
 
-        const label = entityLabels[entity_type] || { en: 'ID Card', ar: 'بطاقة هوية' };
-        const tenantName = tenant?.name || '';
+      const label = entityLabels[entity_type] || { en: 'ID Card', ar: 'بطاقة هوية' };
+      const tenantName = tenant?.name || '';
 
-        const messageAr = `🎫 *بطاقة الهوية الرقمية*\n\n${label.ar}\nالمنشأة: ${tenantName}\n\n📱 احفظ هذه البطاقة على جهازك وقدمها عند البوابة.`;
-        const messageEn = `🎫 *Digital ID Card*\n\n${label.en}\nFacility: ${tenantName}\n\n📱 Save this card to your device and present it at the gate.`;
+      const messageAr = `🎫 *بطاقة الهوية الرقمية*\n\n${label.ar}\nالمنشأة: ${tenantName}\n\n📱 احفظ هذه البطاقة على جهازك وقدمها عند البوابة.`;
+      const messageEn = `🎫 *Digital ID Card*\n\n${label.en}\nFacility: ${tenantName}\n\n📱 Save this card to your device and present it at the gate.`;
+      const caption = messageAr + '\n\n---\n\n' + messageEn;
 
-        // Send image with caption
-        const response = await fetch('https://api.wasender.net/v1/messages/send-image', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${wasenderApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            to: phone,
-            image: card_image_url,
-            caption: messageAr + '\n\n---\n\n' + messageEn,
-          }),
-        });
+      // Send image with caption via shared utility
+      const imageResult = await sendWaSenderMediaMessage(
+        recipient_phone,
+        card_image_url,
+        caption,
+        'image'
+      );
 
-        if (response.ok) {
+      if (imageResult.success) {
+        whatsappSent = true;
+        console.log('[SendIDCard] WhatsApp image sent successfully');
+      } else {
+        console.error('[SendIDCard] Image send failed:', imageResult.error);
+
+        // Fallback: send text message with link
+        const textMessage = caption + '\n\n' + card_image_url;
+        const textResult = await sendWaSenderTextMessage(recipient_phone, textMessage);
+
+        if (textResult.success) {
           whatsappSent = true;
-          console.log('[SendIDCard] WhatsApp image sent successfully to:', phone);
+          console.log('[SendIDCard] WhatsApp text fallback sent successfully');
         } else {
-          const errorText = await response.text();
-          console.error('[SendIDCard] WhatsApp send error:', errorText);
-          
-          // Fallback to text message with link
-          const fallbackResponse = await fetch('https://api.wasender.net/v1/messages/send-text', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${wasenderApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              to: phone,
-              message: messageAr + '\n\n' + card_image_url + '\n\n---\n\n' + messageEn,
-            }),
-          });
-
-          if (fallbackResponse.ok) {
-            whatsappSent = true;
-            console.log('[SendIDCard] WhatsApp text fallback sent to:', phone);
-          }
+          console.error('[SendIDCard] Text fallback also failed:', textResult.error);
         }
-      } catch (waErr) {
-        console.error('[SendIDCard] WhatsApp error:', waErr);
       }
     }
 
@@ -148,7 +118,7 @@ Deno.serve(async (req) => {
     await supabase.from('notification_logs').insert({
       tenant_id: tenant_id,
       channel: whatsappSent ? 'whatsapp' : 'none',
-      recipient: phone,
+      recipient: recipient_phone,
       message_type: 'id_card',
       status: whatsappSent ? 'sent' : 'failed',
       sent_at: new Date().toISOString(),

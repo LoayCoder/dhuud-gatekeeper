@@ -58,7 +58,7 @@ export function useMyGatePasses(filters: GatePassFilters = {}) {
 
 export interface ApprovalHistoryPass extends MaterialGatePass {
   approvalAction: "approved" | "rejected";
-  approvalRole: "pm" | "safety" | "contractor" | "club_mgmt" | "security";
+  approvalRole: "dept" | "contractor" | "acknowledger" | "security";
   approvalAt: string;
   approvalNotes: string | null;
 }
@@ -111,7 +111,7 @@ export function useGatePassApprovalHistory() {
         security_approved_at?: string | null;
       }) => {
         let approvalAction: "approved" | "rejected" = "approved";
-        let approvalRole: "pm" | "safety" | "contractor" | "club_mgmt" | "security" = "pm";
+        let approvalRole: "dept" | "contractor" | "acknowledger" | "security" = "dept";
         let approvalAt = pass.pm_approved_at || "";
         let approvalNotes = pass.pm_notes;
 
@@ -124,17 +124,13 @@ export function useGatePassApprovalHistory() {
           approvalAt = pass.security_approved_at || "";
           approvalNotes = null;
         } else if (pass.club_mgmt_ack_by === user.id) {
-          approvalRole = "club_mgmt";
+          approvalRole = "acknowledger";
           approvalAt = pass.club_mgmt_ack_at || "";
           approvalNotes = null;
         } else if (pass.contractor_approved_by === user.id) {
           approvalRole = "contractor";
           approvalAt = pass.contractor_approved_at || "";
           approvalNotes = null;
-        } else if (pass.safety_approved_by === user.id) {
-          approvalRole = "safety";
-          approvalAt = pass.safety_approved_at || "";
-          approvalNotes = pass.safety_notes;
         }
 
         return {

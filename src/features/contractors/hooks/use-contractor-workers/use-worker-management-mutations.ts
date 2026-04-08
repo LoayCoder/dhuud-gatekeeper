@@ -24,17 +24,18 @@ export function useRejectWorker() {
                 .from("contractor_workers")
                 .select("company_id")
                 .eq("id", workerId)
-                .single();
+                .single()
+                .throwOnError();
 
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("contractor_workers")
                 .update({ approval_status: "rejected", rejection_reason: reason })
                 .eq("id", workerId)
                 .select("id, full_name, tenant_id")
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
-            return { ...data, reason, companyId: workerInfo?.company_id };
+            return { ...data!, reason, companyId: workerInfo?.company_id };
         },
         onSuccess: async (data) => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
@@ -83,14 +84,14 @@ export function useBulkApproveWorkers() {
 
     return useMutation({
         mutationFn: async (workerIds: string[]) => {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("contractor_workers")
                 .update({ approval_status: "approved", approved_at: new Date().toISOString() })
                 .in("id", workerIds)
-                .select();
+                .select()
+                .throwOnError();
 
-            if (error) throw error;
-            return data;
+            return data!;
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
@@ -109,14 +110,14 @@ export function useBulkRejectWorkers() {
 
     return useMutation({
         mutationFn: async ({ workerIds, reason }: { workerIds: string[]; reason: string }) => {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("contractor_workers")
                 .update({ approval_status: "rejected", rejection_reason: reason })
                 .in("id", workerIds)
-                .select();
+                .select()
+                .throwOnError();
 
-            if (error) throw error;
-            return data;
+            return data!;
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
@@ -135,12 +136,11 @@ export function useDeleteContractorWorker() {
 
     return useMutation({
         mutationFn: async (workerId: string) => {
-            const { error } = await supabase
+            await supabase
                 .from("contractor_workers")
                 .update({ deleted_at: new Date().toISOString() })
-                .eq("id", workerId);
-
-            if (error) throw error;
+                .eq("id", workerId)
+                .throwOnError();
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
@@ -161,6 +161,7 @@ export function useDeleteContractorWorker() {
 export function useUpdateWorkerStatus() {
     const queryClient = useQueryClient();
     const { t } = useTranslation();
+    const { user } = useAuth();
 
     return useMutation({
         mutationFn: async ({ workerId, status, reason }: { workerId: string; status: string; reason?: string }) => {
@@ -170,6 +171,7 @@ export function useUpdateWorkerStatus() {
 
             if (status === "approved") {
                 updates.approved_at = new Date().toISOString();
+                updates.approved_by = user?.id || null;
                 updates.rejection_reason = null;
             } else if (status === "rejected") {
                 updates.rejection_reason = reason || null;
@@ -177,24 +179,77 @@ export function useUpdateWorkerStatus() {
             } else if (status === "pending") {
                 updates.approved_at = null;
                 updates.rejection_reason = null;
+            } else if (status === "suspended") {
+                updates.rejection_reason = reason || null;
             } else if (status === "revoked") {
                 updates.rejection_reason = reason || null;
             }
 
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("contractor_workers")
                 .update(updates)
                 .eq("id", workerId)
                 .select()
-                .single();
+                .single()
+                .throwOnError();
 
-            if (error) throw error;
             return data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
             queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
             toast.success(t("contractors.messages.workerStatusUpdated", "Worker status updated"));
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+}
+
+export function useApproveWorkerEdits() {
+    const queryClient = useQueryClient();
+    const { t } = useTranslation();
+    const { user, profile } = useAuth();
+
+    return useMutation({
+        mutationFn: async (workerId: string) => {
+            const { data: hasAccess } = await supabase.rpc("has_document_controller_access", {
+                p_user_id: user?.id,
+            });
+
+            if (!hasAccess) {
+                throw new Error(t("contractors.messages.noDocControllerAccess", "Only Document Controllers can approve worker edits"));
+            }
+
+            const { data } = await supabase
+                .from("contractor_workers")
+                .update({ edit_pending_approval: false })
+                .eq("id", workerId)
+                .select("id, full_name, tenant_id")
+                .single()
+                .throwOnError();
+
+            return data!;
+        },
+        onSuccess: async (data) => {
+            queryClient.invalidateQueries({ queryKey: ["contractor-workers"] });
+            queryClient.invalidateQueries({ queryKey: ["pending-worker-approvals"] });
+            toast.success(t("contractors.messages.workerEditsApproved", "Worker edits approved"));
+
+            try {
+                await supabase.functions.invoke("contractor-audit-log", {
+                    body: {
+                        entity_type: "contractor_worker",
+                        entity_id: data.id,
+                        action: "worker_edits_approved",
+                        old_value: { edit_pending_approval: true },
+                        new_value: { edit_pending_approval: false, full_name: data.full_name },
+                        tenant_id: data.tenant_id,
+                    },
+                });
+            } catch (e) {
+                console.error("Failed to log audit event:", e);
+            }
         },
         onError: (error: Error) => {
             toast.error(error.message);

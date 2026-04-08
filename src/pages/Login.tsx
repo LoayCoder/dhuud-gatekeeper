@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,7 +35,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/';
-  const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, clearInvitationData, refreshTenantData, isRememberedTenant, clearRememberedTenant } = useTheme();
+  const { tenantName, activeLogoUrl, activePrimaryColor, isCodeValidated, invitationEmail, invitationCode, clearInvitationData, refreshTenantData, isRememberedTenant, clearRememberedTenant } = useTheme();
   const { resolvedTheme } = useNextTheme();
   const { checkPassword } = usePasswordBreachCheck();
   const { checkTrustedDevice } = useTrustedDevice();
@@ -53,21 +53,32 @@ export default function Login() {
     password: z.string().min(1, t('auth.passwordRequired')),
   });
 
+  // Ref to track if we've already navigated away - prevents re-entry loops
+  const hasNavigated = useRef(false);
+  // Ref to track MFA dialog state inside auth listener without causing re-subscriptions
+  const showMFADialogRef = useRef(false);
+  
+  // Keep the ref in sync with state
+  useEffect(() => {
+    showMFADialogRef.current = showMFADialog;
+  }, [showMFADialog]);
+
   useEffect(() => {
     // Pre-fill email if coming from invitation
     if (invitationEmail) {
       setEmail(invitationEmail);
     }
 
+    // Reset navigation guard on mount
+    hasNavigated.current = false;
+
     // Check if already logged in - but VALIDATE the session first
     const checkExistingSession = async () => {
+      if (hasNavigated.current) return;
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // CRITICAL: Validate the session is actually valid server-side before MFA check
-        // This prevents "missing sub claim" errors from stale local sessions
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error || !user) {
-          // Session is stale/invalid - clear it silently and stay on login page
           logger.debug('Stale session detected, clearing...');
           await supabase.auth.signOut({ scope: 'local' });
           return;
@@ -79,23 +90,24 @@ export default function Login() {
 
     checkExistingSession();
 
-    // Listen for auth changes - but don't auto-navigate if MFA is pending
+    // Listen for auth changes - ONLY react to SIGNED_IN events
+    // Initial session is already handled by checkExistingSession above
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session && !showMFADialog) {
-        // Validate session before MFA check
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (!error && user) {
-          checkMFAAndNavigate();
-        }
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session && !hasNavigated.current && !showMFADialogRef.current) {
+        checkMFAAndNavigate();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, invitationEmail, showMFADialog]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, invitationEmail]);
 
   const checkMFAAndNavigate = async () => {
+    // Guard: only navigate once
+    if (hasNavigated.current) return;
+
     try {
       // CRITICAL: Validate session is still valid before any MFA operations
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -110,9 +122,8 @@ export default function Login() {
       const { data: aal, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
       if (aalError) {
-        // MFA check failed - likely invalid session
-        logger.warn('AAL check failed:', aalError.message);
-        await supabase.auth.signOut({ scope: 'local' });
+        // MFA metadata check failed - don't aggressively sign out, just stay on login
+        logger.warn('AAL check failed (non-fatal):', aalError.message);
         return;
       }
 
@@ -121,6 +132,7 @@ export default function Login() {
         const isTrusted = await checkTrustedDevice(user.id);
         if (isTrusted) {
           // Device is trusted, skip MFA
+          hasNavigated.current = true;
           navigate(returnTo);
           return;
         }
@@ -129,8 +141,8 @@ export default function Login() {
         const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
 
         if (factorsError) {
-          logger.warn('Failed to list MFA factors:', factorsError.message);
-          await supabase.auth.signOut({ scope: 'local' });
+          // Factors check failed - don't sign out, just stay
+          logger.warn('Failed to list MFA factors (non-fatal):', factorsError.message);
           return;
         }
 
@@ -146,12 +158,12 @@ export default function Login() {
 
       // No MFA required or already at AAL2
       if (aal?.currentLevel === 'aal2' || aal?.nextLevel !== 'aal2') {
+        hasNavigated.current = true;
         navigate(returnTo);
       }
     } catch (err) {
       logger.error('Error in checkMFAAndNavigate:', err);
-      // Clear session on any error to prevent stuck state
-      await supabase.auth.signOut({ scope: 'local' });
+      // Don't sign out on unexpected errors - just stay on login page
     }
   };
 
@@ -248,6 +260,7 @@ export default function Login() {
     checkPasswordBreach(passwordRef.current);
     passwordRef.current = '';
 
+    hasNavigated.current = true;
     navigate(returnTo);
   };
 
@@ -334,35 +347,49 @@ export default function Login() {
       }
 
 
+      // Check if invitation context is available from sessionStorage as fallback
+      let hasInvitationContext = isCodeValidated;
+      if (!hasInvitationContext) {
+        try {
+          hasInvitationContext = !!sessionStorage.getItem('invitation_context');
+        } catch { /* ignore */ }
+      }
+
       // Only block if we got a definitive "not allowed" response
       if (accessValidation && accessValidation.allowed === false) {
-        console.warn('User access validation failed:', accessValidation.reason || accessError?.message);
-        await supabase.auth.signOut();
+        // If this is an invitation flow (or recoverable) and the reason is just "no profile yet",
+        // don't block — let the profile creation code below handle it
+        if (accessValidation.reason === 'profile_not_found' && (hasInvitationContext || invitationEmail || authUser?.email)) {
+          console.log('Profile not found — will attempt invitation recovery below');
+        } else {
+          console.warn('User access validation failed:', accessValidation.reason || accessError?.message);
+          await supabase.auth.signOut();
 
-        const reason = accessValidation.reason;
-        let errorTitle = t('auth.error');
-        let errorDesc = t('auth.accessDenied', 'Access denied');
+          const reason = accessValidation.reason;
+          let errorTitle = t('auth.error');
+          let errorDesc = t('auth.accessDenied', 'Access denied');
 
-        if (reason === 'user_deleted') {
-          errorTitle = t('auth.accountDeleted', 'Account Deactivated');
-          errorDesc = t('auth.accountDeletedDesc', 'Your account has been deactivated. Please contact your administrator.');
-        } else if (reason === 'user_inactive') {
-          errorTitle = t('auth.accountInactive', 'Account Inactive');
-          errorDesc = t('auth.accountInactiveDesc', 'Your account is currently inactive. Please contact your administrator.');
-        } else if (reason === 'profile_not_found') {
-          errorTitle = t('auth.noProfile', 'No Access');
-          errorDesc = t('auth.noProfileDesc', 'You do not have access to this organization.');
+          if (reason === 'user_deleted') {
+            errorTitle = t('auth.accountDeleted', 'Account Deactivated');
+            errorDesc = t('auth.accountDeletedDesc', 'Your account has been deactivated. Please contact your administrator.');
+          } else if (reason === 'user_inactive') {
+            errorTitle = t('auth.accountInactive', 'Account Inactive');
+            errorDesc = t('auth.accountInactiveDesc', 'Your account is currently inactive. Please contact your administrator.');
+          } else if (reason === 'profile_not_found') {
+            errorTitle = t('auth.noProfile', 'No Access');
+            errorDesc = t('auth.noProfileDesc', 'You do not have access to this organization.');
+          }
+
+          toast({
+            title: errorTitle,
+            description: errorDesc,
+            variant: 'destructive',
+            duration: 10000,
+          });
+
+          setLoading(false);
+          return;
         }
-
-        toast({
-          title: errorTitle,
-          description: errorDesc,
-          variant: 'destructive',
-          duration: 10000,
-        });
-
-        setLoading(false);
-        return;
       }
 
       if (accessError) {
@@ -423,6 +450,7 @@ export default function Login() {
               title: t('auth.welcomeBack'),
               description: t('auth.loginSuccess'),
             });
+            hasNavigated.current = true;
             navigate(returnTo);
             return;
           }
@@ -468,6 +496,299 @@ export default function Login() {
           });
       }
 
+      // Handle invitation-based login: create profile + role if missing
+      // Also handle fallback: if isCodeValidated is false, check DB for unused invitations
+      const shouldCheckInvitation = (isCodeValidated && invitationEmail) || !isCodeValidated;
+      if (shouldCheckInvitation && user) {
+        try {
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id, email, full_name, phone_number, avatar_url, assigned_branch_id')
+            .eq('user_id', user.id)
+            .is('deleted_at', null)
+            .limit(1)
+            .maybeSingle();
+
+          const isBlankValue = (value?: string | null) => !value || value.trim().length === 0;
+          const hasInvalidFullName = (value?: string | null) => !value || value.trim().length < 2;
+
+          // Helper: fetch full representative data for profile enrichment
+          const fetchRepresentativeData = async ({
+            representativeId,
+            userId,
+            email: representativeEmail,
+          }: {
+            representativeId?: string | null;
+            userId?: string;
+            email?: string | null;
+          }) => {
+            try {
+              const selectColumns = 'id, full_name, mobile_number, phone, email, photo_path, company_id';
+              let repData: {
+                id: string;
+                full_name: string | null;
+                mobile_number: string | null;
+                phone: string | null;
+                email: string | null;
+                photo_path: string | null;
+                company_id: string | null;
+              } | null = null;
+
+              if (representativeId) {
+                const { data } = await supabase
+                  .from('contractor_representatives')
+                  .select(selectColumns)
+                  .eq('id', representativeId)
+                  .maybeSingle();
+                repData = data;
+              }
+
+              if (!repData && userId) {
+                const { data } = await supabase
+                  .from('contractor_representatives')
+                  .select(selectColumns)
+                  .eq('user_id', userId)
+                  .order('updated_at', { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+                repData = data;
+              }
+
+              if (!repData && representativeEmail) {
+                const { data } = await supabase
+                  .from('contractor_representatives')
+                  .select(selectColumns)
+                  .ilike('email', representativeEmail)
+                  .order('updated_at', { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+                repData = data;
+              }
+
+              if (!repData) return null;
+
+              // Get assigned_branch_id from the company
+              let assignedBranchId: string | null = null;
+              if (repData.company_id) {
+                const { data: companyData } = await supabase
+                  .from('contractor_companies')
+                  .select('assigned_branch_id')
+                  .eq('id', repData.company_id)
+                  .maybeSingle();
+                assignedBranchId = companyData?.assigned_branch_id || null;
+              }
+
+              return {
+                representative_id: repData.id,
+                full_name: repData.full_name,
+                phone_number: repData.mobile_number || repData.phone || null,
+                email: repData.email,
+                photo_path: repData.photo_path,
+                assigned_branch_id: assignedBranchId,
+              };
+            } catch (e) {
+              logger.warn('Failed to fetch representative data:', e);
+              return null;
+            }
+          };
+
+          // Repair path: existing profile with missing critical fields
+          if (
+            existingProfile && (
+              isBlankValue(existingProfile.email) ||
+              hasInvalidFullName(existingProfile.full_name) ||
+              isBlankValue(existingProfile.phone_number) ||
+              !existingProfile.assigned_branch_id
+            )
+          ) {
+            logger.debug('Profile exists but missing critical fields, attempting repair...');
+            const userEmail = user.email || '';
+            // Find invitation (used or unused) for this email to recover representative_id if available
+            const { data: repairInvite } = await supabase
+              .from('invitations')
+              .select('metadata')
+              .ilike('email', userEmail)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            const repairMeta = repairInvite?.metadata as Record<string, any> | undefined;
+            const repInfo = await fetchRepresentativeData({
+              representativeId: repairMeta?.representative_id,
+              userId: user.id,
+              email: userEmail,
+            });
+
+            if (repInfo) {
+              const updateData: Record<string, any> = {};
+              if (hasInvalidFullName(existingProfile.full_name) && repInfo.full_name) {
+                updateData.full_name = repInfo.full_name;
+              }
+              if (isBlankValue(existingProfile.email)) {
+                updateData.email = repInfo.email || userEmail;
+              }
+              if (isBlankValue(existingProfile.phone_number) && repInfo.phone_number) {
+                updateData.phone_number = repInfo.phone_number;
+              }
+              if (isBlankValue(existingProfile.avatar_url) && repInfo.photo_path) {
+                updateData.avatar_url = repInfo.photo_path;
+              }
+              if (!existingProfile.assigned_branch_id && repInfo.assigned_branch_id) {
+                updateData.assigned_branch_id = repInfo.assigned_branch_id;
+              }
+
+              if (Object.keys(updateData).length > 0) {
+                const { error: repairError } = await supabase
+                  .from('profiles')
+                  .update(updateData)
+                  .eq('id', existingProfile.id);
+                if (repairError) {
+                  logger.error('Profile repair failed:', repairError);
+                } else {
+                  logger.debug('Profile repaired successfully with representative data');
+                }
+              }
+            }
+          }
+
+          if (!existingProfile) {
+            // User exists in auth but has no profile — try invitation data
+            let codeToLookup = invitationCode || '';
+            let inviteResult: any = null;
+
+            if (codeToLookup) {
+              // Use the known invitation code
+              const { data } = await supabase.rpc('lookup_invitation', { lookup_code: codeToLookup });
+              inviteResult = data;
+            }
+
+            // Fallback: no code available, search for unused invitation by email
+            if (!inviteResult) {
+              const userEmail = invitationEmail || user.email || '';
+              if (userEmail) {
+                const { data: fallbackInvite } = await supabase
+                  .from('invitations')
+                  .select('code, email, tenant_id, metadata')
+                  .ilike('email', userEmail)
+                  .eq('used', false)
+                  .gt('expires_at', new Date().toISOString())
+                  .order('created_at', { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+
+                if (fallbackInvite) {
+                  logger.debug('Found fallback invitation for user:', userEmail);
+                  codeToLookup = fallbackInvite.code;
+                  // Re-lookup via RPC for consistent shape
+                  const { data } = await supabase.rpc('lookup_invitation', { lookup_code: codeToLookup });
+                  inviteResult = data;
+                }
+              }
+            }
+
+            if (inviteResult) {
+              const inviteData = inviteResult as unknown as {
+                email: string;
+                tenant_id: string;
+                role: string;
+                metadata?: Record<string, any>;
+              };
+              const metadata = inviteData.metadata || {};
+              const isContractorRep = metadata.type === 'contractor_representative';
+
+              // Fetch full representative data for enrichment
+              let repInfo: Awaited<ReturnType<typeof fetchRepresentativeData>> = null;
+              repInfo = await fetchRepresentativeData({
+                representativeId: metadata.representative_id,
+                userId: user.id,
+                email: inviteData.email || user.email || invitationEmail,
+              });
+
+              // Fallback phone from metadata if rep data unavailable
+              const phoneNumber = repInfo?.phone_number || metadata.phone_number || null;
+
+              // Create profile enriched with representative data
+              const profileData = {
+                id: user.id,
+                user_id: user.id,
+                tenant_id: inviteData.tenant_id,
+                email: invitationEmail || repInfo?.email || user.email || null,
+                has_login: true,
+                is_active: true,
+                full_name: repInfo?.full_name || metadata.full_name || null,
+                phone_number: phoneNumber,
+                avatar_url: repInfo?.photo_path || null,
+                user_type: metadata.user_type || null,
+                employee_id: metadata.employee_id || null,
+                job_title: metadata.job_title || null,
+                has_full_branch_access: metadata.has_full_branch_access ?? false,
+                assigned_branch_id: repInfo?.assigned_branch_id || metadata.assigned_branch_id || null,
+                assigned_division_id: metadata.assigned_division_id || null,
+                assigned_department_id: metadata.assigned_department_id || null,
+                assigned_section_id: metadata.assigned_section_id || null,
+              };
+
+              const { error: profileError } = await supabase
+                .from('profiles')
+                .insert([profileData]);
+
+              if (profileError) {
+                logger.error('Failed to create profile for existing auth user:', profileError);
+              } else {
+                // Assign roles
+                if (isContractorRep) {
+                  if (metadata.representative_id) {
+                    await supabase
+                      .from('contractor_representatives')
+                      .update({ user_id: user.id })
+                      .eq('id', metadata.representative_id);
+                  }
+                  const { data: roleData } = await supabase
+                    .from('roles')
+                    .select('id')
+                    .eq('code', 'contractor_site_rep')
+                    .single();
+                  if (roleData?.id) {
+                    await supabase.from('user_role_assignments').insert({
+                      user_id: user.id,
+                      role_id: roleData.id,
+                      tenant_id: inviteData.tenant_id,
+                    });
+                  }
+                } else if (metadata.role_ids?.length) {
+                  const roleAssignments = metadata.role_ids.map((roleId: string) => ({
+                    user_id: user.id,
+                    role_id: roleId,
+                    tenant_id: inviteData.tenant_id,
+                  }));
+                  await supabase.from('user_role_assignments').insert(roleAssignments);
+                }
+
+                // Mark invitation as used
+                await supabase
+                  .from('invitations')
+                  .update({ used: true })
+                  .eq('code', codeToLookup);
+
+                logger.debug('Profile and roles created for existing auth user via invitation');
+
+                // Navigate after successful profile creation
+                hasNavigated.current = true;
+                if (isContractorRep) {
+                  navigate('/contractor-portal');
+                } else {
+                  navigate(returnTo);
+                }
+                setLoading(false);
+                return;
+              }
+            }
+          }
+        } catch (invErr) {
+          logger.error('Error handling invitation profile creation on login:', invErr);
+        }
+      }
+
       clearInvitationData();
 
       toast({
@@ -511,6 +832,7 @@ export default function Login() {
           title: t('auth.welcomeBack'),
           description: t('auth.biometricSuccess'),
         });
+        hasNavigated.current = true;
         navigate(returnTo);
       }
     } catch (error) {

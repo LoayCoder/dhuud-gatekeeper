@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { getAppUrl } from '@/lib/app-url';
 import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
 import { supabase } from '@/integrations/supabase/client';
@@ -296,7 +297,7 @@ export function BulkInvitationImportDialog({
               code: inviteCode,
               tenantName: tenant?.name || 'DHUUD Platform',
               expiresAt: expiresAt.toISOString(),
-              inviteUrl: window.location.origin,
+              inviteUrl: getAppUrl(),
             },
           });
 
@@ -318,7 +319,7 @@ export function BulkInvitationImportDialog({
               tenant_name: tenant?.name || 'DHUUD Platform',
               expires_at: expiresAt.toISOString(),
               full_name: row.full_name,
-              invite_url: window.location.origin,
+              invite_url: getAppUrl(),
             },
           });
 

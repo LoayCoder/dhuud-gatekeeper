@@ -77,7 +77,7 @@ export default function ProjectMobilization() {
             {t("ptw.mobilization.description", "Manage project clearances and mobilization status")}
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
+        <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
           <Plus className="me-2 h-4 w-4" />
           {t("ptw.mobilization.newProject", "New Project")}
         </Button>
@@ -275,7 +275,7 @@ function ProjectCard({ project, onClick }: ProjectCardProps) {
       >
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-sm truncate">{project.name}</p>
+            <p className="font-medium text-sm break-words whitespace-normal">{project.name}</p>
             <p className="text-xs text-muted-foreground">{project.reference_id}</p>
           </div>
           <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 rtl:rotate-180" />

@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { GatePassListTable } from '@/features/contractors';
-import { GatePassFormDialog } from '@/features/contractors';
+import { GatePassCreateDialog } from '@/features/contractors/components/GatePassCreateDialog';
 import { GatePassApprovalQueue } from '@/features/contractors';
 import { TodayGatePasses } from '@/features/contractors';
 import {
@@ -146,12 +146,10 @@ const [searchParams, setSearchParams] = useSearchParams();
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("common.all", "All")}</SelectItem>
+                      <SelectItem value="pending_dept_approval">{t("contractors.passStatus.pendingDept", "Pending Dept Approval")}</SelectItem>
                       <SelectItem value="pending_contractor_approval">{t("contractors.passStatus.pendingContractor", "Pending Contractor")}</SelectItem>
-                      <SelectItem value="pending_pm_approval">{t("contractors.passStatus.pendingPM", "Pending PM")}</SelectItem>
-                      <SelectItem value="pending_dept_ack">{t("contractors.passStatus.pendingDeptAck", "Pending Dept Ack")}</SelectItem>
-                      <SelectItem value="pending_club_mgmt_ack">{t("contractors.passStatus.pendingClubMgmt", "Pending Club Mgmt")}</SelectItem>
+                      <SelectItem value="pending_acknowledgment">{t("contractors.passStatus.pendingAcknowledgment", "Pending Acknowledgment")}</SelectItem>
                       <SelectItem value="pending_security_approval">{t("contractors.passStatus.pendingSecurity", "Pending Security")}</SelectItem>
-                      <SelectItem value="pending_safety_approval">{t("contractors.passStatus.pendingSafety", "Pending Safety")}</SelectItem>
                       <SelectItem value="approved">{t("contractors.passStatus.approved", "Approved")}</SelectItem>
                       <SelectItem value="used">{t("contractors.passStatus.used", "Used")}</SelectItem>
                       <SelectItem value="rejected">{t("contractors.passStatus.rejected", "Rejected")}</SelectItem>
@@ -183,12 +181,9 @@ const [searchParams, setSearchParams] = useSearchParams();
       </Tabs>
 
       {canCreate && (
-        <GatePassFormDialog
+        <GatePassCreateDialog
           open={isCreateOpen}
           onOpenChange={setIsCreateOpen}
-          projects={projects}
-          canCreateInternal={canCreateInternal}
-          canCreateExternal={canCreateExternal}
         />
       )}
     </div>

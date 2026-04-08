@@ -12274,6 +12274,45 @@
       "bulk": {
         "selectAll": "تحديد الكل"
       }
+    },
+    "hsse": {
+      "observations": "الملاحظات",
+      "incidents": "الحوادث",
+      "actions": "الإجراءات التصحيحية",
+      "violations": "المخالفات",
+      "highSeverity": "شديدة الخطورة (م٣+)",
+      "overdue": "متأخرة",
+      "dueSoon": "مستحقة قريباً",
+      "activeViolations": "نشطة",
+      "recentObservations": "أحدث الملاحظات",
+      "recentIncidents": "أحدث الحوادث",
+      "correctiveActions": "الإجراءات التصحيحية",
+      "violationsDetail": "المخالفات والعقوبات",
+      "noObservations": "لا توجد ملاحظات مسجلة",
+      "noIncidents": "لا توجد حوادث مسجلة",
+      "noActions": "لا توجد إجراءات تصحيحية",
+      "noViolations": "لا توجد مخالفات مسجلة",
+      "violation": "مخالفة",
+      "modal": {
+        "notFound": "غير موجود",
+        "noAccess": "ليس لديك صلاحية الوصول لهذا السجل",
+        "overview": "نظرة عامة",
+        "immediateActions": "الإجراءات الفورية المتخذة",
+        "injuryReported": "تم الإبلاغ عن إصابة",
+        "damageReported": "تم الإبلاغ عن ضرر",
+        "investigation": "التحقيق",
+        "noInvestigation": "تفاصيل التحقيق غير متوفرة بعد",
+        "findings": "ملخص النتائج",
+        "immediateCause": "السبب المباشر",
+        "rootCause": "السبب الجذري",
+        "contributingFactors": "العوامل المساهمة",
+        "rcaImmediateCauses": "تحليل السبب الجذري - الأسباب المباشرة",
+        "investigator": "المحقق",
+        "started": "بدأ",
+        "completed": "اكتمل",
+        "correctiveActions": "الإجراءات التصحيحية",
+        "noActions": "لا توجد إجراءات تصحيحية مسندة"
+      }
     }
   },
   "gatePasses": {

@@ -12,7 +12,7 @@ const SessionWorkspace = lazyWithRetry(() => import("@/pages/inspections/Session
 const AreaSessionWorkspace = lazyWithRetry(() => import("@/pages/inspections/AreaSessionWorkspace"));
 const InspectionDashboard = lazyWithRetry(() => import("@/pages/inspections/InspectionDashboard"));
 const InspectionSchedules = lazyWithRetry(() => import("@/pages/inspections/InspectionSchedules"));
-const MyInspectionActions = lazyWithRetry(() => import("@/pages/inspections/MyInspectionActions"));
+
 const AuditSessionWorkspace = lazyWithRetry(() => import("@/pages/inspections/AuditSessionWorkspace"));
 
 export const inspectionRoutes: RouteObject[] = [
@@ -22,5 +22,5 @@ export const inspectionRoutes: RouteObject[] = [
   { path: "inspections/sessions/:sessionId/area", element: <HSSERoute><AreaSessionWorkspace /></HSSERoute> },
   { path: "inspections/sessions/:sessionId/audit", element: <HSSERoute><AuditSessionWorkspace /></HSSERoute> },
   { path: "inspections/schedules", element: <HSSERoute><InspectionSchedules /></HSSERoute> },
-  { path: "inspections/my-actions", element: <MyInspectionActions /> },
+  
 ];

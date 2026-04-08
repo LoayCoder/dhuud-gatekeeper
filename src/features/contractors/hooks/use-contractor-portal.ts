@@ -34,7 +34,7 @@ export function useContractorRepresentative() {
   });
 }
 
-interface ContractorPortalProject {
+export interface ContractorPortalProject {
   id: string;
   project_code: string;
   project_name: string;
@@ -47,7 +47,11 @@ interface ContractorPortalProject {
   location_description: string | null;
   project_manager_id: string | null;
   company_id: string;
+  notes: string | null;
+  geofence_radius_meters: number | null;
   site: { name: string } | null;
+  branch: { name: string } | null;
+  department: { name: string } | null;
   project_manager: { full_name: string } | null;
 }
 
@@ -65,7 +69,9 @@ export function useContractorPortalProjects(companyId: string | undefined) {
         .select(`
           id, project_code, project_name, project_name_ar, status, start_date,
           end_date, assigned_workers_count, required_safety_officers, location_description,
-          project_manager_id, company_id, site:sites(name)
+          project_manager_id, company_id, notes, geofence_radius_meters,
+          site:sites(name), branch:branches(name), department:departments(name),
+          project_manager:profiles!contractor_projects_project_manager_id_fkey(full_name)
         `)
         .eq("company_id", companyId)
         .eq("tenant_id", tenantId)
@@ -74,27 +80,7 @@ export function useContractorPortalProjects(companyId: string | undefined) {
 
       if (error) throw error;
       
-      // Map to include project_manager placeholder (actual name fetched by dialog if needed)
-      const projects = (data || []) as Array<{
-        id: string;
-        project_code: string;
-        project_name: string;
-        project_name_ar: string | null;
-        status: string;
-        start_date: string;
-        end_date: string | null;
-        assigned_workers_count: number;
-        required_safety_officers: number | null;
-        location_description: string | null;
-        project_manager_id: string | null;
-        company_id: string;
-        site: { name: string } | null;
-      }>;
-      
-      return projects.map(p => ({
-        ...p,
-        project_manager: p.project_manager_id ? { full_name: "Project Manager" } : null,
-      }));
+      return (data || []) as unknown as ContractorPortalProject[];
     },
     enabled: !!companyId && !!tenantId,
   });
@@ -112,9 +98,20 @@ export function useContractorPortalWorkers(companyId: string | undefined) {
       const { data, error } = await supabase
         .from("contractor_workers")
         .select(`
-          id, full_name, full_name_ar, national_id, nationality, mobile_number,
-          preferred_language, approval_status, approved_at, created_at,
-          edit_pending_approval, edited_by, edited_at
+          id, tenant_id, company_id, full_name, full_name_ar, id_type, national_id,
+          date_of_birth, gender, nationality, mobile_number, email,
+          emergency_contact_name, emergency_contact_phone,
+          worker_role, worker_type, preferred_language, approval_status, approved_at,
+          approved_by, rejection_reason, created_at, photo_path,
+          safety_officer_id,
+          security_approval_status, security_approved_by, security_approved_at, security_rejection_reason,
+          photo_verified_by, photo_verified_at,
+          fitness_to_work, fitness_acknowledged, medical_check_date,
+          fitness_expiry_date, medical_certificate_path, training_certifications,
+          edit_pending_approval, edited_by, edited_at,
+          induction_status,
+          company:contractor_companies(company_name),
+          latest_induction:worker_inductions(id, status, expires_at)
         `)
         .eq("company_id", companyId)
         .eq("tenant_id", tenantId)
@@ -122,7 +119,12 @@ export function useContractorPortalWorkers(companyId: string | undefined) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      // Normalize latest_induction from array to single object (PostgREST returns array for non-unique FK)
+      return (data || []).map((w: any) => ({
+        ...w,
+        latest_induction: Array.isArray(w.latest_induction) ? w.latest_induction[0] || null : w.latest_induction,
+      }));
     },
     enabled: !!companyId && !!tenantId,
   });
@@ -141,9 +143,21 @@ export function useContractorPortalGatePasses(companyId: string | undefined) {
         .from("material_gate_passes")
         .select(`
           id, reference_number, pass_type, quantity,
-          vehicle_plate, driver_name, pass_date, status,
-          pm_approved_at, safety_approved_at, created_at,
-          project:contractor_projects(project_name)
+          material_description, vehicle_plate, driver_name,
+          driver_mobile, pass_date, start_date, end_date,
+          time_window_start, time_window_end, status,
+          requested_by, is_internal_request,
+          pm_approved_by, pm_approved_at, pm_notes,
+          safety_approved_by, safety_approved_at, safety_notes,
+          rejected_by, rejected_at, rejection_reason,
+          guard_verified_by, guard_verified_at,
+          entry_time, exit_time, created_at,
+          project_id, company_id, approval_from_id,
+          is_public_request,
+          project:contractor_projects(project_name, company:contractor_companies(company_name)),
+          company:contractor_companies(company_name),
+          approval_from:profiles!material_gate_passes_approval_from_id_fkey(full_name),
+          requester:profiles!material_gate_passes_requested_by_fkey(full_name)
         `)
         .eq("company_id", companyId)
         .eq("tenant_id", tenantId)
@@ -192,7 +206,7 @@ export function useContractorPortalStats(companyId: string | undefined) {
         .select("id", { count: "exact", head: true })
         .eq("company_id", companyId)
         .eq("tenant_id", tenantId)
-        .in("status", ["pending_pm", "pending_safety"])
+        .in("status", ["pending_dept_approval", "pending_contractor_approval", "pending_acknowledgment", "pending_security_approval"])
         .is("deleted_at", null);
 
       // Get expiring inductions
@@ -233,20 +247,84 @@ export function useContractorPortalCreateWorker() {
       nationality?: string;
       mobile_number: string;
       preferred_language?: string;
+      id_type?: string;
+      date_of_birth?: string | null;
+      gender?: string | null;
+      email?: string | null;
+      emergency_contact_name?: string | null;
+      emergency_contact_phone?: string | null;
+      worker_role?: string;
+      fitness_to_work?: string | null;
+      fitness_acknowledged?: boolean;
+      medical_check_date?: string | null;
+      fitness_expiry_date?: string | null;
+      medical_certificate_path?: string | null;
+      training_certifications?: string[];
+      photo_path?: string | null;
+      project_id?: string;
+      expiry_date?: string | null;
+      user_type?: string;
+      access_start_date?: string | null;
+      access_end_date?: string | null;
     }) => {
       if (!profile?.tenant_id) throw new Error("No tenant");
+
+      const { project_id, ...insertData } = data;
 
       const { data: result, error } = await supabase
         .from("contractor_workers")
         .insert({
-          ...data,
+          ...insertData,
+          project_id: project_id || null,
+          expiry_date: data.expiry_date || null,
           tenant_id: profile.tenant_id,
           approval_status: "pending",
-        })
+        } as any)
         .select()
-        .single();
+        .single()
+        .throwOnError();
 
       if (error) throw error;
+
+      // Auto-create project_worker_assignments link
+      if (project_id && result) {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase
+          .from("project_worker_assignments")
+          .insert({
+            project_id,
+            worker_id: result.id,
+            tenant_id: profile.tenant_id,
+            created_by: user?.id || profile.id,
+            is_active: true,
+          })
+          .throwOnError();
+      }
+
+      // Auto-create PTW access request if worker has PTW certification
+      if (data.training_certifications?.includes("ptw") && result) {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase
+          .from("ptw_access_requests")
+          .insert({
+            tenant_id: profile.tenant_id,
+            worker_id: result.id,
+            company_id: data.company_id,
+            requested_by: user?.id || profile.id,
+            status: "pending",
+          })
+          .throwOnError();
+
+        await supabase
+          .from("contractor_workers")
+          .update({
+            ptw_access_status: "pending",
+            ptw_access_requested_at: new Date().toISOString(),
+          } as any)
+          .eq("id", result.id)
+          .throwOnError();
+      }
+
       return result;
     },
     onSuccess: () => {
@@ -261,17 +339,51 @@ export function useContractorPortalCreateWorker() {
 
 // Combined hook for portal data - provides company, projects, workers in one query
 export function useContractorPortalData() {
+  const { profile, isAdmin } = useAuth();
   const rep = useContractorRepresentative();
-  const companyId = rep.data?.company?.id;
+  
+  // For admins without a rep record, fetch first company as fallback
+  const adminFallbackCompany = useQuery({
+    queryKey: ["contractor-portal-admin-fallback-company", profile?.tenant_id],
+    queryFn: async () => {
+      if (!profile?.tenant_id) return null;
+      // Pick a company that has workers/projects for a meaningful admin preview
+      const { data: companies, error } = await supabase
+        .from("contractor_companies")
+        .select("id, company_name, company_name_ar, status, email, phone")
+        .eq("tenant_id", profile.tenant_id)
+        .is("deleted_at", null)
+        .order("company_name");
+      if (error) throw error;
+      if (!companies || companies.length === 0) return null;
+
+      // Try to find a company with workers
+      for (const co of companies) {
+        const { count } = await supabase
+          .from("contractor_workers")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", co.id)
+          .is("deleted_at", null);
+        if (count && count > 0) return co;
+      }
+      // Fallback to first company
+      return companies[0];
+    },
+    enabled: !!isAdmin && !rep.data && !rep.isLoading && !!profile?.tenant_id,
+  });
+
+  const company = rep.data?.company || (isAdmin ? adminFallbackCompany.data : null);
+  const companyId = company?.id;
+
   const projects = useContractorPortalProjects(companyId);
   const workers = useContractorPortalWorkers(companyId);
 
   return {
     representative: rep.data,
-    company: rep.data?.company,
+    company,
     projects: projects.data,
     workers: workers.data,
-    isLoading: rep.isLoading || projects.isLoading || workers.isLoading,
+    isLoading: rep.isLoading || projects.isLoading || workers.isLoading || (isAdmin && adminFallbackCompany.isLoading),
     isError: rep.isError || projects.isError || workers.isError,
   };
 }

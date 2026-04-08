@@ -130,9 +130,26 @@ export function useDeptRepApproval() {
             const { handleDeptRepApproval } = await import('@/features/incidents');
             return handleDeptRepApproval(input, user.id, profile.tenant_id);
         },
-        onSuccess: (_, variables) => {
+        onSuccess: async (result, variables) => {
             queryClient.invalidateQueries({ queryKey: ['incidents'] }); queryClient.invalidateQueries({ queryKey: ['incident'] }); queryClient.invalidateQueries({ queryKey: ['corrective-actions'] }); queryClient.invalidateQueries({ queryKey: ['my-inspection-actions'] });
             toast({ title: variables.decision === 'approve' ? "Observation Approved" : "Escalation Requested", description: variables.decision === 'approve' ? "Actions released to assignees. Observation will close when all actions are verified." : "Observation has been sent to HSSE Expert for escalation review" });
+
+            // Trigger workflow WhatsApp notification for the next reviewer
+            try {
+                const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user?.id || '').single();
+                if (profile?.tenant_id) {
+                    const newStatus = variables.decision === 'approve' ? 'observation_actions_pending' : 'pending_hsse_escalation_review';
+                    supabase.functions.invoke('send-workflow-notification', {
+                        body: {
+                            incident_id: variables.incidentId,
+                            event_type: 'observation',
+                            new_status: newStatus,
+                            actor_id: user?.id,
+                            tenant_id: profile.tenant_id,
+                        }
+                    }).catch(err => console.warn('Failed to send dept rep workflow notification:', err));
+                }
+            } catch (e) { console.warn('Failed to trigger workflow notification:', e); }
         },
         onError: (error) => { toast({ title: "Error", description: error.message, variant: "destructive" }); },
     });

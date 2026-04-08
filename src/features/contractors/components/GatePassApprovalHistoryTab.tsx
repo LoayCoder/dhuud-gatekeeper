@@ -150,7 +150,9 @@ export function GatePassApprovalHistoryTab() {
                           : t("common.rejected", "Rejected")}
                         {pass.approvalAction === "approved" && (
                           <span className="text-[10px] opacity-75">
-                            ({pass.approvalRole === "pm" ? "PM" : "Safety"})
+                            ({pass.approvalRole === "dept" ? "Dept" : 
+                              pass.approvalRole === "acknowledger" ? "Ack" : 
+                              pass.approvalRole === "contractor" ? "Consultant" : "Security"})
                           </span>
                         )}
                       </Badge>

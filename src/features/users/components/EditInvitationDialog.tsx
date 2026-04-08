@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getAppUrl } from '@/lib/app-url';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -113,7 +114,7 @@ export function EditInvitationDialog({
             code: invitation.code,
             tenantName: tenant?.name || 'DHUUD Platform',
             expiresAt: invitation.expires_at,
-            inviteUrl: window.location.origin,
+            inviteUrl: getAppUrl(),
           },
         });
 

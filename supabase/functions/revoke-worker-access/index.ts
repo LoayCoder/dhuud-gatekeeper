@@ -100,7 +100,6 @@ Deno.serve(async (req) => {
         .update({
           is_active: false,
           removed_at: now,
-          removed_by: user.id,
           removal_reason: revocation_reason,
         })
         .eq('worker_id', worker_id)
@@ -120,7 +119,6 @@ Deno.serve(async (req) => {
         .update({
           is_active: false,
           removed_at: now,
-          removed_by: user.id,
           removal_reason: revocation_reason,
         })
         .eq('worker_id', worker_id)

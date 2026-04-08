@@ -4,18 +4,15 @@
 
 // Status types for public gate passes
 export type PublicGatePassStatus =
-  | 'pending_mgmt'      // Initial status - waiting for management acknowledgment
-  | 'pending_club_mgmt_ack' // Pending club management acknowledgment
-  | 'acknowledged'      // Management has acknowledged the request
-  | 'pending_security_approval' // Waiting for security approval
-  | 'pending_pm'        // Waiting for PM approval (legacy compatibility)
-  | 'pending_safety'    // Waiting for safety approval (legacy compatibility)
-  | 'approved'          // Fully approved - pass is valid
-  | 'rejected'          // Request was rejected
-  | 'used'              // Pass has been used (entry recorded)
-  | 'expired'           // Pass date has passed without use
-  | 'cancelled'         // Request was cancelled
-  | 'completed';        // Entry and exit both recorded
+  | 'pending_dept_approval'       // Waiting for department approval
+  | 'pending_acknowledgment'      // Pending gate pass acknowledgment
+  | 'pending_security_approval'   // Waiting for security approval
+  | 'approved'                    // Fully approved - pass is valid
+  | 'rejected'                    // Request was rejected
+  | 'used'                        // Pass has been used (entry recorded)
+  | 'expired'                     // Pass date has passed without use
+  | 'cancelled'                   // Request was cancelled
+  | 'completed';                  // Entry and exit both recorded
 
 // Pass type
 export type GatePassType = 'in' | 'out' | 'in_out';
@@ -72,6 +69,7 @@ export interface PublicGatePassFormData {
 
   // Location
   branch_id?: string;
+  department_id?: string;
 
   // Pass details
   pass_type: GatePassType;
@@ -233,44 +231,23 @@ export function isPublicGatePassError(
 
 // Status display configuration
 export const PUBLIC_GATE_PASS_STATUS_CONFIG: Record<PublicGatePassStatus, StatusStepConfig> = {
-  pending_mgmt: {
-    label: 'Submitted',
-    labelAr: 'تم التقديم',
+  pending_dept_approval: {
+    label: 'Under Review',
+    labelAr: 'قيد المراجعة',
     color: 'bg-blue-500',
     icon: 'Clock',
     step: 1,
   },
-  pending_club_mgmt_ack: {
-    label: 'Pending Management',
-    labelAr: 'في انتظار الإدارة',
+  pending_acknowledgment: {
+    label: 'Pending Acknowledgment',
+    labelAr: 'في انتظار الإقرار',
     color: 'bg-blue-500',
     icon: 'Clock',
     step: 1,
-  },
-  acknowledged: {
-    label: 'Acknowledged',
-    labelAr: 'تم الاستلام',
-    color: 'bg-amber-500',
-    icon: 'CheckCircle2',
-    step: 2,
   },
   pending_security_approval: {
     label: 'Pending Security',
     labelAr: 'في انتظار الأمن',
-    color: 'bg-amber-500',
-    icon: 'Clock',
-    step: 2,
-  },
-  pending_pm: {
-    label: 'Under Review',
-    labelAr: 'قيد المراجعة',
-    color: 'bg-amber-500',
-    icon: 'Clock',
-    step: 2,
-  },
-  pending_safety: {
-    label: 'Safety Review',
-    labelAr: 'مراجعة السلامة',
     color: 'bg-amber-500',
     icon: 'Clock',
     step: 2,
@@ -322,7 +299,7 @@ export const PUBLIC_GATE_PASS_STATUS_CONFIG: Record<PublicGatePassStatus, Status
 // Helper function to get status config
 export function getStatusConfig(status: string): StatusStepConfig {
   return PUBLIC_GATE_PASS_STATUS_CONFIG[status as PublicGatePassStatus] ||
-    PUBLIC_GATE_PASS_STATUS_CONFIG.pending_mgmt;
+    PUBLIC_GATE_PASS_STATUS_CONFIG.pending_dept_approval;
 }
 
 // Helper function to check if status is terminal (no more changes expected)

@@ -47,7 +47,7 @@ export interface PTWClearanceCheck {
 export function usePTWProjects(filters: PTWProjectFilters = {}) {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
-  const { branchIds, isAllBranchesMode, queryKey: branchQueryKey } = useBranchFilter();
+  const { branchIds, isAllBranchesMode, isLoading: branchLoading, queryKey: branchQueryKey } = useBranchFilter();
 
   return useQuery({
     queryKey: ["ptw-projects", tenantId, filters, ...branchQueryKey],
@@ -56,7 +56,7 @@ export function usePTWProjects(filters: PTWProjectFilters = {}) {
       const { getPTWProjects } = await import("@/features/ptw/services/ptwProjectService");
       return getPTWProjects(tenantId, filters, branchIds || [], isAllBranchesMode) as Promise<PTWProject[]>;
     },
-    enabled: !!tenantId,
+    enabled: !!tenantId && !branchLoading,
   });
 }
 
@@ -84,7 +84,6 @@ export function useCreatePTWProject() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ptw-projects"] });
-      toast.success("PTW Project created");
     },
     onError: (error: Error) => {
       toast.error(error.message);

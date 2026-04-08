@@ -6,7 +6,8 @@ export const getGatePassDetails = async (passId: string, tenantId: string): Prom
         .from("material_gate_passes")
         .select(`
       id, reference_number, project_id, company_id, pass_type, material_description,
-      quantity, vehicle_plate, driver_name, driver_mobile, pass_date,
+      quantity, vehicle_plate, vehicle_plate_letters, vehicle_plate_numbers,
+      driver_name, driver_mobile, pass_date,
       start_date, end_date, renewal_count, renewed_by, renewed_at, renewal_expires_at,
       time_window_start, time_window_end, status, requested_by,
       contractor_approved_by, contractor_approved_at, contractor_approval_notes,

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getAppUrl } from '@/lib/app-url';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -105,7 +106,7 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
               code,
               tenantName: tenant.name,
               expiresAt: expires_at,
-              inviteUrl: window.location.origin,
+              inviteUrl: getAppUrl(),
             },
             headers: session?.access_token ? {
               Authorization: `Bearer ${session.access_token}`,
@@ -202,7 +203,7 @@ export function InvitationManagement({ tenant }: InvitationManagementProps) {
           code: invitation.code,
           tenantName: tenant.name,
           expiresAt: invitation.expires_at,
-          inviteUrl: window.location.origin,
+          inviteUrl: getAppUrl(),
         },
         headers: session?.access_token ? {
           Authorization: `Bearer ${session.access_token}`,

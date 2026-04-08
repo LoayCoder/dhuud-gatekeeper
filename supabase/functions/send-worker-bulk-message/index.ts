@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendWaSenderTextMessage } from "../_shared/wasender-whatsapp.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,79 +18,8 @@ interface Worker {
   mobile_number: string | null;
 }
 
-// Sleep function for delay
+// Sleep function for delay between messages
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Send WhatsApp message using the configured provider
-async function sendWhatsAppMessage(
-  supabase: any,
-  phoneNumber: string,
-  message: string,
-  tenantId: string
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    // Fetch WhatsApp settings
-    const { data: settings, error: settingsError } = await supabase
-      .from("whatsapp_settings")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .eq("is_active", true)
-      .single();
-
-    if (settingsError || !settings) {
-      console.log("No active WhatsApp settings found for tenant:", tenantId);
-      return { success: false, error: "WhatsApp not configured" };
-    }
-
-    // Get the active provider
-    const provider = settings.active_provider || "wasender";
-
-    if (provider === "wasender") {
-      const apiKey = Deno.env.get("WASENDER_API_KEY");
-      const sessionId = settings.wasender_session_id;
-
-      if (!apiKey || !sessionId) {
-        return { success: false, error: "WaSender not configured" };
-      }
-
-      // Format phone number
-      let formattedPhone = phoneNumber.replace(/\D/g, "");
-      if (formattedPhone.startsWith("0")) {
-        formattedPhone = "966" + formattedPhone.slice(1);
-      }
-      if (!formattedPhone.startsWith("966") && formattedPhone.length === 9) {
-        formattedPhone = "966" + formattedPhone;
-      }
-
-      const response = await fetch("https://api.wasender.dev/v1/messages", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sessionId,
-          to: formattedPhone,
-          text: message,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("WaSender error:", errorText);
-        return { success: false, error: `WaSender error: ${response.status}` };
-      }
-
-      return { success: true };
-    }
-
-    return { success: false, error: "Unknown provider" };
-  } catch (error) {
-    console.error("Error sending WhatsApp message:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return { success: false, error: errorMessage };
-  }
-}
 
 // Background task to send messages with delay
 async function sendMessagesWithDelay(
@@ -112,8 +42,9 @@ async function sendMessagesWithDelay(
       continue;
     }
 
-    const result = await sendWhatsAppMessage(supabase, worker.mobile_number, message, tenantId);
-    results.push({ workerId: worker.id, ...result });
+    // Use the shared WaSender utility (correct API endpoint + phone formatting + retry logic)
+    const result = await sendWaSenderTextMessage(worker.mobile_number, message);
+    results.push({ workerId: worker.id, success: result.success, error: result.error });
 
     // Log the notification attempt
     try {
@@ -131,10 +62,10 @@ async function sendMessagesWithDelay(
       console.error("Failed to log notification:", logError);
     }
 
-    // Wait 30 seconds before sending the next message (except for the last one)
+    // Wait 6 seconds between messages to respect rate limits without causing timeout
     if (i < workers.length - 1) {
-      console.log(`[Job ${jobId}] Waiting 30 seconds before next message...`);
-      await sleep(30000);
+      console.log(`[Job ${jobId}] Waiting 6 seconds before next message...`);
+      await sleep(6000);
     }
   }
 
@@ -143,7 +74,6 @@ async function sendMessagesWithDelay(
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -155,7 +85,6 @@ Deno.serve(async (req) => {
 
     const { worker_ids, message, tenant_id }: BulkMessageRequest = await req.json();
 
-    // Validate input
     if (!worker_ids || worker_ids.length === 0) {
       return new Response(
         JSON.stringify({ success: false, error: "No workers specified" }),
@@ -200,26 +129,22 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate job ID
     const jobId = crypto.randomUUID();
-
-    // Calculate estimated completion time
-    const estimatedSeconds = workers.length * 30;
+    const estimatedSeconds = workers.length * 6;
     const estimatedCompletionTime = new Date(Date.now() + estimatedSeconds * 1000).toISOString();
 
-    // Start background task using Promise.resolve to avoid blocking
-    Promise.resolve().then(() => 
+    // Start background task
+    Promise.resolve().then(() =>
       sendMessagesWithDelay(supabase, workers as Worker[], message.trim(), tenant_id, jobId)
     );
 
-    // Return immediate response
     return new Response(
       JSON.stringify({
         success: true,
         job_id: jobId,
         total_recipients: workers.length,
         estimated_completion_time: estimatedCompletionTime,
-        message: `Sending messages to ${workers.length} workers with 30-second delay between each`,
+        message: `Sending messages to ${workers.length} workers`,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

@@ -111,16 +111,36 @@ Deno.serve(async (req) => {
           .from("contractor_workers")
           .select("company_id")
           .eq("id", requestData.workerId)
-          .single();
+          .is("deleted_at", null)
+          .maybeSingle();
 
-        if (workerError || !worker) {
+        if (workerError) {
           console.error("Failed to find worker:", workerError);
-          return new Response(
-            JSON.stringify({ error: "Worker not found" }),
-            { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
         }
-        companyId = worker.company_id;
+        
+        if (!worker) {
+          // Fallback: check if the ID belongs to a contractor representative
+          console.log("Worker not found, checking contractor_representatives...");
+          const { data: rep, error: repError } = await supabase
+            .from("contractor_representatives")
+            .select("company_id, mobile_number, full_name, user_id")
+            .eq("id", requestData.workerId)
+            .is("deleted_at", null)
+            .maybeSingle();
+
+          if (repError) {
+            console.error("Failed to find representative:", repError);
+          }
+
+          if (rep) {
+            console.log(`Found representative: ${rep.full_name}, company_id: ${rep.company_id}`);
+            companyId = rep.company_id;
+          } else {
+            console.log("Neither worker nor representative found, trying companyId from request");
+          }
+        } else {
+          companyId = worker.company_id;
+        }
       }
 
       // Find all contractor representatives for this company

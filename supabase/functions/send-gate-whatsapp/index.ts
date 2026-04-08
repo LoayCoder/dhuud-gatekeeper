@@ -16,7 +16,12 @@ interface WhatsAppRequest {
   tenant_id: string;
   
   // Notification type
-  notification_type?: 'visitor_welcome' | 'host_notification' | 'visitor_badge_link' | 'host_arrival' | 'host_departure';
+  notification_type?: 'visitor_welcome' | 'host_notification' | 'visitor_badge_link' | 'host_arrival' | 'host_departure' | 'gate_pass_status';
+  
+  // For gate_pass_status — plain text message
+  message?: string;
+  gate_pass_id?: string;
+  reference_number?: string;
   
   // For visitor welcome (enhanced with 7 variables)
   visitor_name?: string;
@@ -81,11 +86,57 @@ serve(async (req) => {
       visit_reference,
       entry_time,
       exit_time,
+      message,
+      gate_pass_id,
+      reference_number,
     } = requestData;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // === Gate Pass Status Notification (plain text) ===
+    if (notification_type === 'gate_pass_status') {
+      if (!mobile_number || !message) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'mobile_number and message are required for gate_pass_status' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`[WhatsApp] Sending gate_pass_status to ${mobile_number}, ref=${reference_number}`);
+      const result = await sendWhatsAppText(mobile_number, message);
+
+      // Log to auto_notification_logs for audit
+      if (result.messageId) {
+        await logNotificationSent({
+          tenant_id,
+          channel: 'whatsapp',
+          provider: result.provider,
+          provider_message_id: result.messageId,
+          to_address: mobile_number,
+          template_name: 'gate_pass_status',
+          status: 'pending',
+          related_entity_type: 'gate_pass',
+          related_entity_id: gate_pass_id || undefined,
+          metadata: {
+            notification_type: 'gate_pass_status',
+            reference_number,
+            gate_pass_id,
+          }
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: result.success,
+          message_id: result.messageId,
+          provider: result.provider,
+          notification_type: 'gate_pass_status',
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     // Get visitor nationality for language resolution
     let visitorNationality: string | null = null;
@@ -417,7 +468,7 @@ Please show the QR code at the gate`;
       }
       
       // Generate verification URL
-      const appUrl = Deno.env.get('APP_URL') || Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app') || 'https://app.example.com';
+      const appUrl = Deno.env.get('APP_URL') || 'https://www.dhuud.com';
       const verificationUrl = qrCodeToken ? `${appUrl}/visitor-pass/${qrCodeToken}` : '';
       
       console.log(`[WhatsApp] Sending enhanced welcome to ${mobile_number}`);

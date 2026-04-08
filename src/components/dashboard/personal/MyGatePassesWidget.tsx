@@ -45,10 +45,14 @@ export function MyGatePassesWidget() {
     switch (status) {
       case 'approved':
         return <Badge variant="default" className="text-xs">{t('common.approved', 'Approved')}</Badge>;
-      case 'pending_pm_approval':
-        return <Badge variant="secondary" className="text-xs">{t('gatePass.pendingPM', 'PM Pending')}</Badge>;
-      case 'pending_safety_approval':
-        return <Badge variant="secondary" className="text-xs">{t('gatePass.pendingSafety', 'Safety Pending')}</Badge>;
+      case 'pending_acknowledgment':
+        return <Badge variant="secondary" className="text-xs">{t('gatePass.pendingAcknowledgment', 'Pending Acknowledgment')}</Badge>;
+      case 'pending_dept_approval':
+        return <Badge variant="outline" className="text-xs">{t('gatePass.pendingDept', 'Pending Dept')}</Badge>;
+      case 'pending_contractor_approval':
+        return <Badge variant="outline" className="text-xs">{t('gatePass.pendingContractor', 'Pending Contractor')}</Badge>;
+      case 'pending_security_approval':
+        return <Badge variant="secondary" className="text-xs">{t('gatePass.pendingSecurity', 'Pending Security')}</Badge>;
       case 'completed':
         return <Badge variant="outline" className="text-xs">{t('common.completed', 'Completed')}</Badge>;
       case 'rejected':

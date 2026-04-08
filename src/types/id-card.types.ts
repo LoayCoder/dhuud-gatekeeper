@@ -132,35 +132,35 @@ export const DEFAULT_CARD_SETTINGS: Record<IDCardType, Partial<TenantIDCardSetti
     front_fields: ['full_name', 'company', 'destination', 'host_name', 'valid_until'],
     back_enabled: true,
     back_fields: ['emergency_contact', 'safety_instructions'],
-    front_accent_color: '#3b82f6', // Blue
+    front_accent_color: '#3F434C', // Gray
     template_preset: 'standard',
   },
   visitor_vip: {
     front_fields: ['full_name', 'company', 'destination', 'host_name', 'valid_until'],
     back_enabled: false,
     back_fields: [],
-    front_accent_color: '#ca8a04', // Gold
+    front_accent_color: '#3F434C', // Gray
     template_preset: 'corporate',
   },
   worker: {
     front_fields: ['full_name', 'company', 'role', 'project', 'valid_until'],
     back_enabled: true,
     back_fields: ['safety_instructions', 'induction_status', 'emergency_contact'],
-    front_accent_color: '#f97316', // Orange
+    front_accent_color: '#C43718', // Red
     template_preset: 'safety',
   },
   employee: {
     front_fields: ['full_name', 'department', 'role', 'employee_id'],
     back_enabled: false,
     back_fields: ['office_location', 'emergency_contact'],
-    front_accent_color: '#1e40af', // Deep Blue
+    front_accent_color: '#2B64E3', // Blue
     template_preset: 'corporate',
   },
   contractor_rep: {
     front_fields: ['full_name', 'company', 'role', 'valid_until'],
     back_enabled: true,
     back_fields: ['contract_validity', 'company_contact'],
-    front_accent_color: '#7c3aed', // Purple
+    front_accent_color: '#FFA21A', // Orange
     template_preset: 'standard',
   },
 };

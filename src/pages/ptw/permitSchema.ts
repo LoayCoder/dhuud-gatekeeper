@@ -9,7 +9,7 @@ export const permitFormSchema = z.object({
     contractor_name: z.string().optional(),
     building_id: z.string().optional(),
     floor_zone_id: z.string().optional(),
-    location_details: z.string().min(1),
+    location_details: z.string().optional().default(""),
     gps_lat: z.number().optional(),
     gps_lng: z.number().optional(),
     planned_start_time: z.string().min(1),
@@ -17,8 +17,8 @@ export const permitFormSchema = z.object({
     job_description: z.string().min(1),
 
     // Step 2
-    worker_ids: z.array(z.string()).min(1),
-    permit_holder_id: z.string().min(1),
+    worker_ids: z.array(z.string()).default([]),
+    permit_holder_id: z.string().optional(),
 
     // Step 3 — dynamic, keep flexible
     operational_data: z.record(z.unknown()).optional()
