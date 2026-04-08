@@ -16770,10 +16770,15 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          clearance_expires_at: string | null
+          clearance_notes: string | null
+          control_measures: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
+          high_risk_zones_marked: boolean
           id: string
+          known_risks: string | null
           mobilization_percentage: number
           pre_checks_completed: boolean
           project_id: string
@@ -16783,15 +16788,24 @@ export type Database = {
           site_clearance_approved: boolean
           status: string
           tenant_id: string
+          underground_utilities_identified: boolean
           updated_at: string
+          utility_verified: boolean
+          validity_days: number
+          work_boundaries_defined: boolean
         }
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          clearance_expires_at?: string | null
+          clearance_notes?: string | null
+          control_measures?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          high_risk_zones_marked?: boolean
           id?: string
+          known_risks?: string | null
           mobilization_percentage?: number
           pre_checks_completed?: boolean
           project_id: string
@@ -16801,15 +16815,24 @@ export type Database = {
           site_clearance_approved?: boolean
           status?: string
           tenant_id: string
+          underground_utilities_identified?: boolean
           updated_at?: string
+          utility_verified?: boolean
+          validity_days?: number
+          work_boundaries_defined?: boolean
         }
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          clearance_expires_at?: string | null
+          clearance_notes?: string | null
+          control_measures?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          high_risk_zones_marked?: boolean
           id?: string
+          known_risks?: string | null
           mobilization_percentage?: number
           pre_checks_completed?: boolean
           project_id?: string
@@ -16819,7 +16842,11 @@ export type Database = {
           site_clearance_approved?: boolean
           status?: string
           tenant_id?: string
+          underground_utilities_identified?: boolean
           updated_at?: string
+          utility_verified?: boolean
+          validity_days?: number
+          work_boundaries_defined?: boolean
         }
         Relationships: [
           {
@@ -20979,6 +21006,189 @@ export type Database = {
           },
           {
             foreignKeyName: "shift_swap_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_clearance_attachments: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          file_name: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          mobilization_id: string
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          mobilization_id: string
+          storage_path: string
+          tenant_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          mobilization_id?: string
+          storage_path?: string
+          tenant_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_clearance_attachments_mobilization_id_fkey"
+            columns: ["mobilization_id"]
+            isOneToOne: false
+            referencedRelation: "project_mobilizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_attachments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_clearance_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          details: Json | null
+          discipline: string | null
+          id: string
+          mobilization_id: string
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          details?: Json | null
+          discipline?: string | null
+          id?: string
+          mobilization_id: string
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          details?: Json | null
+          discipline?: string | null
+          id?: string
+          mobilization_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_clearance_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_audit_logs_mobilization_id_fkey"
+            columns: ["mobilization_id"]
+            isOneToOne: false
+            referencedRelation: "project_mobilizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_clearance_signoffs: {
+        Row: {
+          comments: string | null
+          created_at: string
+          deleted_at: string | null
+          discipline: string
+          id: string
+          is_required: boolean
+          mobilization_id: string
+          signed_at: string | null
+          signed_by: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          discipline: string
+          id?: string
+          is_required?: boolean
+          mobilization_id: string
+          signed_at?: string | null
+          signed_by?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          discipline?: string
+          id?: string
+          is_required?: boolean
+          mobilization_id?: string
+          signed_at?: string | null
+          signed_by?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_clearance_signoffs_mobilization_id_fkey"
+            columns: ["mobilization_id"]
+            isOneToOne: false
+            referencedRelation: "project_mobilizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_signoffs_signed_by_fkey"
+            columns: ["signed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_signoffs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
