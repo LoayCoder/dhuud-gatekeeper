@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useCreateGatePass } from "@/features/contractors/hooks/use-material-gate-passes";
-import { useGolfClubMgmtApprovers } from "@/features/contractors/hooks/use-golf-club-mgmt-approvers";
+import { useGatePassFallbackApprovers } from "@/features/contractors/hooks/use-gate-pass-fallback-approvers";
 import { useAutoResolveApprover } from "@/features/contractors/hooks/use-auto-resolve-approver";
 import { DhuudPhoneInput } from "@/components/ui/phone-input";
 import { WizardProgressIndicator } from "./WizardProgressIndicator";
@@ -82,7 +82,7 @@ export function GatePassCreateWizard({ onCancel, onSuccess }: GatePassCreateWiza
 
   // API hooks
   const createGatePass = useCreateGatePass();
-  const { data: approvers, isLoading: loadingApprovers } = useGolfClubMgmtApprovers();
+  const { data: approvers, isLoading: loadingApprovers } = useGatePassFallbackApprovers();
   const { 
     approver: autoResolvedApprover, 
     isLoading: loadingAutoApprover, 

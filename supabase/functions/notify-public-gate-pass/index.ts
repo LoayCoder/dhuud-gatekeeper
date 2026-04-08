@@ -108,7 +108,7 @@ Your gate pass request has been received.
 ${branchName ? `📍 الموقع | Location: ${branchName}` : ''}
 
 ⏳ *في انتظار | Pending with:*
-إدارة النادي | Golf Club Management
+موافقة القسم | Department Approval
 
 🔗 *تتبع الحالة | Track status:*
 ${fullTrackingUrl}
@@ -125,7 +125,7 @@ You will be notified when your request is reviewed.
       });
       console.log(`[notify-public-gate-pass] Requester notification: ${requesterResult.success ? 'sent' : 'failed'}`);
 
-      // 2. Find gate_pass_acknowledger users for this tenant (replaces legacy Golf Club Management lookup)
+      // 2. Find gate_pass_acknowledger users for this tenant
       const { data: acknowledgerAssignments, error: ackError } = await supabase
         .from('user_role_assignments')
         .select(`

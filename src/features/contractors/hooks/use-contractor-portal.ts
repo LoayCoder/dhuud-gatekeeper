@@ -193,7 +193,7 @@ export function useContractorPortalStats(companyId: string | undefined) {
         .select("id", { count: "exact", head: true })
         .eq("company_id", companyId)
         .eq("tenant_id", tenantId)
-        .in("status", ["pending_pm", "pending_safety"])
+        .in("status", ["pending_dept_approval", "pending_contractor_approval", "pending_acknowledgment", "pending_security_approval"])
         .is("deleted_at", null);
 
       // Get expiring inductions

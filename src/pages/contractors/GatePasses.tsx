@@ -146,8 +146,9 @@ const [searchParams, setSearchParams] = useSearchParams();
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("common.all", "All")}</SelectItem>
+                      <SelectItem value="pending_dept_approval">{t("contractors.passStatus.pendingDept", "Pending Dept Approval")}</SelectItem>
                       <SelectItem value="pending_contractor_approval">{t("contractors.passStatus.pendingContractor", "Pending Contractor")}</SelectItem>
-                      <SelectItem value="pending_club_mgmt_ack">{t("contractors.passStatus.pendingClubMgmt", "Pending Club Mgmt")}</SelectItem>
+                      <SelectItem value="pending_acknowledgment">{t("contractors.passStatus.pendingAcknowledgment", "Pending Acknowledgment")}</SelectItem>
                       <SelectItem value="pending_security_approval">{t("contractors.passStatus.pendingSecurity", "Pending Security")}</SelectItem>
                       <SelectItem value="approved">{t("contractors.passStatus.approved", "Approved")}</SelectItem>
                       <SelectItem value="used">{t("contractors.passStatus.used", "Used")}</SelectItem>

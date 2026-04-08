@@ -61,7 +61,7 @@ export interface GatePassDetailData {
   pm_approved_by: string | null;
   pm_approved_at: string | null;
   pm_notes: string | null;
-  // Club Management acknowledgment (new step)
+  // Gate Pass Acknowledgment (step 2 in unified workflow)
   club_mgmt_ack_by: string | null;
   club_mgmt_ack_at: string | null;
   club_mgmt_ack_notes: string | null;
