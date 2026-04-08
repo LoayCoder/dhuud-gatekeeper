@@ -5701,6 +5701,7 @@ export type Database = {
           id_card_image_path: string | null
           id_card_sent_at: string | null
           id_type: string
+          induction_status: string
           medical_certificate_path: string | null
           medical_check_date: string | null
           mobile_number: string
@@ -5762,6 +5763,7 @@ export type Database = {
           id_card_image_path?: string | null
           id_card_sent_at?: string | null
           id_type?: string
+          induction_status?: string
           medical_certificate_path?: string | null
           medical_check_date?: string | null
           mobile_number: string
@@ -5823,6 +5825,7 @@ export type Database = {
           id_card_image_path?: string | null
           id_card_sent_at?: string | null
           id_type?: string
+          induction_status?: string
           medical_certificate_path?: string | null
           medical_check_date?: string | null
           mobile_number?: string
