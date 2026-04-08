@@ -162,8 +162,14 @@ export default function PublicRequestPage() {
     : null;
 
   const { data: tenant, isLoading: loadingTenant, error: tenantError } = useTenantBySlug(tenantSlug);
+  const branchId = form.watch('branchId');
+  const departmentId = form.watch('departmentId');
   const { data: branches, isLoading: loadingBranches } = usePublicBranches(tenant?.id);
+  const { data: departments, isLoading: loadingDepartments } = usePublicDepartments(tenant?.id, branchId || undefined);
   const submitGatePass = useSubmitPublicGatePass();
+
+  // Find the selected department's approver for display
+  const selectedDeptApprover = departments?.find(d => d.department_id === departmentId);
 
   // Clean up photo URLs on unmount
   useEffect(() => {
