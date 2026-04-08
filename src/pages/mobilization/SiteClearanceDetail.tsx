@@ -720,3 +720,54 @@ function SeverityBadge({ severity }: { severity: string }) {
     </span>
   );
 }
+
+const TAB_ORDER = ["risk-verification", "discipline-signoff", "risks-controls", "work-readiness"] as const;
+const TAB_LABELS: Record<string, string> = {
+  "risk-verification": "Site Risks",
+  "discipline-signoff": "Sign-Offs",
+  "risks-controls": "Risks",
+  "work-readiness": "Readiness",
+};
+
+function TabNavButtons({
+  current,
+  onChangeTab,
+  onSaveDraft,
+  isApproved,
+}: {
+  current: string;
+  onChangeTab: (tab: string) => void;
+  onSaveDraft: () => void;
+  isApproved: boolean;
+}) {
+  const idx = TAB_ORDER.indexOf(current as typeof TAB_ORDER[number]);
+  const prevTab = idx > 0 ? TAB_ORDER[idx - 1] : null;
+  const nextTab = idx < TAB_ORDER.length - 1 ? TAB_ORDER[idx + 1] : null;
+
+  return (
+    <div className="flex items-center justify-between pt-2">
+      <div>
+        {prevTab && (
+          <Button variant="outline" size="sm" onClick={() => onChangeTab(prevTab)}>
+            <ArrowLeft className="me-2 h-4 w-4 rtl:rotate-180" />
+            {TAB_LABELS[prevTab]}
+          </Button>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        {!isApproved && (
+          <Button variant="outline" size="sm" onClick={onSaveDraft}>
+            <Save className="me-2 h-4 w-4" />
+            Save as Draft
+          </Button>
+        )}
+        {nextTab && (
+          <Button size="sm" onClick={() => onChangeTab(nextTab)}>
+            Save & Next
+            <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
