@@ -266,7 +266,7 @@ export async function getSiteClearanceRisks(mobilizationId: string) {
   const { data, error } = await supabase
     .from('site_clearance_risks')
     .select(`
-      id, risk_description, severity, control_measures, created_at,
+      id, risk_description, severity, control_measures, residual_severity, created_at,
       creator:profiles!site_clearance_risks_created_by_fkey(full_name)
     `)
     .eq('mobilization_id', mobilizationId)
@@ -302,7 +302,7 @@ export async function addSiteClearanceRisk(
 
 export async function updateSiteClearanceRisk(
   riskId: string,
-  fields: { risk_description?: string; severity?: RiskSeverity; control_measures?: string }
+  fields: { risk_description?: string; severity?: RiskSeverity; control_measures?: string; residual_severity?: RiskSeverity }
 ) {
   const { data, error } = await supabase
     .from('site_clearance_risks')
