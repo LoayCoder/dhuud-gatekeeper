@@ -73,11 +73,11 @@ function buildTimelineEvents(passDetails: any, t: any): TimelineEvent[] {
     });
   }
 
-  // Club Mgmt Ack (legacy)
+  // Gate Pass Acknowledged
   if (passDetails.club_mgmt_ack_at) {
     events.push({
-      type: "mgmt_acknowledged",
-      label: t("gatePass.timeline.mgmtAck", "Management Acknowledged"),
+      type: "acknowledged",
+      label: t("gatePass.timeline.acknowledged", "Gate Pass Acknowledged"),
       timestamp: passDetails.club_mgmt_ack_at,
       actor: passDetails.club_mgmt_acker || null,
       notes: passDetails.club_mgmt_ack_notes,
@@ -188,11 +188,9 @@ export function GatePassDetailDialog({
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       approved: "default",
       pending_contractor_approval: "secondary",
-      pending_dept_ack: "secondary",
       pending_dept_approval: "secondary",
+      pending_acknowledgment: "secondary",
       pending_security_approval: "secondary",
-      pending_pm_approval: "secondary",
-      pending_safety_approval: "secondary",
       rejected: "destructive",
       completed: "outline",
       used: "outline",
@@ -202,11 +200,9 @@ export function GatePassDetailDialog({
     const labels: Record<string, string> = {
       approved: t("contractors.passStatus.approved", "Approved"),
       pending_contractor_approval: t("contractors.passStatus.pendingContractor", "Pending Contractor"),
-      pending_dept_ack: t("contractors.passStatus.pendingDeptAck", "Pending Dept Ack"),
       pending_dept_approval: t("contractors.passStatus.pendingDeptApproval", "Pending Dept"),
+      pending_acknowledgment: t("contractors.passStatus.pendingAcknowledgment", "Pending Acknowledgment"),
       pending_security_approval: t("contractors.passStatus.pendingSecurity", "Pending Security"),
-      pending_pm_approval: t("contractors.passStatus.pendingPm", "Pending PM"),
-      pending_safety_approval: t("contractors.passStatus.pendingSafety", "Pending Safety"),
       rejected: t("contractors.passStatus.rejected", "Rejected"),
       completed: t("contractors.passStatus.completed", "Completed"),
       used: t("contractors.passStatus.used", "Entry Verified"),
@@ -222,11 +218,9 @@ export function GatePassDetailDialog({
 
   const isPendingAction = [
     "pending_contractor_approval",
-    "pending_dept_ack",
     "pending_dept_approval",
+    "pending_acknowledgment",
     "pending_security_approval",
-    "pending_pm_approval",
-    "pending_safety_approval",
   ].includes(pass.status);
 
   const handleApprovalSuccess = () => {
