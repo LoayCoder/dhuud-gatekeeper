@@ -246,13 +246,13 @@ export function UserDetailPopover({ user, onEdit, onToggleStatus, onDelete }: Us
                 {t('common.delete')}
               </Button>
             </div>
-            {showIdCard && idCardPersonData && cachedProfile?.tenant_id && (
+            {showIdCard && idCardPersonData && cachedProfile?.data?.tenant_id && (
               <div className="flex justify-center pt-1">
                 <IDCardActionButton
                   cardType={idCardType}
                   entityId={user.id}
                   personData={idCardPersonData}
-                  tenantId={cachedProfile.tenant_id}
+                  tenantId={cachedProfile.data.tenant_id}
                   recipientPhone={user.phone_number || undefined}
                   variant="outline"
                   size="sm"
