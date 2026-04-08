@@ -52,6 +52,8 @@ export interface ContractorWorker {
     fitness_expiry_date?: string | null;
     medical_certificate_path?: string | null;
     training_certifications?: string[] | null;
+    // Induction lifecycle tracking
+    induction_status?: string;
 }
 
 export interface ContractorWorkerFilters {

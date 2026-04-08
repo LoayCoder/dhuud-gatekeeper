@@ -1,6 +1,6 @@
 import React from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Camera, HeartPulse, FileWarning } from "lucide-react";
+import { Camera, HeartPulse, FileWarning, GraduationCap } from "lucide-react";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers/types";
 
 interface ComplianceFlag {
@@ -34,6 +34,18 @@ export function getComplianceFlags(
     }
   } else if (!worker.medical_check_date) {
     flags.push({ level: "warning", icon: FileWarning, message: t("contractors.workers.noMedicalRecord", "No medical check on record") });
+  }
+
+  // Induction status flags — only relevant for approved workers
+  if (worker.approval_status === "approved") {
+    const inductionStatus = worker.induction_status || "none";
+    if (inductionStatus === "none" || inductionStatus === "pending") {
+      flags.push({ level: "warning", icon: GraduationCap, message: t("contractors.workers.inductionNotSent", "Safety induction not yet sent") });
+    } else if (inductionStatus === "sent") {
+      flags.push({ level: "warning", icon: GraduationCap, message: t("contractors.workers.inductionPending", "Safety induction sent — awaiting completion") });
+    } else if (inductionStatus === "expired") {
+      flags.push({ level: "critical", icon: GraduationCap, message: t("contractors.workers.inductionExpired", "Safety induction has expired") });
+    }
   }
 
   return flags;
