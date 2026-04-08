@@ -144,7 +144,7 @@ function MobilizationProjectCard({ project }: { project: any }) {
           <Badge variant={mobilizationStatusBadge[mobStatus] || "outline"}>
             {mobStatus === "none"
               ? t("mobilization.status.notStarted", "Not Started")
-              : t(`mobilization.status.${mobStatus}`, mobStatus.replace(/_/g, " "))
+              : t(`mobilization.status.${mobStatus}`, String(mobStatus).replace(/_/g, " "))
             }
           </Badge>
         </div>
