@@ -405,6 +405,7 @@ export default function SiteClearanceDetail() {
               )}
             </CardContent>
           </Card>
+          <TabNavButtons current="discipline-signoff" onChangeTab={setActiveTab} onSaveDraft={handleSaveDraft} isApproved={isApproved} />
         </TabsContent>
 
         <TabsContent value="risks-controls" className="space-y-4">
