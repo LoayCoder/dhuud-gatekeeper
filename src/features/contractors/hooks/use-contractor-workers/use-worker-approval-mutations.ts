@@ -224,16 +224,17 @@ export function useSecurityApproveWorker() {
 
             // Auto-trigger onboarding (QR code generation) - only if project is assigned
             if (projectId) {
-              try {
-                await supabase.functions.invoke("onboard-worker", {
-                    body: {
-                        worker_id: data.id,
-                        project_id: projectId,
-                        tenant_id: data.tenant_id,
-                    },
-                });
-            } catch (e) {
-                console.error("Failed to auto-onboard worker:", e);
+                try {
+                    await supabase.functions.invoke("onboard-worker", {
+                        body: {
+                            worker_id: data.id,
+                            project_id: projectId,
+                            tenant_id: data.tenant_id,
+                        },
+                    });
+                } catch (e) {
+                    console.error("Failed to auto-onboard worker:", e);
+                }
             }
         },
         onError: (error: Error) => {
