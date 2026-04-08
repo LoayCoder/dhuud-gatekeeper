@@ -30,6 +30,8 @@ type LegacyAuditAction =
   | "worker_blacklisted"
   | "worker_deleted"
   | "worker_edit_approved"
+  | "worker_security_approved"
+  | "worker_security_rejected"
   | "gate_pass_created"
   | "gate_pass_approved"
   | "gate_pass_rejected"
