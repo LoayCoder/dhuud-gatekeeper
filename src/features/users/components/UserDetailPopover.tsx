@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,9 @@ import { RoleBadge } from '@/components/roles/RoleBadge';
 import { RoleCategory } from '@/features/users';
 import { UserWithRoles } from '@/features/users';
 import { getUserTypeLabel } from '@/lib/license-utils';
+import { IDCardActionButton } from '@/features/admin/components/id-cards/IDCardActionButton';
+import { useCachedProfile } from '@/hooks/use-cached-profile';
+import type { IDCardPersonData, IDCardType } from '@/types/id-card.types';
 
 interface UserDetailPopoverProps {
   user: UserWithRoles;
@@ -33,6 +36,23 @@ export function UserDetailPopover({ user, onEdit, onToggleStatus, onDelete }: Us
   const [open, setOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const cachedProfile = useCachedProfile();
+
+  // Determine if user should get an ID card button
+  const showIdCard = ['employee', 'member'].includes(user.user_type || '');
+  const idCardType: IDCardType = 'employee';
+
+  const idCardPersonData: IDCardPersonData | null = useMemo(() => {
+    if (!showIdCard) return null;
+    return {
+      id: user.id,
+      fullName: user.full_name || '',
+      role: user.job_title || undefined,
+      department: user.department_name || undefined,
+      employeeId: user.employee_id || undefined,
+      qrToken: user.id,
+    };
+  }, [showIdCard, user.id, user.full_name, user.job_title, user.department_name, user.employee_id]);
 
   const hierarchyArrow = direction === 'rtl' ? 'â†' : 'â†’';
 
@@ -187,43 +207,59 @@ export function UserDetailPopover({ user, onEdit, onToggleStatus, onDelete }: Us
           <Separator />
 
           {/* Actions */}
-          <div className="p-2 flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 gap-1.5"
-              onClick={handleEdit}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-              {t('common.edit')}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 gap-1.5"
-              onClick={handleStatusClick}
-            >
-              {user.is_active ? (
-                <>
-                  <UserX className="h-3.5 w-3.5" />
-                  {t('userManagement.deactivate')}
-                </>
-              ) : (
-                <>
-                  <UserCheck className="h-3.5 w-3.5" />
-                  {t('userManagement.activate')}
-                </>
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={handleDeleteClick}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              {t('common.delete')}
-            </Button>
+          <div className="p-2 space-y-1">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 gap-1.5"
+                onClick={handleEdit}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                {t('common.edit')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 gap-1.5"
+                onClick={handleStatusClick}
+              >
+                {user.is_active ? (
+                  <>
+                    <UserX className="h-3.5 w-3.5" />
+                    {t('userManagement.deactivate')}
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="h-3.5 w-3.5" />
+                    {t('userManagement.activate')}
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={handleDeleteClick}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {t('common.delete')}
+              </Button>
+            </div>
+            {showIdCard && idCardPersonData && cachedProfile?.data?.tenant_id && (
+              <div className="flex justify-center pt-1">
+                <IDCardActionButton
+                  cardType={idCardType}
+                  entityId={user.id}
+                  personData={idCardPersonData}
+                  tenantId={cachedProfile.data.tenant_id}
+                  recipientPhone={user.phone_number || undefined}
+                  variant="outline"
+                  size="sm"
+                  showLabel
+                />
+              </div>
+            )}
           </div>
         </PopoverContent>
       </Popover>
