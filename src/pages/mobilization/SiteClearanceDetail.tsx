@@ -320,6 +320,7 @@ export default function SiteClearanceDetail() {
               )}
             </CardContent>
           </Card>
+          <TabNavButtons current="risk-verification" onChangeTab={setActiveTab} onSaveDraft={handleSaveDraft} isApproved={isApproved} />
         </TabsContent>
 
         {/* ==================== TAB 2: Discipline Sign-Off ==================== */}
