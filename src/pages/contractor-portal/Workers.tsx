@@ -27,7 +27,7 @@ function ContractorPortalWorkersContent() {
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [editingWorker, setEditingWorker] = useState<PortalWorker | null>(null);
+  const [editingWorker, setEditingWorker] = useState<any | null>(null);
   const [selectedWorker, setSelectedWorker] = useState<ContractorWorker | null>(null);
 
   const filteredWorkers = workers?.filter(worker => {
@@ -168,7 +168,7 @@ function ContractorPortalWorkersContent() {
                                 <button
                                   type="button"
                                   className="font-medium text-start hover:underline hover:text-primary cursor-pointer bg-transparent border-none p-0"
-                                  onClick={() => openWorkerDetail(worker as PortalWorker)}
+                                  onClick={() => openWorkerDetail(worker)}
                                 >
                                   {worker.full_name}
                                 </button>
@@ -201,7 +201,7 @@ function ContractorPortalWorkersContent() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => setEditingWorker(worker as PortalWorker)}
+                                  onClick={() => setEditingWorker(worker)}
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
@@ -223,7 +223,7 @@ function ContractorPortalWorkersContent() {
                     <div
                       key={worker.id}
                       className="border rounded-lg p-3 space-y-2 active:bg-muted/50 transition-colors"
-                      onClick={() => openWorkerDetail(worker as PortalWorker)}
+                      onClick={() => openWorkerDetail(worker)}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
@@ -244,7 +244,7 @@ function ContractorPortalWorkersContent() {
                             className="h-8 w-8"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setEditingWorker(worker as PortalWorker);
+                              setEditingWorker(worker);
                             }}
                           >
                             <Pencil className="h-4 w-4" />
