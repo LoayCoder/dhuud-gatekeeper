@@ -126,6 +126,9 @@ export function useApproveWorker() {
 }
 
 // Stage 2: Security Supervisor OR Security Manager final approval
+// After security approval, ONLY onboard-worker is called.
+// onboard-worker handles BOTH induction sending AND QR generation via shared module.
+// NO separate send-induction-video call — eliminates duplicate messages.
 export function useSecurityApproveWorker() {
     const queryClient = useQueryClient();
     const { t } = useTranslation();
@@ -150,7 +153,7 @@ export function useSecurityApproveWorker() {
                     security_approved_by: user?.id,
                 })
                 .eq("id", workerId)
-                .select("id, full_name, tenant_id, company_id, mobile_number, preferred_language")
+                .select("id, full_name, tenant_id, company_id, mobile_number, preferred_language, project_id")
                 .single();
 
             if (error) throw error;
@@ -162,6 +165,7 @@ export function useSecurityApproveWorker() {
             queryClient.invalidateQueries({ queryKey: ["pending-security-approvals"] });
             toast.success(t("contractors.messages.workerApprovedBySecurity", "Worker approved by security"));
 
+            // Audit log
             try {
                 await supabase.functions.invoke("contractor-audit-log", {
                     body: {
@@ -177,6 +181,7 @@ export function useSecurityApproveWorker() {
                 console.error("Failed to log audit event:", e);
             }
 
+            // Send approval notification to contractor
             try {
                 await supabase.functions.invoke("send-contractor-notification", {
                     body: {
@@ -190,7 +195,7 @@ export function useSecurityApproveWorker() {
                 console.error("Failed to send notification:", e);
             }
 
-            // Auto-fetch project assignment for induction context
+            // Resolve project ID: assignment table → worker.project_id fallback
             let projectId: string | null = null;
             try {
                 const { data: assignment } = await supabase
@@ -206,23 +211,12 @@ export function useSecurityApproveWorker() {
                 console.error("Failed to fetch project assignment:", e);
             }
 
-            try {
-                await supabase.functions.invoke("send-induction-video", {
-                    body: {
-                        workerId: data.id,
-                        workerName: data.full_name,
-                        workerMobile: data.mobile_number,
-                        workerLanguage: data.preferred_language || "en",
-                        tenant_id: data.tenant_id,
-                        ...(projectId ? { projectId } : {}),
-                    },
-                });
-                toast.info(t("contractors.messages.inductionSentToWorker", "Safety induction sent to worker"));
-            } catch (e) {
-                console.error("Failed to send induction video:", e);
+            // Fallback to worker's direct project_id
+            if (!projectId && data.project_id) {
+                projectId = data.project_id;
             }
 
-            // Auto-trigger onboarding (QR code generation) - only if project is assigned
+            // Auto-trigger onboarding (induction + QR) — SINGLE call, no duplicate
             if (projectId) {
                 try {
                     await supabase.functions.invoke("onboard-worker", {
@@ -232,9 +226,12 @@ export function useSecurityApproveWorker() {
                             tenant_id: data.tenant_id,
                         },
                     });
+                    toast.info(t("contractors.messages.inductionSentToWorker", "Safety induction sent to worker"));
                 } catch (e) {
                     console.error("Failed to auto-onboard worker:", e);
                 }
+            } else {
+                console.warn("[SecurityApprove] No project assigned to worker, skipping onboarding");
             }
         },
         onError: (error: Error) => {
