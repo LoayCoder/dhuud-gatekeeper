@@ -1,34 +1,87 @@
 
+## Fix plan: remove the remaining mobile overlap in Security Approvals
 
-# Mobile Responsiveness Fix — Security Approval Queue
+### What is actually causing it
+From the current code, the remaining mobile issue is not only button width. The dashboard is rendering:
 
-## Problems (from screenshot)
-1. "Pending Security Review" badge overflows/clips on the right side of worker cards
-2. "Return with Comments" button text gets cut off even with the mobile shortening
-3. Worker name + badge row doesn't wrap properly on narrow screens
-4. Card content has insufficient breathing room on small devices
+- an outer **“Security Approvals”** card in `AccessControlDashboard.tsx`
+- and inside it, a full standalone **`WorkerSecurityApprovalQueue`** header with:
+  - its own title
+  - role subtitle
+  - pending count
+  - intro note
 
-## Changes
+On small screens, that creates duplicated section chrome and makes the area feel stacked/overlapping even before the worker card starts.
 
-### File 1: `src/features/contractors/components/WorkerSecurityApprovalQueue.tsx`
+### Implementation plan
 
-**Badge overflow fix:** The worker card header currently places the avatar, name, and a status badge in a single flex row. On mobile, the badge overflows. Fix by:
-- Removing the inline "Pending Security Review" badge from the header row
-- Moving any status indicator below the name as a small block-level badge that wraps naturally
+#### 1. Make `WorkerSecurityApprovalQueue` support an embedded/mobile-compact mode
+**File:** `src/features/contractors/components/WorkerSecurityApprovalQueue.tsx`
 
-**Button layout fix:** Change buttons from side-by-side (`flex`) to stacked vertically on mobile (`flex-col sm:flex-row`), ensuring both "Grant Security Clearance" / "Approve" and "Return with Comments" / "Reject" buttons get full width on small screens.
+Add a small prop like `embedded?: boolean` (or `showHeader?: boolean`) so the component can behave differently when used inside another dashboard card.
 
-**Worker info section:** Ensure all info rows (ID, phone, nationality) use `break-all` on values to prevent long IDs from overflowing.
+In embedded mode:
+- hide the internal queue title/subtitle/count block
+- keep the worker cards and essential note only
+- tighten spacing so the first worker card starts sooner
+- keep the standalone full header for the Contractors page
 
-**Pre-approved text:** Add `break-words` and ensure the timestamp line wraps cleanly.
+Also update the standalone header itself so it wraps safely on mobile:
+- use `flex-col sm:flex-row` instead of competing left/right layout
+- replace `truncate` with `whitespace-normal break-words` for titles/company names
+- keep the count badge on its own row on mobile if needed
 
-### File 2: `src/pages/security/AccessControlDashboard.tsx`
+#### 2. Flatten the Security Approvals section inside the dashboard
+**File:** `src/pages/security/AccessControlDashboard.tsx`
 
-**Approvals tab grid:** Change `grid gap-4 lg:grid-cols-2` to `grid gap-3 grid-cols-1 lg:grid-cols-2` — on mobile the two approval cards (Visitor + Worker) should always stack vertically with tighter gaps.
+Update the dashboard usage to pass the embedded variant:
+```tsx
+<WorkerSecurityApprovalQueue embedded />
+```
 
-**Container padding:** Reduce `py-4 px-4` to `py-3 px-3 sm:px-4 md:px-6` for tighter mobile fit.
+Then refine the outer card so it becomes the only section header on mobile:
+- make the card title row `flex-wrap`
+- keep the badge from colliding with the title
+- reduce inner content padding slightly on mobile
+- remove extra top spacing so the queue starts cleanly under the header
 
----
+This will eliminate the current double-title / double-count effect:
+- outer: “Security Approvals”
+- inner: “Security Approval Queue / 1 pending”
 
-**Files changed:** 2 files updated
+#### 3. Keep worker cards in “wrap, don’t truncate” mode
+**File:** `src/features/contractors/components/WorkerSecurityApprovalQueue.tsx`
 
+Apply the same mobile pattern used in the contractor portal:
+- `break-words` / `whitespace-normal` for long names and company names
+- `break-all` for ID and phone
+- keep action buttons stacked vertically on mobile
+- if any status pill is shown, place it on its own wrapping row under the name, never in the same header row
+
+#### 4. Preserve the standalone Workers page behavior
+**File:** `src/pages/contractors/Workers.tsx`
+
+No visual redesign is needed there beyond using the default standalone variant. The component should still show its full header when opened from the dedicated workers security tab.
+
+### Technical details
+- No backend or database changes
+- Main change is a UI composition fix, not a data fix
+- Likely files:
+  - `src/features/contractors/components/WorkerSecurityApprovalQueue.tsx`
+  - `src/pages/security/AccessControlDashboard.tsx`
+  - optionally `src/pages/contractors/Workers.tsx` if explicit prop usage is preferred for clarity
+
+### Expected result
+On mobile, the Security Approvals section will show:
+- one clean section heading
+- no duplicate pending counters competing for space
+- no clipped/stacked header chrome
+- worker cards that wrap naturally and remain readable
+
+### QA to verify
+Test at the current narrow viewport range (around 384–390px) in both English and Arabic:
+- no overlap in the Access Dashboard Security Approvals section
+- no duplicate queue header inside the dashboard card
+- worker name/company/ID/phone all wrap correctly
+- approve/reject buttons remain full-width and readable
+- standalone Contractors → Workers → Security tab still looks correct
