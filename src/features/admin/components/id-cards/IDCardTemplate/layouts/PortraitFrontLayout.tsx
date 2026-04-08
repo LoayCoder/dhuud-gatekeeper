@@ -81,7 +81,7 @@ export function PortraitFrontLayout({
           style={{
             display: 'flex',
             justifyContent: 'center',
-            padding: `${8 * scale}px 0 ${4 * scale}px`,
+            padding: `${6 * scale}px 0 ${2 * scale}px`,
           }}
         >
           <div
@@ -164,10 +164,11 @@ export function PortraitFrontLayout({
       <div
         style={{
           flex: 1,
-          padding: `${8 * scale}px ${12 * scale}px`,
+          padding: `${4 * scale}px ${12 * scale}px`,
           display: 'flex',
           flexDirection: 'column',
-          gap: 4 * scale,
+          gap: 2 * scale,
+          overflow: 'hidden',
         }}
       >
         {settings.front_fields
@@ -182,7 +183,7 @@ export function PortraitFrontLayout({
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  fontSize: 8 * scale,
+                  fontSize: 7 * scale,
                   color: settings.front_text_color,
                   gap: 4 * scale,
                   borderBottom: `1px solid ${accentColor}15`,
@@ -204,11 +205,11 @@ export function PortraitFrontLayout({
       {settings.show_qr_code && (
         <div
           style={{
-            padding: `${6 * scale}px`,
+            padding: `${4 * scale}px`,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 2 * scale,
+            gap: 1 * scale,
             borderTop: `1px solid ${accentColor}20`,
             backgroundColor: `${accentColor}08`,
           }}
