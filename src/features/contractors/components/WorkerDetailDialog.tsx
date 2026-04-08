@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen, UserCheck, Loader2, CreditCard, Globe, Phone } from "lucide-react";
+import { FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen, UserCheck, Loader2, CreditCard, Globe, Phone, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 import { WorkerQRCode } from "./WorkerQRCode";
@@ -19,6 +19,7 @@ import { useInductionVideos } from "@/features/contractors/hooks/use-induction-v
 import { useContractorProjects } from "@/features/contractors/hooks/use-contractor-projects";
 import { useOnboardWorker } from "@/features/contractors/hooks/use-worker-onboarding";
 import { useWorkerQRCode } from "@/features/contractors/hooks/use-worker-qr-codes";
+import { useWorkerProjectAssignment } from "@/features/contractors/hooks/use-worker-project-assignment";
 import { WorkerOverviewTab } from "./shared/WorkerOverviewTab";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,6 +29,20 @@ interface WorkerDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   worker: ContractorWorker | null;
   readOnly?: boolean;
+}
+
+/** Shared read-only project display when a worker already has an assigned project */
+function AssignedProjectBadge({ projectName, t }: { projectName: string; t: (key: string, fallback: string) => string }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">{t("contractors.workers.assignedProject", "Assigned Project")}</label>
+      <div className="flex items-center gap-2 p-2 rounded-md border bg-muted/50">
+        <MapPin className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium">{projectName}</span>
+        <Badge variant="outline" className="ms-auto text-xs">{t("contractors.workers.autoLinked", "Auto-linked")}</Badge>
+      </div>
+    </div>
+  );
 }
 
 export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = false }: WorkerDetailDialogProps) {
@@ -43,6 +58,18 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
   const projects = allProjects.filter(p => p.status === 'active');
   const { data: existingQRCode, refetch: refetchQRCode } = useWorkerQRCode(worker?.id || "");
   const onboardWorker = useOnboardWorker();
+  const { data: projectAssignment } = useWorkerProjectAssignment(worker?.id);
+
+  // Auto-link project when worker has an existing assignment
+  const hasAutoLinkedProject = !!projectAssignment?.project_id;
+  const autoLinkedProjectName = projectAssignment?.project?.project_name || "";
+  const effectiveProjectId = hasAutoLinkedProject ? projectAssignment.project_id : selectedProjectId;
+
+  useEffect(() => {
+    if (projectAssignment?.project_id && !selectedProjectId) {
+      setSelectedProjectId(projectAssignment.project_id);
+    }
+  }, [projectAssignment?.project_id]);
 
   useEffect(() => {
     const fetchPhotoUrl = async () => {
