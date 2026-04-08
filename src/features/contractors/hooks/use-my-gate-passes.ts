@@ -58,7 +58,7 @@ export function useMyGatePasses(filters: GatePassFilters = {}) {
 
 export interface ApprovalHistoryPass extends MaterialGatePass {
   approvalAction: "approved" | "rejected";
-  approvalRole: "pm" | "safety" | "contractor" | "club_mgmt" | "security";
+  approvalRole: "dept" | "contractor" | "acknowledger" | "security";
   approvalAt: string;
   approvalNotes: string | null;
 }

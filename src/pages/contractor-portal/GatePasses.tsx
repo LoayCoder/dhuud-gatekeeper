@@ -48,8 +48,8 @@ function ContractorPortalGatePassesContent() {
         return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 me-1" />{t("common.approved", "Approved")}</Badge>;
       case "pending_contractor_approval":
         return <Badge variant="outline" className="text-warning border-warning"><Clock className="h-3 w-3 me-1" /><span className="hidden sm:inline">{t("contractors.gatePasses.pendingContractor", "Pending Consultant")}</span><span className="sm:hidden">{t("common.pending", "Pending")}</span></Badge>;
-      case "pending_acknowledgment": // legacy
-        return <Badge variant="outline" className="text-blue-500 border-blue-500"><AlertCircle className="h-3 w-3 me-1" /><span className="hidden sm:inline">{t("contractors.gatePasses.pendingMgmt", "Pending Management")}</span><span className="sm:hidden">{t("common.pending", "Pending")}</span></Badge>;
+      case "pending_acknowledgment":
+        return <Badge variant="outline" className="text-blue-500 border-blue-500"><AlertCircle className="h-3 w-3 me-1" /><span className="hidden sm:inline">{t("contractors.gatePasses.pendingAcknowledgment", "Pending Acknowledgment")}</span><span className="sm:hidden">{t("common.pending", "Pending")}</span></Badge>;
       case "pending_security_approval":
         return <Badge variant="outline" className="text-purple-500 border-purple-500"><Shield className="h-3 w-3 me-1" /><span className="hidden sm:inline">{t("contractors.gatePasses.pendingSecurity", "Pending Security")}</span><span className="sm:hidden">{t("common.pending", "Pending")}</span></Badge>;
       case "rejected":

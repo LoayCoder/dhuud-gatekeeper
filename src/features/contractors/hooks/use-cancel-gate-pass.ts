@@ -44,14 +44,12 @@ export function useCancelGatePass() {
         throw new Error("You can only cancel your own requests");
       }
 
-      // Can only cancel pending requests (current + legacy statuses)
+      // Can only cancel pending requests
       const cancellableStatuses = [
         "pending_dept_approval",
         "pending_contractor_approval",
-        "pending_security_approval",
-        // Legacy statuses
         "pending_acknowledgment",
-        "pending_pm",
+        "pending_security_approval",
       ];
       if (!cancellableStatuses.includes(pass.status)) {
         throw new Error(
