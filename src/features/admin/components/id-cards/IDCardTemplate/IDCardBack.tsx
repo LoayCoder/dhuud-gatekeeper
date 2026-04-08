@@ -1,5 +1,6 @@
 import React from "react";
 import { format } from "date-fns";
+import { ar, enUS } from "date-fns/locale";
 import { FIELD_LABELS } from "@/types/id-card.types";
 import type { BackFieldKey } from "@/types/id-card.types";
 import { CardSideProps } from "./types";
@@ -33,6 +34,10 @@ export function IDCardBack({
       case 'contract_validity':
         return personData.validUntil 
           ? `${isRTL ? 'صالح حتى' : 'Valid until'}: ${format(new Date(personData.validUntil), 'dd/MM/yyyy')}`
+          : '';
+      case 'valid_until':
+        return personData.validUntil 
+          ? format(new Date(personData.validUntil), 'dd/MM/yyyy', { locale: isRTL ? ar : enUS })
           : '';
       case 'company_contact':
         return '';
