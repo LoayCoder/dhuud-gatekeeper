@@ -1,46 +1,56 @@
 
 
-# Fix ID Card Settings: Save Not Working + QR Overflow
+# Integrate ID Card System Fully Across All User Types
 
-## Problem 1: Save Not Functional
+## Current State
 
-**Root cause:** The `IDCardSettingsForm` uses `useForm({ defaultValues })` which only applies on initial mount. When the user switches between card type tabs, `liveSettings` changes but the form's internal state keeps the old tab's values. The form never calls `form.reset()` when the `settings` prop changes.
+| User Type | Settings Config | ID Card Button (UI) | Public Pass Page | Uses IDCardTemplate |
+|-----------|----------------|---------------------|------------------|---------------------|
+| Worker | ✅ | ✅ WorkerDetailDialog | ✅ /worker-access/:token | ✅ |
+| Contractor Rep | ✅ | ✅ CompanyDetailDialog | N/A | ✅ (via ActionButton) |
+| Visitor | ✅ | ✅ VisitorDetailDialog | ❌ /visitor-pass/:token (old design) | ❌ |
+| VIP Visitor | ✅ | ✅ VisitorDetailDialog | ❌ /visitor-badge/:token (old design) | ❌ |
+| Employee | ✅ | ❌ No button anywhere | N/A | ❌ |
 
-**What happens:**
-1. User opens Visitor tab — form initializes with Visitor defaults
-2. User changes accent color, clicks Save — submits old/mixed values
-3. User switches to Worker tab — form still holds Visitor values internally
-4. Save on Worker tab writes Visitor data to the Worker record
+## Gaps to Fix
 
-**Fix in `IDCardSettingsForm.tsx`:** Add a `useEffect` that calls `form.reset(newValues)` when `settings` or `cardType` props change:
+### Gap 1: VisitorPass page uses old hardcoded design
+`src/pages/VisitorPass.tsx` (287 lines) renders a basic card with manual layout instead of `IDCardTemplate`. Need to migrate it like WorkerAccessPass was migrated.
 
-```typescript
-useEffect(() => {
-  form.reset({
-    template_preset: (settings.template_preset as TemplatePreset) || 'standard',
-    card_orientation: (settings.card_orientation as CardOrientation) || 'portrait',
-    // ... all fields matching defaultValues
-  });
-}, [cardType, JSON.stringify(settings)]);
-```
+### Gap 2: VisitorBadgePage uses old hardcoded design
+`src/pages/VisitorBadgePage.tsx` (452 lines) renders the visitor badge with old manual design. Need to replace with `IDCardTemplate` using visitor/visitor_vip card type.
 
-Extract the "build form values from settings" logic into a helper function to avoid duplication between `defaultValues` and `reset()`.
+### Gap 3: Employee users have no ID card action
+The `UserDetailPopover` (shown when clicking a user in User Management) has Edit, Activate/Deactivate, and Delete buttons but no "ID Card" button. Employees should get an ID Card button that uses `cardType="employee"`.
 
-## Problem 2: Visitor/VIP Cards QR Overflow
+## Plan
 
-**Root cause:** In portrait mode (width=204px, height=324px at scale 1), the card stacks: Header + Photo (38% of width = ~77px tall) + Name + Fields + QR (30% of width = ~61px). With 5 fields on Visitor/VIP cards, content overflows the fixed card height.
+### Part 1: Add ID Card Button to UserDetailPopover
+**File: `src/features/users/components/UserDetailPopover.tsx`**
+- Import `IDCardActionButton` from `@/features/admin`
+- Add an ID Card button in the actions section for users with `user_type` of `employee` or `member`
+- Map user data to `IDCardPersonData` (fullName, employeeId, department, role from job_title, phone)
+- Pass `tenantId` from user's profile context
 
-**Fix in `PortraitFrontLayout.tsx`:**
-- Reduce QR size from 30% to 22% of card width in portrait mode
-- Add `overflow: hidden` safety
-- Make the fields section use smaller font/tighter spacing when many fields are present
-- Reduce photo size slightly (35% instead of 38%) to free vertical space
-- Make QR section more compact (tighter padding)
+### Part 2: Migrate VisitorPass to IDCardTemplate
+**File: `src/pages/VisitorPass.tsx`**
+- Fetch tenant's `tenant_id_card_settings` for `card_type = 'visitor'` alongside the existing gate entry data
+- Replace the manual card rendering with `IDCardTemplate` component
+- Keep the status badge, safety instructions, and emergency sections
+- Keep download/share functionality using `html2canvas` on the new template
+
+### Part 3: Migrate VisitorBadgePage to IDCardTemplate
+**File: `src/pages/VisitorBadgePage.tsx`**
+- Fetch tenant's `tenant_id_card_settings` for the appropriate card type (visitor or visitor_vip based on `is_vip` flag)
+- Replace the manual badge design with `IDCardTemplate`
+- Keep download/share buttons working with `html2canvas`
+- Keep safety and emergency sections below the card
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/features/admin/components/id-cards/settings/IDCardSettingsForm.tsx` | Add `useEffect` with `form.reset()` when `settings`/`cardType` changes; extract helper for form values |
-| `src/features/admin/components/id-cards/IDCardTemplate/layouts/PortraitFrontLayout.tsx` | Reduce QR/photo sizes, tighten spacing to prevent overflow on content-heavy cards |
+| `src/features/users/components/UserDetailPopover.tsx` | Add IDCardActionButton for employee/member users |
+| `src/pages/VisitorPass.tsx` | Replace old card with IDCardTemplate + fetch settings |
+| `src/pages/VisitorBadgePage.tsx` | Replace old badge with IDCardTemplate + fetch settings |
 
