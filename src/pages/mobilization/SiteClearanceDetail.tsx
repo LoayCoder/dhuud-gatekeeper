@@ -405,45 +405,100 @@ export default function SiteClearanceDetail() {
           </Card>
         </TabsContent>
 
-        {/* ==================== TAB 3: Known Risks & Controls ==================== */}
         <TabsContent value="risks-controls" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Known Risks & Control Measures</CardTitle>
-              <CardDescription>Document identified risks and the control measures in place</CardDescription>
+              <CardDescription>Document identified risks with severity and control measures</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Known Risks</Label>
-                <Textarea
-                  placeholder="Describe any known hazards, risks, or site conditions..."
-                  value={knownRisks}
-                  onChange={(e) => { setKnownRisks(e.target.value); setRisksEdited(true); }}
-                  rows={4}
-                  disabled={isApproved}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Control Measures</Label>
-                <Textarea
-                  placeholder="Describe the control measures and mitigations..."
-                  value={controlMeasures}
-                  onChange={(e) => { setControlMeasures(e.target.value); setRisksEdited(true); }}
-                  rows={4}
-                  disabled={isApproved}
-                />
-              </div>
-              {risksEdited && mob?.id && (
-                <Button
-                  onClick={() => {
-                    updateRisks.mutate({ mobilizationId: mob.id, fields: { known_risks: knownRisks, control_measures: controlMeasures } });
-                    setRisksEdited(false);
-                  }}
-                  disabled={updateRisks.isPending}
-                >
-                  {updateRisks.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                  Save Risks & Controls
-                </Button>
+              {/* Add Risk Form */}
+              {!isApproved && (
+                <div className="space-y-3 p-4 rounded-lg border border-dashed border-muted-foreground/30">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Severity</Label>
+                      <NativeSelect
+                        value={newRiskSeverity}
+                        onChange={setNewRiskSeverity}
+                        options={[
+                          { value: "low", label: "Low" },
+                          { value: "medium", label: "Medium" },
+                          { value: "high", label: "High" },
+                          { value: "critical", label: "Critical" },
+                        ]}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Risk Description</Label>
+                    <Textarea
+                      placeholder="Describe the risk..."
+                      value={newRiskDesc}
+                      onChange={(e) => setNewRiskDesc(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Control Measures</Label>
+                    <Textarea
+                      placeholder="Describe mitigation / control measures..."
+                      value={newRiskControls}
+                      onChange={(e) => setNewRiskControls(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={!newRiskDesc.trim() || !mob?.id || addRisk.isPending}
+                    onClick={() => {
+                      if (mob?.id) {
+                        addRisk.mutate({
+                          mobilizationId: mob.id,
+                          risk: { risk_description: newRiskDesc.trim(), severity: newRiskSeverity, control_measures: newRiskControls.trim() || undefined },
+                        });
+                        setNewRiskDesc("");
+                        setNewRiskControls("");
+                        setNewRiskSeverity("medium");
+                      }
+                    }}
+                  >
+                    {addRisk.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                    Add Risk
+                  </Button>
+                </div>
+              )}
+
+              {/* Risks List */}
+              {risks && risks.length > 0 ? (
+                <div className="space-y-2">
+                  {risks.map((risk: any) => (
+                    <div key={risk.id} className="flex items-start gap-3 p-3 rounded-lg border">
+                      <SeverityBadge severity={risk.severity} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{risk.risk_description}</p>
+                        {risk.control_measures && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            <span className="font-medium">Controls:</span> {risk.control_measures}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {risk.creator?.full_name} · {format(new Date(risk.created_at), "MMM d, yyyy")}
+                        </p>
+                      </div>
+                      {!isApproved && (
+                        <Button
+                          variant="ghost" size="icon"
+                          onClick={() => mob?.id && deleteRisk.mutate({ riskId: risk.id, mobilizationId: mob.id })}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No risks documented yet.</p>
               )}
             </CardContent>
           </Card>
@@ -455,7 +510,6 @@ export default function SiteClearanceDetail() {
               <CardDescription>Upload photos, drawings, or supporting documents</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Dropzone */}
               {!isApproved && (
                 <div
                   {...getRootProps()}
@@ -472,7 +526,6 @@ export default function SiteClearanceDetail() {
                 </div>
               )}
 
-              {/* Attachment list */}
               {attachments && attachments.length > 0 && (
                 <div className="space-y-2">
                   {attachments.map((att: any) => (
