@@ -220,7 +220,7 @@ export function useUpdateSiteClearanceRisk() {
   const { user, profile } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ riskId, mobilizationId, fields }: { riskId: string; mobilizationId: string; fields: { risk_description?: string; severity?: string; control_measures?: string } }) => {
+    mutationFn: async ({ riskId, mobilizationId, fields }: { riskId: string; mobilizationId: string; fields: { risk_description?: string; severity?: string; control_measures?: string; residual_severity?: string } }) => {
       if (!user?.id || !profile?.tenant_id) throw new Error("Not authenticated");
       const { updateSiteClearanceRisk, logClearanceAudit } = await import("../services/siteClearanceService");
       const result = await updateSiteClearanceRisk(riskId, fields as any);

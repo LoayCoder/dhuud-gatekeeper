@@ -21152,6 +21152,7 @@ export type Database = {
           deleted_at: string | null
           id: string
           mobilization_id: string
+          residual_severity: string | null
           risk_description: string
           severity: string
           tenant_id: string
@@ -21164,6 +21165,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           mobilization_id: string
+          residual_severity?: string | null
           risk_description: string
           severity?: string
           tenant_id: string
@@ -21176,6 +21178,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           mobilization_id?: string
+          residual_severity?: string | null
           risk_description?: string
           severity?: string
           tenant_id?: string

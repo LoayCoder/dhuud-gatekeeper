@@ -502,9 +502,9 @@ export default function SiteClearanceDetail() {
                           </Button>
                         )}
                       </div>
-                      <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="grid gap-3 sm:grid-cols-3">
                         <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Severity</Label>
+                          <Label className="text-xs text-muted-foreground">Severity (Before Controls)</Label>
                           {isApproved ? (
                             <SeverityBadge severity={risk.severity} />
                           ) : (
@@ -534,6 +534,24 @@ export default function SiteClearanceDetail() {
                                 }
                               }}
                               className="text-sm"
+                            />
+                          )}
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">Residual Severity (After Controls)</Label>
+                          {isApproved ? (
+                            <SeverityBadge severity={risk.residual_severity || risk.severity} />
+                          ) : (
+                            <NativeSelect
+                              value={risk.residual_severity || ""}
+                              onChange={(val) => mob?.id && updateRisk.mutate({ riskId: risk.id, mobilizationId: mob.id, fields: { residual_severity: val } })}
+                              options={[
+                                { value: "", label: "— Select —" },
+                                { value: "low", label: "Low" },
+                                { value: "medium", label: "Medium" },
+                                { value: "high", label: "High" },
+                                { value: "critical", label: "Critical" },
+                              ]}
                             />
                           )}
                         </div>
