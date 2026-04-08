@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,9 @@ import { RoleBadge } from '@/components/roles/RoleBadge';
 import { RoleCategory } from '@/features/users';
 import { UserWithRoles } from '@/features/users';
 import { getUserTypeLabel } from '@/lib/license-utils';
+import { IDCardActionButton } from '@/features/admin/components/id-cards/IDCardActionButton';
+import { useCachedProfile } from '@/hooks/use-cached-profile';
+import type { IDCardPersonData, IDCardType } from '@/types/id-card.types';
 
 interface UserDetailPopoverProps {
   user: UserWithRoles;
