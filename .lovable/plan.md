@@ -1,34 +1,63 @@
 
 
-# Fix: Site Clearance Page Appears Locked
+# Enhance Site Risk Verification Notes & Known Risks with Severity
 
-## Root Cause
+## What Changes
 
-Two issues make the page appear non-functional:
+### 1. Site Risk Verification — Add Notes Field Per Item
+Each of the 4 verification checkboxes (Utility Verification, Underground Utilities, High-Risk Zones, Work Boundaries) will get a text input below it for adding notes/comments specific to that verification item.
 
-1. **Mobilization data never loads after auto-creation.** When `ensureMobilization` succeeds, it only invalidates `projects-with-mobilization` but NOT `mobilization-detail`. So the detail hook still has `mob = null`, and all checkbox handlers silently fail because they check `if (mob?.id)` before acting.
+**Database:** Add 4 new columns to `project_mobilizations`:
+- `utility_verified_notes TEXT`
+- `underground_utilities_notes TEXT`
+- `high_risk_zones_notes TEXT`
+- `work_boundaries_notes TEXT`
 
-2. **Lock icons create a "disabled" appearance.** Every unchecked item shows a Lock icon on the right side, making users think the controls are disabled even though the checkboxes are technically enabled.
+**UI:** Below each checkbox item's description, render a small `Input` or `Textarea` for notes. Save alongside the boolean when verification is toggled or notes are typed.
 
-## Fix
+### 2. Known Risks — Multiple Entries with Severity
+Replace the current single textarea fields (`known_risks`, `control_measures`) with a dedicated table for multiple risk entries.
 
-### 1. Invalidate detail query after mobilization creation
-**File: `src/features/mobilization/hooks/use-mobilizations.ts`**
-- In `useEnsureMobilization.onSuccess`, add `queryClient.invalidateQueries({ queryKey: ["mobilization-detail"] })` so the detail page refetches and gets the newly created mobilization record.
+**Database:** Create new table `site_clearance_risks`:
+```sql
+CREATE TABLE public.site_clearance_risks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id),
+  mobilization_id UUID NOT NULL REFERENCES project_mobilizations(id) ON DELETE CASCADE,
+  risk_description TEXT NOT NULL,
+  severity TEXT NOT NULL DEFAULT 'medium'
+    CHECK (severity IN ('low','medium','high','critical')),
+  control_measures TEXT,
+  created_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  deleted_at TIMESTAMPTZ
+);
+```
+With RLS tenant isolation and soft-delete filtering.
 
-### 2. Remove misleading Lock icons
-**File: `src/pages/mobilization/SiteClearanceDetail.tsx`**
-- Replace the Lock icon on unchecked items with a neutral indicator (empty circle or just remove it) so users understand the controls are interactive.
-- Optionally: only show Lock when `isApproved` (truly locked state).
+**UI (Tab 3 — Risks):** Replace the two textareas with:
+- A list of added risks, each showing: severity badge (color-coded), risk description, control measures
+- An "Add Risk" form with: severity selector (Low/Medium/High/Critical), risk description textarea, control measures textarea
+- Delete button per risk entry
+- Keep the attachments section below unchanged
 
-### 3. Prevent duplicate mobilization creation
-**File: `src/pages/mobilization/SiteClearanceDetail.tsx`**
-- Add a guard in the `useEffect` that auto-creates mobilization to also check `ensureMob.isSuccess` to prevent repeated mutations during re-renders.
+## Files to Create/Modify
 
-## Files to Modify
+| Action | File | Change |
+|--------|------|--------|
+| **MIGRATE** | New migration SQL | Add 4 notes columns to `project_mobilizations` + create `site_clearance_risks` table |
+| **MODIFY** | `src/features/mobilization/services/siteClearanceService.ts` | Add CRUD functions for risks; update `updateSiteRiskVerification` to accept notes |
+| **MODIFY** | `src/features/mobilization/hooks/use-site-clearance.ts` | Add `useSiteClearanceRisks`, `useAddRisk`, `useDeleteRisk` hooks; update verification mutation to include notes |
+| **MODIFY** | `src/pages/mobilization/SiteClearanceDetail.tsx` | Add notes input under each verification item; replace risks tab with multi-entry list + severity |
 
-| File | Change |
-|------|--------|
-| `src/features/mobilization/hooks/use-mobilizations.ts` | Invalidate `mobilization-detail` on ensureMob success |
-| `src/pages/mobilization/SiteClearanceDetail.tsx` | Remove Lock icons from unchecked items; add mutation guard |
+## UI Details
+
+**Risk severity colors** (HSSE standard):
+- Low → green
+- Medium → amber/yellow
+- High → orange
+- Critical → red
+
+**Verification notes:** Small single-line `Input` below each item description, placeholder "Add notes..." — saved via the same `updateSiteRiskVerification` mutation with added notes fields.
 
