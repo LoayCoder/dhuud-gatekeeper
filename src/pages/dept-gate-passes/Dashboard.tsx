@@ -69,7 +69,7 @@ function DeptGatePassDashboardContent() {
       pending: { variant: "warning", label: t("gatePasses.status.pending", "Pending") },
       pending_dept_approval: { variant: "warning", label: t("gatePasses.status.pending_dept_approval", "Pending Dept") },
       pending_contractor_approval: { variant: "warning", label: t("gatePasses.status.pending_contractor_approval", "Pending Contractor") },
-      pending_club_mgmt_ack: { variant: "warning", label: t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management") },
+      pending_acknowledgment: { variant: "warning", label: t("gatePasses.status.pending_acknowledgment", "Pending Acknowledgment") },
       pending_security_approval: { variant: "warning", label: t("gatePasses.status.pending_security", "Pending Security") },
       pm_approved: { variant: "secondary", label: t("gatePasses.status.pm_approved", "PM Approved") },
       approved: { variant: "success", label: t("gatePasses.status.approved", "Approved") },

@@ -50,7 +50,7 @@ export const verifyGatePassQR = async (qrToken: string, tenantId: string): Promi
     if (gatePass.status !== "approved" && gatePass.status !== "used") {
         const statusMessages: Record<string, string> = {
             pending_contractor_approval: "Gate pass pending contractor consultant approval",
-            pending_club_mgmt_ack: "Gate pass pending Golf Club Management acknowledgment",
+            pending_acknowledgment: "Gate pass pending acknowledgment",
             pending_dept_ack: "Gate pass pending department acknowledgment",
             pending_dept_approval: "Gate pass pending department approval",
             pending_security_approval: "Gate pass pending security approval",

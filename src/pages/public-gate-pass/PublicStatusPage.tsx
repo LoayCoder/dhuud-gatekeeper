@@ -70,7 +70,7 @@ const STATUS_CONFIG: Record<
     description: "Request submitted and waiting for management approval",
     descriptionAr: "تم استلام الطلب وبانتظار موافقة الإدارة"
   },
-  pending_club_mgmt_ack: {
+  pending_acknowledgment: {
     label: "Management Ack.",
     labelAr: "تأكيد الإدارة",
     color: "text-blue-500",
@@ -159,7 +159,7 @@ const TIMELINE_STEPS = [
 ];
 
 function getTimelineCurrentStep(status: string): number {
-  if (['pending_mgmt', 'pending_club_mgmt_ack', 'acknowledged', 'pending_security_approval', 'pending_pm', 'pending_safety', 'pending_dept_approval'].includes(status)) return 2;
+  if (['pending_mgmt', 'pending_acknowledgment', 'acknowledged', 'pending_security_approval', 'pending_pm', 'pending_safety', 'pending_dept_approval'].includes(status)) return 2;
   if (status === 'approved') return 3;
   if (['used', 'completed'].includes(status)) return 4;
   if (['rejected', 'cancelled', 'expired'].includes(status)) return 2; // Stops at review

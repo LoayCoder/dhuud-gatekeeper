@@ -28,7 +28,7 @@ function DeptPendingApprovalsContent() {
       // Current workflow statuses
       pending_dept_approval: { variant: "warning", label: t("gatePasses.status.pending_dept_approval", "Pending Dept Approval") },
       pending_contractor_approval: { variant: "warning", label: t("gatePasses.status.pending_contractor_approval", "Pending Contractor") },
-      pending_club_mgmt_ack: { variant: "warning", label: t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Mgmt") },
+      pending_acknowledgment: { variant: "warning", label: t("gatePasses.status.pending_acknowledgment", "Pending Acknowledgment") },
       pending_security_approval: { variant: "warning", label: t("gatePasses.status.pending_security_approval", "Pending Security") },
       // Legacy statuses (backward compatibility)
       pending_dept_ack: { variant: "warning", label: t("gatePasses.status.pending_dept_ack", "Pending Dept Ack") },

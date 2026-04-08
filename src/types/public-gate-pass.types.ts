@@ -5,7 +5,7 @@
 // Status types for public gate passes
 export type PublicGatePassStatus =
   | 'pending_mgmt'      // Initial status - waiting for management acknowledgment
-  | 'pending_club_mgmt_ack' // Pending club management acknowledgment
+  | 'pending_acknowledgment' // Pending club management acknowledgment
   | 'acknowledged'      // Management has acknowledged the request
   | 'pending_security_approval' // Waiting for security approval
   | 'pending_pm'        // Waiting for PM approval (legacy compatibility)
@@ -240,7 +240,7 @@ export const PUBLIC_GATE_PASS_STATUS_CONFIG: Record<PublicGatePassStatus, Status
     icon: 'Clock',
     step: 1,
   },
-  pending_club_mgmt_ack: {
+  pending_acknowledgment: {
     label: 'Pending Management',
     labelAr: 'في انتظار الإدارة',
     color: 'bg-blue-500',
