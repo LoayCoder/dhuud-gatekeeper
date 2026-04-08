@@ -86,6 +86,7 @@ export async function getPTWPermit(permitId: string) {
 }
 
 export async function createPTWPermit(data: {
+    contractor_project_id?: string;
     project_id?: string;
     type_id?: string;
     worker_ids?: string[];
@@ -140,7 +141,7 @@ export async function createPTWPermit(data: {
     }
 
     const insertData = {
-        project_id: data.project_id!,
+        contractor_project_id: data.contractor_project_id || data.project_id || null,
         type_id: data.type_id!,
         applicant_id: userId,
         job_description: data.job_description,
