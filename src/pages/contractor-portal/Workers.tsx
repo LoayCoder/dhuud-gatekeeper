@@ -18,31 +18,6 @@ import { ContractorPortalRoute } from "@/components/access-control";
 import { useBlacklistNationalIds } from "@/features/security";
 import type { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 
-interface PortalWorker {
-  id: string;
-  full_name: string;
-  full_name_ar?: string | null;
-  id_type?: string;
-  national_id: string;
-  date_of_birth?: string | null;
-  gender?: string | null;
-  mobile_number: string;
-  email?: string | null;
-  emergency_contact_name?: string | null;
-  emergency_contact_phone?: string | null;
-  nationality?: string | null;
-  worker_role?: string;
-  preferred_language: string;
-  approval_status: string;
-  photo_path?: string | null;
-  fitness_to_work?: string | null;
-  fitness_acknowledged?: boolean | null;
-  medical_check_date?: string | null;
-  fitness_expiry_date?: string | null;
-  medical_certificate_path?: string | null;
-  training_certifications?: string[];
-  edit_pending_approval?: boolean;
-}
 
 function ContractorPortalWorkersContent() {
   const { t } = useTranslation();
@@ -52,7 +27,7 @@ function ContractorPortalWorkersContent() {
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [editingWorker, setEditingWorker] = useState<PortalWorker | null>(null);
+  const [editingWorker, setEditingWorker] = useState<any | null>(null);
   const [selectedWorker, setSelectedWorker] = useState<ContractorWorker | null>(null);
 
   const filteredWorkers = workers?.filter(worker => {
@@ -86,25 +61,8 @@ function ContractorPortalWorkersContent() {
     }
   };
 
-  const openWorkerDetail = (worker: PortalWorker) => {
-    const mapped: ContractorWorker = {
-      id: worker.id,
-      tenant_id: '',
-      company_id: company?.id || '',
-      full_name: worker.full_name,
-      full_name_ar: worker.full_name_ar || null,
-      national_id: worker.national_id,
-      nationality: worker.nationality || null,
-      mobile_number: worker.mobile_number,
-      photo_path: null,
-      preferred_language: worker.preferred_language,
-      approval_status: worker.approval_status,
-      approved_at: null,
-      rejection_reason: null,
-      created_at: new Date().toISOString(),
-      company: company ? { company_name: company.company_name } : null,
-    };
-    setSelectedWorker(mapped);
+  const openWorkerDetail = (worker: any) => {
+    setSelectedWorker(worker as ContractorWorker);
   };
 
   if (isLoading) {
@@ -210,7 +168,7 @@ function ContractorPortalWorkersContent() {
                                 <button
                                   type="button"
                                   className="font-medium text-start hover:underline hover:text-primary cursor-pointer bg-transparent border-none p-0"
-                                  onClick={() => openWorkerDetail(worker as PortalWorker)}
+                                  onClick={() => openWorkerDetail(worker)}
                                 >
                                   {worker.full_name}
                                 </button>
@@ -243,7 +201,7 @@ function ContractorPortalWorkersContent() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => setEditingWorker(worker as PortalWorker)}
+                                  onClick={() => setEditingWorker(worker)}
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
@@ -265,7 +223,7 @@ function ContractorPortalWorkersContent() {
                     <div
                       key={worker.id}
                       className="border rounded-lg p-3 space-y-2 active:bg-muted/50 transition-colors"
-                      onClick={() => openWorkerDetail(worker as PortalWorker)}
+                      onClick={() => openWorkerDetail(worker)}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
@@ -286,7 +244,7 @@ function ContractorPortalWorkersContent() {
                             className="h-8 w-8"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setEditingWorker(worker as PortalWorker);
+                              setEditingWorker(worker);
                             }}
                           >
                             <Pencil className="h-4 w-4" />
