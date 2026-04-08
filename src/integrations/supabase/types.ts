@@ -14543,6 +14543,7 @@ export type Database = {
           contractor_approved_by: string | null
           created_at: string
           deleted_at: string | null
+          department_id: string | null
           driver_id: string | null
           driver_mobile: string | null
           driver_name: string | null
@@ -14623,6 +14624,7 @@ export type Database = {
           contractor_approved_by?: string | null
           created_at?: string
           deleted_at?: string | null
+          department_id?: string | null
           driver_id?: string | null
           driver_mobile?: string | null
           driver_name?: string | null
@@ -14703,6 +14705,7 @@ export type Database = {
           contractor_approved_by?: string | null
           created_at?: string
           deleted_at?: string | null
+          department_id?: string | null
           driver_id?: string | null
           driver_mobile?: string | null
           driver_name?: string | null
@@ -14797,6 +14800,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {
@@ -26455,6 +26465,17 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      get_public_departments_with_approvers: {
+        Args: { p_branch_id?: string; p_tenant_id: string }
+        Returns: {
+          approver_id: string
+          approver_name: string
+          approver_role: string
+          department_id: string
+          department_name: string
+          department_name_ar: string
+        }[]
+      }
       get_public_gate_pass_status: {
         Args: { p_access_token: string }
         Returns: Json
@@ -27190,6 +27211,7 @@ export type Database = {
         | {
             Args: {
               p_branch_id?: string
+              p_department_id?: string
               p_driver_mobile?: string
               p_driver_name?: string
               p_end_date?: string
