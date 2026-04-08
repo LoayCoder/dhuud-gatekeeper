@@ -587,6 +587,7 @@ export default function SiteClearanceDetail() {
               )}
             </CardContent>
           </Card>
+          <TabNavButtons current="risks-controls" onChangeTab={setActiveTab} onSaveDraft={handleSaveDraft} isApproved={isApproved} />
         </TabsContent>
 
         {/* ==================== TAB 4: Work Readiness ==================== */}
