@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ShieldCheck, CheckCircle, XCircle, Building2, Phone, CreditCard, User, ShieldAlert, Video, Eye } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import {
   usePendingSecurityApprovals,
@@ -27,7 +28,11 @@ import { WorkerApprovalDetailDialog } from "@/features/contractors/components/Wo
 import { PageLoader } from "@/components/ui/page-loader";
 import { supabase } from "@/integrations/supabase/client";
 
-export function WorkerSecurityApprovalQueue() {
+interface WorkerSecurityApprovalQueueProps {
+  embedded?: boolean;
+}
+
+export function WorkerSecurityApprovalQueue({ embedded = false }: WorkerSecurityApprovalQueueProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar";
   
@@ -119,34 +124,44 @@ export function WorkerSecurityApprovalQueue() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-start sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <ShieldCheck className="h-5 w-5 text-primary flex-shrink-0" />
-          <div className="min-w-0">
-            <h2 className="text-lg sm:text-xl font-semibold truncate">
-              {t("contractors.securityApprovalQueue", "Security Approval Queue")}
-            </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              {t("contractors.securityApproverRoles", "Security Supervisor / Security Manager")}
-            </p>
+    <div className={cn("space-y-3", embedded ? "space-y-2" : "space-y-4")}>
+      {!embedded && (
+        <>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <ShieldCheck className="h-5 w-5 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <h2 className="text-lg sm:text-xl font-semibold whitespace-normal break-words">
+                  {t("contractors.securityApprovalQueue", "Security Approval Queue")}
+                </h2>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {t("contractors.securityApproverRoles", "Security Supervisor / Security Manager")}
+                </p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="text-xs sm:text-sm flex-shrink-0 self-start sm:self-auto">
+              {pendingWorkers.length} {t("contractors.pending", "pending")}
+            </Badge>
           </div>
-        </div>
-        <Badge variant="secondary" className="text-xs sm:text-sm flex-shrink-0">
-          {pendingWorkers.length} {t("contractors.pending", "pending")}
-        </Badge>
-      </div>
 
-      <Alert className="py-2">
-        <Video className="h-4 w-4" />
-        <AlertDescription className="text-xs sm:text-sm">
-          {t("contractors.securityApprovalNote", "After approval, a safety induction video will be automatically sent to the worker.")}
-        </AlertDescription>
-      </Alert>
+          <Alert className="py-2">
+            <Video className="h-4 w-4" />
+            <AlertDescription className="text-xs sm:text-sm">
+              {t("contractors.securityApprovalNote", "After approval, a safety induction video will be automatically sent to the worker.")}
+            </AlertDescription>
+          </Alert>
 
-      <p className="text-xs sm:text-sm text-muted-foreground">
-        {t("contractors.securityApprovalDescription", "These workers have been pre-approved by the Contractor Admin and require final security clearance.")}
-      </p>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            {t("contractors.securityApprovalDescription", "These workers have been pre-approved by the Contractor Admin and require final security clearance.")}
+          </p>
+        </>
+      )}
+
+      {embedded && (
+        <p className="text-xs text-muted-foreground break-words">
+          {t("contractors.securityApprovalDescription", "These workers have been pre-approved by the Contractor Admin and require final security clearance.")}
+        </p>
+      )}
 
       <div className="grid gap-3 sm:gap-4">
         {pendingWorkers.map((worker) => (
@@ -164,7 +179,7 @@ export function WorkerSecurityApprovalQueue() {
                   {worker.company?.company_name && (
                     <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
                       <Building2 className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">{worker.company.company_name}</span>
+                      <span className="whitespace-normal break-words">{worker.company.company_name}</span>
                     </p>
                   )}
                 </div>

@@ -338,17 +338,17 @@ export default function AccessControlDashboard() {
 
           {/* Security Approvals (Stage 2) */}
           <Card>
-            <CardHeader className="pb-3 px-3 sm:px-6">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Shield className="h-5 w-5 text-primary flex-shrink-0" />
-                <span className="truncate">{t('accessControl.securityApprovals', 'Security Approvals')}</span>
+            <CardHeader className="pb-2 px-3 sm:px-6">
+              <CardTitle className="flex flex-wrap items-start gap-2 text-base sm:text-lg">
+                <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <span className="whitespace-normal break-words">{t('accessControl.securityApprovals', 'Security Approvals')}</span>
                 {pendingSecurityApprovals.length > 0 && (
                   <Badge variant="default" className="flex-shrink-0">{pendingSecurityApprovals.length}</Badge>
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-3 sm:px-6">
-              <WorkerSecurityApprovalQueue />
+            <CardContent className="px-3 sm:px-6 pt-0">
+              <WorkerSecurityApprovalQueue embedded />
             </CardContent>
           </Card>
 
