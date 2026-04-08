@@ -61,43 +61,24 @@ const STATUS_CONFIG: Record<
   string,
   { label: string; labelAr: string; color: string; icon: React.ElementType; description?: string; descriptionAr?: string }
 > = {
-  // Initial Stages
-  pending_mgmt: {
+  // Current workflow statuses
+  pending_dept_approval: {
     label: "Under Review",
     labelAr: "قيد المراجعة",
     color: "text-blue-500",
     icon: Clock,
-    description: "Request submitted and waiting for management approval",
-    descriptionAr: "تم استلام الطلب وبانتظار موافقة الإدارة"
+    description: "Request submitted and waiting for department approval",
+    descriptionAr: "تم استلام الطلب وبانتظار موافقة القسم"
   },
   pending_acknowledgment: {
-    label: "Management Ack.",
-    labelAr: "تأكيد الإدارة",
+    label: "Pending Acknowledgment",
+    labelAr: "في انتظار الإقرار",
     color: "text-blue-500",
     icon: Clock,
   },
-  acknowledged: {
-    label: "Acknowledged",
-    labelAr: "تم الاستلام",
-    color: "text-amber-500",
-    icon: CheckCircle2,
-  },
-  // Security / Safety Stages
   pending_security_approval: {
     label: "Security Review",
     labelAr: "مراجعة الأمن",
-    color: "text-amber-500",
-    icon: ShieldCheck,
-  },
-  pending_pm: {
-    label: "Project Manager",
-    labelAr: "مدير المشروع",
-    color: "text-amber-500",
-    icon: Clock,
-  },
-  pending_safety: {
-    label: "Safety Review",
-    labelAr: "مراجعة السلامة",
     color: "text-amber-500",
     icon: ShieldCheck,
   },
@@ -159,7 +140,7 @@ const TIMELINE_STEPS = [
 ];
 
 function getTimelineCurrentStep(status: string): number {
-  if (['pending_mgmt', 'pending_acknowledgment', 'acknowledged', 'pending_security_approval', 'pending_pm', 'pending_safety', 'pending_dept_approval'].includes(status)) return 2;
+  if (['pending_dept_approval', 'pending_acknowledgment', 'pending_security_approval'].includes(status)) return 2;
   if (status === 'approved') return 3;
   if (['used', 'completed'].includes(status)) return 4;
   if (['rejected', 'cancelled', 'expired'].includes(status)) return 2; // Stops at review

@@ -299,7 +299,7 @@ export const PUBLIC_GATE_PASS_STATUS_CONFIG: Record<PublicGatePassStatus, Status
 // Helper function to get status config
 export function getStatusConfig(status: string): StatusStepConfig {
   return PUBLIC_GATE_PASS_STATUS_CONFIG[status as PublicGatePassStatus] ||
-    PUBLIC_GATE_PASS_STATUS_CONFIG.pending_mgmt;
+    PUBLIC_GATE_PASS_STATUS_CONFIG.pending_dept_approval;
 }
 
 // Helper function to check if status is terminal (no more changes expected)
