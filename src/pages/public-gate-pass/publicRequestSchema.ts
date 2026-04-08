@@ -27,6 +27,7 @@ export const publicRequestSchema = z.object({
   requesterEmail: z.string().email('Invalid email').optional().or(z.literal('')),
   requesterCompany: z.string().min(2, 'Company name must be at least 2 characters'),
   branchId: z.string().optional().or(z.literal('')),
+  departmentId: z.string().min(1, 'Department selection is required'),
 
   // Step 2 — Vehicle
   vehiclePlateLetters: z.string().min(1, 'Plate letters required'),

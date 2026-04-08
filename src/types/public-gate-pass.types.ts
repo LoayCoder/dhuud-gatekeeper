@@ -72,6 +72,7 @@ export interface PublicGatePassFormData {
 
   // Location
   branch_id?: string;
+  department_id?: string;
 
   // Pass details
   pass_type: GatePassType;
