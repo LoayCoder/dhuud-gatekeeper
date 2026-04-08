@@ -1,6 +1,6 @@
 import React from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Camera, HeartPulse, FileWarning } from "lucide-react";
+import { Camera, HeartPulse, FileWarning, GraduationCap } from "lucide-react";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers/types";
 
 interface ComplianceFlag {
