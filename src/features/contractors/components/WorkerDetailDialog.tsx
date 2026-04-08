@@ -238,8 +238,8 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                     </div>
                     )}
                     <Button
-                      onClick={() => onboardWorker.mutate({ workerId: worker.id, projectId: selectedProjectId }, { onSuccess: () => refetchQRCode() })}
-                      disabled={!selectedProjectId || onboardWorker.isPending}
+                      onClick={() => onboardWorker.mutate({ workerId: worker.id, projectId: effectiveProjectId }, { onSuccess: () => refetchQRCode() })}
+                      disabled={!effectiveProjectId || onboardWorker.isPending}
                       className="w-full"
                     >
                       {onboardWorker.isPending ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <UserCheck className="h-4 w-4 me-2" />}
@@ -359,6 +359,9 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                 <div className="text-sm text-muted-foreground">
                   {t("contractors.induction.description", "Send safety induction video to worker via WhatsApp based on their preferred language.")}
                 </div>
+                {hasAutoLinkedProject ? (
+                  <AssignedProjectBadge projectName={autoLinkedProjectName} t={t} />
+                ) : (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t("contractors.workers.selectProjectForInduction", "Select Project")}</label>
                   <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
@@ -375,6 +378,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                     <p className="text-sm text-muted-foreground">{t("contractors.workers.noProjects", "No projects assigned to this company")}</p>
                   )}
                 </div>
+                )}
                 <div className="flex items-center gap-2 text-sm">
                   <Globe className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">{t("contractors.workers.preferredLanguage", "Language")}:</span>
@@ -385,7 +389,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                   <span className="text-muted-foreground">{t("contractors.workers.mobile", "Mobile")}:</span>
                   <span dir="ltr">{worker.mobile_number}</span>
                 </div>
-                <Button onClick={handleSendInduction} disabled={isSendingInduction || !selectedProjectId}>
+                <Button onClick={handleSendInduction} disabled={isSendingInduction || !effectiveProjectId}>
                   <Video className={`h-4 w-4 me-2 ${isSendingInduction ? "animate-pulse" : ""}`} />
                   {latestInduction
                     ? t("contractors.induction.resend", "Resend Induction Video")
