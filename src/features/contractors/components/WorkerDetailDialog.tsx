@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen, UserCheck, Loader2, CreditCard, Globe, Phone } from "lucide-react";
+import { FileText, QrCode, Video, CheckCircle, Clock, AlertTriangle, Send, FolderOpen, UserCheck, Loader2, CreditCard, Globe, Phone, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 import { WorkerQRCode } from "./WorkerQRCode";
@@ -19,6 +19,7 @@ import { useInductionVideos } from "@/features/contractors/hooks/use-induction-v
 import { useContractorProjects } from "@/features/contractors/hooks/use-contractor-projects";
 import { useOnboardWorker } from "@/features/contractors/hooks/use-worker-onboarding";
 import { useWorkerQRCode } from "@/features/contractors/hooks/use-worker-qr-codes";
+import { useWorkerProjectAssignment } from "@/features/contractors/hooks/use-worker-project-assignment";
 import { WorkerOverviewTab } from "./shared/WorkerOverviewTab";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,6 +29,20 @@ interface WorkerDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   worker: ContractorWorker | null;
   readOnly?: boolean;
+}
+
+/** Shared read-only project display when a worker already has an assigned project */
+function AssignedProjectBadge({ projectName, t }: { projectName: string; t: (key: string, fallback: string) => string }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">{t("contractors.workers.assignedProject", "Assigned Project")}</label>
+      <div className="flex items-center gap-2 p-2 rounded-md border bg-muted/50">
+        <MapPin className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium">{projectName}</span>
+        <Badge variant="outline" className="ms-auto text-xs">{t("contractors.workers.autoLinked", "Auto-linked")}</Badge>
+      </div>
+    </div>
+  );
 }
 
 export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = false }: WorkerDetailDialogProps) {
@@ -43,6 +58,18 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
   const projects = allProjects.filter(p => p.status === 'active');
   const { data: existingQRCode, refetch: refetchQRCode } = useWorkerQRCode(worker?.id || "");
   const onboardWorker = useOnboardWorker();
+  const { data: projectAssignment } = useWorkerProjectAssignment(worker?.id);
+
+  // Auto-link project when worker has an existing assignment
+  const hasAutoLinkedProject = !!projectAssignment?.project_id;
+  const autoLinkedProjectName = projectAssignment?.project?.project_name || "";
+  const effectiveProjectId = hasAutoLinkedProject ? projectAssignment.project_id : selectedProjectId;
+
+  useEffect(() => {
+    if (projectAssignment?.project_id && !selectedProjectId) {
+      setSelectedProjectId(projectAssignment.project_id);
+    }
+  }, [projectAssignment?.project_id]);
 
   useEffect(() => {
     const fetchPhotoUrl = async () => {
@@ -69,7 +96,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
   const needsPhotoGate = isApprovedOrSecurityApproved && !isPhotoVerified;
 
   const handleGenerateQR = async () => {
-    if (!selectedProjectId) {
+    if (!effectiveProjectId) {
       toast.error(t("contractors.messages.selectProject", "Please select a project first"));
       return;
     }
@@ -79,7 +106,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
       const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id).single();
       if (!profile?.tenant_id) throw new Error("Could not determine tenant");
       const { error } = await supabase.functions.invoke("generate-worker-qr", {
-        body: { worker_id: worker.id, project_id: selectedProjectId, tenant_id: profile.tenant_id },
+        body: { worker_id: worker.id, project_id: effectiveProjectId, tenant_id: profile.tenant_id },
       });
       if (error) throw error;
       toast.success(t("contractors.messages.qrGenerated", "QR code generated successfully"));
@@ -92,7 +119,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
   };
 
   const handleSendInduction = async () => {
-    if (!selectedProjectId) {
+    if (!effectiveProjectId) {
       toast.error(t("contractors.messages.selectProjectForInduction", "Please select a project first"));
       return;
     }
@@ -101,7 +128,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
       // Use send-induction-video which delegates to shared induction-sender module
       // No need to manually select video — the shared module handles language-based selection
       const { error } = await supabase.functions.invoke("send-induction-video", {
-        body: { workerId: worker.id, projectId: selectedProjectId },
+        body: { workerId: worker.id, projectId: effectiveProjectId },
       });
       if (error) throw error;
       toast.success(t("contractors.messages.inductionSent", "Induction video sent successfully"));
@@ -188,6 +215,9 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                     <p className="text-sm text-muted-foreground">
                       {t("contractors.workers.onboardDescription", "Send induction video and generate QR code in one step.")}
                     </p>
+                    {hasAutoLinkedProject ? (
+                      <AssignedProjectBadge projectName={autoLinkedProjectName} t={t} />
+                    ) : (
                     <div className="space-y-2">
                       <label className="text-sm font-medium">
                         {t("contractors.workers.selectProjectForQR", "Select Project")}
@@ -206,9 +236,10 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                         <p className="text-sm text-muted-foreground">{t("contractors.workers.noProjects", "No projects assigned to this company")}</p>
                       )}
                     </div>
+                    )}
                     <Button
-                      onClick={() => onboardWorker.mutate({ workerId: worker.id, projectId: selectedProjectId }, { onSuccess: () => refetchQRCode() })}
-                      disabled={!selectedProjectId || onboardWorker.isPending}
+                      onClick={() => onboardWorker.mutate({ workerId: worker.id, projectId: effectiveProjectId }, { onSuccess: () => refetchQRCode() })}
+                      disabled={!effectiveProjectId || onboardWorker.isPending}
                       className="w-full"
                     >
                       {onboardWorker.isPending ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <UserCheck className="h-4 w-4 me-2" />}
@@ -328,6 +359,9 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                 <div className="text-sm text-muted-foreground">
                   {t("contractors.induction.description", "Send safety induction video to worker via WhatsApp based on their preferred language.")}
                 </div>
+                {hasAutoLinkedProject ? (
+                  <AssignedProjectBadge projectName={autoLinkedProjectName} t={t} />
+                ) : (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t("contractors.workers.selectProjectForInduction", "Select Project")}</label>
                   <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
@@ -344,6 +378,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                     <p className="text-sm text-muted-foreground">{t("contractors.workers.noProjects", "No projects assigned to this company")}</p>
                   )}
                 </div>
+                )}
                 <div className="flex items-center gap-2 text-sm">
                   <Globe className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">{t("contractors.workers.preferredLanguage", "Language")}:</span>
@@ -354,7 +389,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                   <span className="text-muted-foreground">{t("contractors.workers.mobile", "Mobile")}:</span>
                   <span dir="ltr">{worker.mobile_number}</span>
                 </div>
-                <Button onClick={handleSendInduction} disabled={isSendingInduction || !selectedProjectId}>
+                <Button onClick={handleSendInduction} disabled={isSendingInduction || !effectiveProjectId}>
                   <Video className={`h-4 w-4 me-2 ${isSendingInduction ? "animate-pulse" : ""}`} />
                   {latestInduction
                     ? t("contractors.induction.resend", "Resend Induction Video")

@@ -98,12 +98,20 @@ export function useContractorPortalWorkers(companyId: string | undefined) {
       const { data, error } = await supabase
         .from("contractor_workers")
         .select(`
-          id, full_name, full_name_ar, id_type, national_id, date_of_birth, gender,
-          nationality, mobile_number, email, emergency_contact_name, emergency_contact_phone,
-          worker_role, preferred_language, approval_status, approved_at, created_at,
-          photo_path, fitness_to_work, fitness_acknowledged, medical_check_date,
+          id, tenant_id, company_id, full_name, full_name_ar, id_type, national_id,
+          date_of_birth, gender, nationality, mobile_number, email,
+          emergency_contact_name, emergency_contact_phone,
+          worker_role, worker_type, preferred_language, approval_status, approved_at,
+          approved_by, rejection_reason, created_at, photo_path,
+          safety_officer_id, submitted_by,
+          security_approval_status, security_approved_by, security_approved_at, security_rejection_reason,
+          photo_verified_by, photo_verified_at,
+          fitness_to_work, fitness_acknowledged, medical_check_date,
           fitness_expiry_date, medical_certificate_path, training_certifications,
-          edit_pending_approval, edited_by, edited_at
+          edit_pending_approval, edited_by, edited_at,
+          induction_status,
+          company:contractor_companies(company_name),
+          latest_induction:worker_inductions(id, status, expires_at)
         `)
         .eq("company_id", companyId)
         .eq("tenant_id", tenantId)
@@ -111,7 +119,12 @@ export function useContractorPortalWorkers(companyId: string | undefined) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      // Normalize latest_induction from array to single object (PostgREST returns array for non-unique FK)
+      return (data || []).map((w: any) => ({
+        ...w,
+        latest_induction: Array.isArray(w.latest_induction) ? w.latest_induction[0] || null : w.latest_induction,
+      }));
     },
     enabled: !!companyId && !!tenantId,
   });

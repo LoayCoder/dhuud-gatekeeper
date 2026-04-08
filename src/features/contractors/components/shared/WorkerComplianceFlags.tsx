@@ -15,11 +15,13 @@ export function getComplianceFlags(
 ): ComplianceFlag[] {
   const flags: ComplianceFlag[] = [];
 
-  if (!worker.photo_path) {
+  // Defensive: only flag photo if field is explicitly null/empty (not undefined from missing select)
+  if (worker.photo_path === null || worker.photo_path === "") {
     flags.push({ level: "warning", icon: Camera, message: t("contractors.workers.missingPhoto", "Worker photo is missing") });
   }
 
-  if (!worker.fitness_acknowledged) {
+  // Only flag fitness if explicitly false (not undefined)
+  if (worker.fitness_acknowledged === false) {
     flags.push({ level: "warning", icon: HeartPulse, message: t("contractors.workers.fitnessNotAcknowledged", "Fitness to work not acknowledged") });
   }
 
@@ -32,7 +34,7 @@ export function getComplianceFlags(
     if (expiry < new Date()) {
       flags.push({ level: "critical", icon: FileWarning, message: t("contractors.workers.medicalExpired", "Medical fitness has expired") });
     }
-  } else if (!worker.medical_check_date) {
+  } else if (worker.medical_check_date === null) {
     flags.push({ level: "warning", icon: FileWarning, message: t("contractors.workers.noMedicalRecord", "No medical check on record") });
   }
 
