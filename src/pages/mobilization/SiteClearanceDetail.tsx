@@ -263,34 +263,50 @@ export default function SiteClearanceDetail() {
             </CardHeader>
             <CardContent className="space-y-4">
               {[
-                { key: "utility_verified", label: "Utility Verification", desc: "All utilities have been located and verified", required: true, icon: Zap },
-                { key: "underground_utilities_identified", label: "Underground Utilities Identified", desc: "All underground services have been identified and marked", icon: Construction },
-                { key: "high_risk_zones_marked", label: "High-Risk Zones Marked", desc: "All high-risk areas are clearly marked and barricaded", icon: AlertTriangle },
-                { key: "work_boundaries_defined", label: "Work Boundaries Defined", desc: "Work area boundaries are clearly established", icon: MapPin },
+                { key: "utility_verified", notesKey: "utility_verified_notes", label: "Utility Verification", desc: "All utilities have been located and verified", required: true, icon: Zap },
+                { key: "underground_utilities_identified", notesKey: "underground_utilities_notes", label: "Underground Utilities Identified", desc: "All underground services have been identified and marked", icon: Construction },
+                { key: "high_risk_zones_marked", notesKey: "high_risk_zones_notes", label: "High-Risk Zones Marked", desc: "All high-risk areas are clearly marked and barricaded", icon: AlertTriangle },
+                { key: "work_boundaries_defined", notesKey: "work_boundaries_notes", label: "Work Boundaries Defined", desc: "Work area boundaries are clearly established", icon: MapPin },
               ].map(item => {
                 const checked = !!mob?.[item.key as keyof typeof mob];
+                const notesValue = (mob as any)?.[item.notesKey] || "";
                 const IconComp = item.icon;
                 return (
-                  <div key={item.key} className={`flex items-start gap-4 p-4 rounded-lg border transition-colors ${checked ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20" : "border-border"}`}>
-                    <Checkbox
-                      id={item.key}
-                      checked={checked}
-                      disabled={isApproved || updateVerification.isPending}
-                      onCheckedChange={(val) => {
-                        if (mob?.id) {
-                          updateVerification.mutate({ mobilizationId: mob.id, fields: { [item.key]: !!val } });
-                        }
-                      }}
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor={item.key} className="flex items-center gap-2 cursor-pointer">
-                        <IconComp className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{item.label}</span>
-                        {item.required && <Badge variant="outline" className="text-[10px]">Required</Badge>}
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
+                  <div key={item.key} className={`p-4 rounded-lg border transition-colors ${checked ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20" : "border-border"}`}>
+                    <div className="flex items-start gap-4">
+                      <Checkbox
+                        id={item.key}
+                        checked={checked}
+                        disabled={isApproved || updateVerification.isPending}
+                        onCheckedChange={(val) => {
+                          if (mob?.id) {
+                            updateVerification.mutate({ mobilizationId: mob.id, fields: { [item.key]: !!val } });
+                          }
+                        }}
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor={item.key} className="flex items-center gap-2 cursor-pointer">
+                          <IconComp className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">{item.label}</span>
+                          {item.required && <Badge variant="outline" className="text-[10px]">Required</Badge>}
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
+                      </div>
+                      {checked ? <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" /> : isApproved ? <Lock className="h-5 w-5 text-muted-foreground shrink-0" /> : <XCircle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
                     </div>
-                    {checked ? <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" /> : isApproved ? <Lock className="h-5 w-5 text-muted-foreground shrink-0" /> : <XCircle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
+                    <div className="mt-3 ps-8">
+                      <Input
+                        placeholder="Add notes..."
+                        defaultValue={notesValue}
+                        disabled={isApproved}
+                        onBlur={(e) => {
+                          if (mob?.id && e.target.value !== notesValue) {
+                            updateVerification.mutate({ mobilizationId: mob.id, fields: { [item.notesKey]: e.target.value } });
+                          }
+                        }}
+                        className="text-sm"
+                      />
+                    </div>
                   </div>
                 );
               })}
