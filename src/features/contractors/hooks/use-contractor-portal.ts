@@ -103,7 +103,7 @@ export function useContractorPortalWorkers(companyId: string | undefined) {
           emergency_contact_name, emergency_contact_phone,
           worker_role, worker_type, preferred_language, approval_status, approved_at,
           approved_by, rejection_reason, created_at, photo_path,
-          safety_officer_id, submitted_by,
+          safety_officer_id,
           security_approval_status, security_approved_by, security_approved_at, security_rejection_reason,
           photo_verified_by, photo_verified_at,
           fitness_to_work, fitness_acknowledged, medical_check_date,
