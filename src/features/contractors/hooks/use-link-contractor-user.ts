@@ -64,7 +64,7 @@ export function useLinkContractorUser() {
           body: {
             entity_type: "contractor_representative",
             entity_id: representativeId,
-            action: "user_linked",
+            action: "assigned",
             old_value: { user_id: null },
             new_value: { user_id: userId, company_id: companyId },
             tenant_id: profile.tenant_id,
@@ -118,7 +118,7 @@ export function useUnlinkContractorUser() {
           body: {
             entity_type: "contractor_representative",
             entity_id: representativeId,
-            action: "user_unlinked",
+            action: "removed",
             old_value: { user_id: previousUserId },
             new_value: { user_id: null },
             tenant_id: profile.tenant_id,
