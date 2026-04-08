@@ -64,7 +64,7 @@ export default function SiteClearanceDetail() {
 
   // Auto-create mobilization
   useEffect(() => {
-    if (project && !mob && !ensureMob.isPending && projectId) {
+    if (project && !mob && !ensureMob.isPending && !ensureMob.isSuccess && projectId) {
       ensureMob.mutate(projectId);
     }
   }, [project, mob, projectId]);
@@ -294,7 +294,7 @@ export default function SiteClearanceDetail() {
                       </Label>
                       <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
                     </div>
-                    {checked ? <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" /> : <Lock className="h-5 w-5 text-muted-foreground shrink-0" />}
+                    {checked ? <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" /> : isApproved ? <Lock className="h-5 w-5 text-muted-foreground shrink-0" /> : <XCircle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
                   </div>
                 );
               })}
