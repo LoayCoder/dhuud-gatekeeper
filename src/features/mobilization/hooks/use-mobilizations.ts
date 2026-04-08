@@ -32,6 +32,7 @@ export function useEnsureMobilization() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects-with-mobilization"] });
+      queryClient.invalidateQueries({ queryKey: ["mobilization-detail"] });
     },
     onError: (error: Error) => {
       toast.error(error.message);
