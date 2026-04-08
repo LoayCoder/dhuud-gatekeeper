@@ -86,25 +86,8 @@ function ContractorPortalWorkersContent() {
     }
   };
 
-  const openWorkerDetail = (worker: PortalWorker) => {
-    const mapped: ContractorWorker = {
-      id: worker.id,
-      tenant_id: '',
-      company_id: company?.id || '',
-      full_name: worker.full_name,
-      full_name_ar: worker.full_name_ar || null,
-      national_id: worker.national_id,
-      nationality: worker.nationality || null,
-      mobile_number: worker.mobile_number,
-      photo_path: null,
-      preferred_language: worker.preferred_language,
-      approval_status: worker.approval_status,
-      approved_at: null,
-      rejection_reason: null,
-      created_at: new Date().toISOString(),
-      company: company ? { company_name: company.company_name } : null,
-    };
-    setSelectedWorker(mapped);
+  const openWorkerDetail = (worker: any) => {
+    setSelectedWorker(worker as ContractorWorker);
   };
 
   if (isLoading) {
