@@ -175,18 +175,18 @@ export function WorkerSecurityApprovalQueue() {
             </CardHeader>
             <CardContent className="space-y-3 px-3 sm:px-6 pb-3 sm:pb-6">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <CreditCard className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">{t("contractors.nationalId", "ID")}: {worker.national_id}</span>
+                  <span className="text-xs sm:text-sm break-all">{t("contractors.nationalId", "ID")}: {worker.national_id}</span>
                 </div>
                 {worker.mobile_number && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <Phone className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                    <span dir="ltr" className="text-xs sm:text-sm">{worker.mobile_number}</span>
+                    <span dir="ltr" className="text-xs sm:text-sm break-all">{worker.mobile_number}</span>
                   </div>
                 )}
                 {worker.nationality && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <User className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <span className="text-xs sm:text-sm">{worker.nationality}</span>
                   </div>
@@ -204,20 +204,20 @@ export function WorkerSecurityApprovalQueue() {
               )}
 
               {worker.approved_at && (
-                <p className="text-[10px] sm:text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
                   {t("contractors.preApprovedAt", "Pre-approved by Contractor Admin/Consultant")}:{" "}
                   {format(new Date(worker.approved_at), "PPp")}
                 </p>
               )}
 
-              <div className="flex items-center gap-2 sm:gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row gap-2 pt-1">
                 <Button 
                   size="sm"
                   onClick={() => handleApprove(worker)} 
                   disabled={approveWorker.isPending} 
-                  className="flex-1 h-9 sm:h-10 text-xs sm:text-sm"
+                  className="w-full sm:flex-1 h-10 text-xs sm:text-sm"
                 >
-                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 me-1.5" />
+                  <CheckCircle className="h-4 w-4 me-1.5 flex-shrink-0" />
                   <span className="hidden sm:inline">{t("contractors.grantSecurityClearance", "Grant Security Clearance")}</span>
                   <span className="sm:hidden">{t("common.approve", "Approve")}</span>
                 </Button>
@@ -226,9 +226,9 @@ export function WorkerSecurityApprovalQueue() {
                   size="sm"
                   onClick={() => openRejectDialog(worker)} 
                   disabled={rejectWorker.isPending} 
-                  className="flex-1 h-9 sm:h-10 text-xs sm:text-sm"
+                  className="w-full sm:flex-1 h-10 text-xs sm:text-sm"
                 >
-                  <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 me-1.5" />
+                  <XCircle className="h-4 w-4 me-1.5 flex-shrink-0" />
                   <span className="hidden sm:inline">{t("contractors.returnToPending", "Return with Comments")}</span>
                   <span className="sm:hidden">{t("common.reject", "Reject")}</span>
                 </Button>
