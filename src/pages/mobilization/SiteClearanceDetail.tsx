@@ -24,11 +24,13 @@ import { useMobilizationDetail } from "@/features/mobilization/hooks/use-mobiliz
 import { useEnsureMobilization, useUpdateMobilization } from "@/features/mobilization/hooks/use-mobilizations";
 import {
   useSiteSignoffs, useEnsureSignoffs, useSignDiscipline, useRevokeSignoff,
-  useUpdateSiteRiskVerification, useUpdateRisksAndControls,
+  useUpdateSiteRiskVerification,
   useClearanceAttachments, useUploadClearanceAttachment, useDeleteClearanceAttachment,
   useClearanceAuditLogs,
+  useSiteClearanceRisks, useAddSiteClearanceRisk, useDeleteSiteClearanceRisk,
 } from "@/features/mobilization/hooks/use-site-clearance";
 import { DISCIPLINES } from "@/features/mobilization/services/siteClearanceService";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
