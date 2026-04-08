@@ -84,19 +84,13 @@ export default function SiteClearanceDetail() {
   const signDiscipline = useSignDiscipline();
   const revokeSignoff = useRevokeSignoff();
   const updateVerification = useUpdateSiteRiskVerification();
-  const updateRisks = useUpdateRisksAndControls();
+  const { data: risks } = useSiteClearanceRisks(mob?.id);
+  const addRisk = useAddSiteClearanceRisk();
+  const deleteRisk = useDeleteSiteClearanceRisk();
   const { data: attachments } = useClearanceAttachments(mob?.id);
   const uploadAttachment = useUploadClearanceAttachment();
   const deleteAttachment = useDeleteClearanceAttachment();
   const { data: auditLogs } = useClearanceAuditLogs(mob?.id);
-
-  // Sync local risk fields
-  useEffect(() => {
-    if (mob && !risksEdited) {
-      setKnownRisks(mob.known_risks || "");
-      setControlMeasures(mob.control_measures || "");
-    }
-  }, [mob]);
 
   // File drop
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
