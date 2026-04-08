@@ -124,6 +124,10 @@ export default function UserManagement() {
           <p className="text-muted-foreground">{t('userManagement.description')}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => navigate('/admin/id-card-settings')} className="gap-2">
+            <CreditCard className="h-4 w-4" />
+            {t('userManagement.idCardSettings', 'ID Card Settings')}
+          </Button>
           <Button variant="outline" onClick={() => setIsImportDialogOpen(true)} className="gap-2">
             <Upload className="h-4 w-4" />
             {t('userManagement.importUsers')}
