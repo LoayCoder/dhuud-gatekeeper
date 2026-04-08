@@ -13,12 +13,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
-  ArrowLeft, Building2, Calendar, CheckCircle2, Clock,
+  ArrowLeft, ArrowRight, Building2, Calendar, CheckCircle2, Clock,
   XCircle, FileText, Shield, Users, Briefcase,
   AlertTriangle, MapPin, User, Loader2, Lock,
   Upload, Trash2, Eye, Zap, Wrench, Droplets,
   Construction, Wifi, HardHat, ShieldCheck, PenLine,
-  History, Download, Ban,
+  History, Download, Ban, Save,
 } from "lucide-react";
 import { useMobilizationDetail } from "@/features/mobilization/hooks/use-mobilization-detail";
 import { useEnsureMobilization, useUpdateMobilization } from "@/features/mobilization/hooks/use-mobilizations";
@@ -130,6 +130,15 @@ export default function SiteClearanceDetail() {
       },
     });
     toast.success("Site Clearance approved — PTW enabled");
+  };
+
+  const handleSaveDraft = async () => {
+    if (!mob?.id) return;
+    await updateMob.mutateAsync({
+      mobilizationId: mob.id,
+      updates: { status: "draft" },
+    });
+    toast.success("Saved as draft");
   };
 
   if (detailLoading) {
@@ -320,6 +329,7 @@ export default function SiteClearanceDetail() {
               )}
             </CardContent>
           </Card>
+          <TabNavButtons current="risk-verification" onChangeTab={setActiveTab} onSaveDraft={handleSaveDraft} isApproved={isApproved} />
         </TabsContent>
 
         {/* ==================== TAB 2: Discipline Sign-Off ==================== */}
@@ -404,6 +414,7 @@ export default function SiteClearanceDetail() {
               )}
             </CardContent>
           </Card>
+          <TabNavButtons current="discipline-signoff" onChangeTab={setActiveTab} onSaveDraft={handleSaveDraft} isApproved={isApproved} />
         </TabsContent>
 
         <TabsContent value="risks-controls" className="space-y-4">
@@ -585,6 +596,7 @@ export default function SiteClearanceDetail() {
               )}
             </CardContent>
           </Card>
+          <TabNavButtons current="risks-controls" onChangeTab={setActiveTab} onSaveDraft={handleSaveDraft} isApproved={isApproved} />
         </TabsContent>
 
         {/* ==================== TAB 4: Work Readiness ==================== */}
@@ -706,5 +718,56 @@ function SeverityBadge({ severity }: { severity: string }) {
     <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold capitalize shrink-0 ${SEVERITY_COLORS[severity] || SEVERITY_COLORS.medium}`}>
       {severity}
     </span>
+  );
+}
+
+const TAB_ORDER = ["risk-verification", "discipline-signoff", "risks-controls", "work-readiness"] as const;
+const TAB_LABELS: Record<string, string> = {
+  "risk-verification": "Site Risks",
+  "discipline-signoff": "Sign-Offs",
+  "risks-controls": "Risks",
+  "work-readiness": "Readiness",
+};
+
+function TabNavButtons({
+  current,
+  onChangeTab,
+  onSaveDraft,
+  isApproved,
+}: {
+  current: string;
+  onChangeTab: (tab: string) => void;
+  onSaveDraft: () => void;
+  isApproved: boolean;
+}) {
+  const idx = TAB_ORDER.indexOf(current as typeof TAB_ORDER[number]);
+  const prevTab = idx > 0 ? TAB_ORDER[idx - 1] : null;
+  const nextTab = idx < TAB_ORDER.length - 1 ? TAB_ORDER[idx + 1] : null;
+
+  return (
+    <div className="flex items-center justify-between pt-2">
+      <div>
+        {prevTab && (
+          <Button variant="outline" size="sm" onClick={() => onChangeTab(prevTab)}>
+            <ArrowLeft className="me-2 h-4 w-4 rtl:rotate-180" />
+            {TAB_LABELS[prevTab]}
+          </Button>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        {!isApproved && (
+          <Button variant="outline" size="sm" onClick={onSaveDraft}>
+            <Save className="me-2 h-4 w-4" />
+            Save as Draft
+          </Button>
+        )}
+        {nextTab && (
+          <Button size="sm" onClick={() => onChangeTab(nextTab)}>
+            Save & Next
+            <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }
