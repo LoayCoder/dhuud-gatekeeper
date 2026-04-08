@@ -86,6 +86,7 @@ export default function SiteClearanceDetail() {
   const updateVerification = useUpdateSiteRiskVerification();
   const { data: risks } = useSiteClearanceRisks(mob?.id);
   const addRisk = useAddSiteClearanceRisk();
+  const updateRisk = useUpdateSiteClearanceRisk();
   const deleteRisk = useDeleteSiteClearanceRisk();
   const { data: attachments } = useClearanceAttachments(mob?.id);
   const uploadAttachment = useUploadClearanceAttachment();
