@@ -81,7 +81,7 @@ export function useUpdateSiteRiskVerification() {
   const { user, profile } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ mobilizationId, fields }: { mobilizationId: string; fields: Record<string, boolean> }) => {
+    mutationFn: async ({ mobilizationId, fields }: { mobilizationId: string; fields: Record<string, boolean | string> }) => {
       const { updateSiteRiskVerification, logClearanceAudit } = await import("../services/siteClearanceService");
       const result = await updateSiteRiskVerification(mobilizationId, fields);
       if (user?.id && profile?.tenant_id) {
@@ -178,5 +178,58 @@ export function useClearanceAuditLogs(mobilizationId: string | undefined) {
       return getClearanceAuditLogs(mobilizationId);
     },
     enabled: !!mobilizationId,
+  });
+}
+
+// ==================== Site Clearance Risks ====================
+
+export function useSiteClearanceRisks(mobilizationId: string | undefined) {
+  return useQuery({
+    queryKey: ["site-clearance-risks", mobilizationId],
+    queryFn: async () => {
+      if (!mobilizationId) return [];
+      const { getSiteClearanceRisks } = await import("../services/siteClearanceService");
+      return getSiteClearanceRisks(mobilizationId);
+    },
+    enabled: !!mobilizationId,
+  });
+}
+
+export function useAddSiteClearanceRisk() {
+  const queryClient = useQueryClient();
+  const { user, profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ mobilizationId, risk }: { mobilizationId: string; risk: { risk_description: string; severity: string; control_measures?: string } }) => {
+      if (!user?.id || !profile?.tenant_id) throw new Error("Not authenticated");
+      const { addSiteClearanceRisk, logClearanceAudit } = await import("../services/siteClearanceService");
+      const result = await addSiteClearanceRisk(mobilizationId, profile.tenant_id, user.id, risk as any);
+      await logClearanceAudit(mobilizationId, profile.tenant_id, user.id, 'add_risk', undefined, { severity: risk.severity });
+      return result;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["site-clearance-risks", vars.mobilizationId] });
+      toast.success("Risk added");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useDeleteSiteClearanceRisk() {
+  const queryClient = useQueryClient();
+  const { user, profile } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ riskId, mobilizationId }: { riskId: string; mobilizationId: string }) => {
+      if (!user?.id || !profile?.tenant_id) throw new Error("Not authenticated");
+      const { deleteSiteClearanceRisk, logClearanceAudit } = await import("../services/siteClearanceService");
+      await deleteSiteClearanceRisk(riskId);
+      await logClearanceAudit(mobilizationId, profile.tenant_id, user.id, 'delete_risk', undefined, { riskId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["site-clearance-risks"] });
+      toast.success("Risk removed");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 }

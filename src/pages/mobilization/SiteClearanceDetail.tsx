@@ -24,11 +24,13 @@ import { useMobilizationDetail } from "@/features/mobilization/hooks/use-mobiliz
 import { useEnsureMobilization, useUpdateMobilization } from "@/features/mobilization/hooks/use-mobilizations";
 import {
   useSiteSignoffs, useEnsureSignoffs, useSignDiscipline, useRevokeSignoff,
-  useUpdateSiteRiskVerification, useUpdateRisksAndControls,
+  useUpdateSiteRiskVerification,
   useClearanceAttachments, useUploadClearanceAttachment, useDeleteClearanceAttachment,
   useClearanceAuditLogs,
+  useSiteClearanceRisks, useAddSiteClearanceRisk, useDeleteSiteClearanceRisk,
 } from "@/features/mobilization/hooks/use-site-clearance";
 import { DISCIPLINES } from "@/features/mobilization/services/siteClearanceService";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -51,9 +53,9 @@ export default function SiteClearanceDetail() {
   const tenantId = profile?.tenant_id;
 
   const [activeTab, setActiveTab] = useState("risk-verification");
-  const [knownRisks, setKnownRisks] = useState("");
-  const [controlMeasures, setControlMeasures] = useState("");
-  const [risksEdited, setRisksEdited] = useState(false);
+  const [newRiskDesc, setNewRiskDesc] = useState("");
+  const [newRiskSeverity, setNewRiskSeverity] = useState("medium");
+  const [newRiskControls, setNewRiskControls] = useState("");
 
   const { data: detail, isLoading: detailLoading } = useMobilizationDetail(projectId);
   const ensureMob = useEnsureMobilization();
@@ -82,19 +84,13 @@ export default function SiteClearanceDetail() {
   const signDiscipline = useSignDiscipline();
   const revokeSignoff = useRevokeSignoff();
   const updateVerification = useUpdateSiteRiskVerification();
-  const updateRisks = useUpdateRisksAndControls();
+  const { data: risks } = useSiteClearanceRisks(mob?.id);
+  const addRisk = useAddSiteClearanceRisk();
+  const deleteRisk = useDeleteSiteClearanceRisk();
   const { data: attachments } = useClearanceAttachments(mob?.id);
   const uploadAttachment = useUploadClearanceAttachment();
   const deleteAttachment = useDeleteClearanceAttachment();
   const { data: auditLogs } = useClearanceAuditLogs(mob?.id);
-
-  // Sync local risk fields
-  useEffect(() => {
-    if (mob && !risksEdited) {
-      setKnownRisks(mob.known_risks || "");
-      setControlMeasures(mob.control_measures || "");
-    }
-  }, [mob]);
 
   // File drop
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -267,34 +263,50 @@ export default function SiteClearanceDetail() {
             </CardHeader>
             <CardContent className="space-y-4">
               {[
-                { key: "utility_verified", label: "Utility Verification", desc: "All utilities have been located and verified", required: true, icon: Zap },
-                { key: "underground_utilities_identified", label: "Underground Utilities Identified", desc: "All underground services have been identified and marked", icon: Construction },
-                { key: "high_risk_zones_marked", label: "High-Risk Zones Marked", desc: "All high-risk areas are clearly marked and barricaded", icon: AlertTriangle },
-                { key: "work_boundaries_defined", label: "Work Boundaries Defined", desc: "Work area boundaries are clearly established", icon: MapPin },
+                { key: "utility_verified", notesKey: "utility_verified_notes", label: "Utility Verification", desc: "All utilities have been located and verified", required: true, icon: Zap },
+                { key: "underground_utilities_identified", notesKey: "underground_utilities_notes", label: "Underground Utilities Identified", desc: "All underground services have been identified and marked", icon: Construction },
+                { key: "high_risk_zones_marked", notesKey: "high_risk_zones_notes", label: "High-Risk Zones Marked", desc: "All high-risk areas are clearly marked and barricaded", icon: AlertTriangle },
+                { key: "work_boundaries_defined", notesKey: "work_boundaries_notes", label: "Work Boundaries Defined", desc: "Work area boundaries are clearly established", icon: MapPin },
               ].map(item => {
                 const checked = !!mob?.[item.key as keyof typeof mob];
+                const notesValue = (mob as any)?.[item.notesKey] || "";
                 const IconComp = item.icon;
                 return (
-                  <div key={item.key} className={`flex items-start gap-4 p-4 rounded-lg border transition-colors ${checked ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20" : "border-border"}`}>
-                    <Checkbox
-                      id={item.key}
-                      checked={checked}
-                      disabled={isApproved || updateVerification.isPending}
-                      onCheckedChange={(val) => {
-                        if (mob?.id) {
-                          updateVerification.mutate({ mobilizationId: mob.id, fields: { [item.key]: !!val } });
-                        }
-                      }}
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor={item.key} className="flex items-center gap-2 cursor-pointer">
-                        <IconComp className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{item.label}</span>
-                        {item.required && <Badge variant="outline" className="text-[10px]">Required</Badge>}
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
+                  <div key={item.key} className={`p-4 rounded-lg border transition-colors ${checked ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20" : "border-border"}`}>
+                    <div className="flex items-start gap-4">
+                      <Checkbox
+                        id={item.key}
+                        checked={checked}
+                        disabled={isApproved || updateVerification.isPending}
+                        onCheckedChange={(val) => {
+                          if (mob?.id) {
+                            updateVerification.mutate({ mobilizationId: mob.id, fields: { [item.key]: !!val } });
+                          }
+                        }}
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor={item.key} className="flex items-center gap-2 cursor-pointer">
+                          <IconComp className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">{item.label}</span>
+                          {item.required && <Badge variant="outline" className="text-[10px]">Required</Badge>}
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
+                      </div>
+                      {checked ? <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" /> : isApproved ? <Lock className="h-5 w-5 text-muted-foreground shrink-0" /> : <XCircle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
                     </div>
-                    {checked ? <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" /> : isApproved ? <Lock className="h-5 w-5 text-muted-foreground shrink-0" /> : <XCircle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
+                    <div className="mt-3 ps-8">
+                      <Input
+                        placeholder="Add notes..."
+                        defaultValue={notesValue}
+                        disabled={isApproved}
+                        onBlur={(e) => {
+                          if (mob?.id && e.target.value !== notesValue) {
+                            updateVerification.mutate({ mobilizationId: mob.id, fields: { [item.notesKey]: e.target.value } });
+                          }
+                        }}
+                        className="text-sm"
+                      />
+                    </div>
                   </div>
                 );
               })}
@@ -393,45 +405,100 @@ export default function SiteClearanceDetail() {
           </Card>
         </TabsContent>
 
-        {/* ==================== TAB 3: Known Risks & Controls ==================== */}
         <TabsContent value="risks-controls" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Known Risks & Control Measures</CardTitle>
-              <CardDescription>Document identified risks and the control measures in place</CardDescription>
+              <CardDescription>Document identified risks with severity and control measures</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Known Risks</Label>
-                <Textarea
-                  placeholder="Describe any known hazards, risks, or site conditions..."
-                  value={knownRisks}
-                  onChange={(e) => { setKnownRisks(e.target.value); setRisksEdited(true); }}
-                  rows={4}
-                  disabled={isApproved}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Control Measures</Label>
-                <Textarea
-                  placeholder="Describe the control measures and mitigations..."
-                  value={controlMeasures}
-                  onChange={(e) => { setControlMeasures(e.target.value); setRisksEdited(true); }}
-                  rows={4}
-                  disabled={isApproved}
-                />
-              </div>
-              {risksEdited && mob?.id && (
-                <Button
-                  onClick={() => {
-                    updateRisks.mutate({ mobilizationId: mob.id, fields: { known_risks: knownRisks, control_measures: controlMeasures } });
-                    setRisksEdited(false);
-                  }}
-                  disabled={updateRisks.isPending}
-                >
-                  {updateRisks.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                  Save Risks & Controls
-                </Button>
+              {/* Add Risk Form */}
+              {!isApproved && (
+                <div className="space-y-3 p-4 rounded-lg border border-dashed border-muted-foreground/30">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Severity</Label>
+                      <NativeSelect
+                        value={newRiskSeverity}
+                        onChange={setNewRiskSeverity}
+                        options={[
+                          { value: "low", label: "Low" },
+                          { value: "medium", label: "Medium" },
+                          { value: "high", label: "High" },
+                          { value: "critical", label: "Critical" },
+                        ]}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Risk Description</Label>
+                    <Textarea
+                      placeholder="Describe the risk..."
+                      value={newRiskDesc}
+                      onChange={(e) => setNewRiskDesc(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Control Measures</Label>
+                    <Textarea
+                      placeholder="Describe mitigation / control measures..."
+                      value={newRiskControls}
+                      onChange={(e) => setNewRiskControls(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={!newRiskDesc.trim() || !mob?.id || addRisk.isPending}
+                    onClick={() => {
+                      if (mob?.id) {
+                        addRisk.mutate({
+                          mobilizationId: mob.id,
+                          risk: { risk_description: newRiskDesc.trim(), severity: newRiskSeverity, control_measures: newRiskControls.trim() || undefined },
+                        });
+                        setNewRiskDesc("");
+                        setNewRiskControls("");
+                        setNewRiskSeverity("medium");
+                      }
+                    }}
+                  >
+                    {addRisk.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                    Add Risk
+                  </Button>
+                </div>
+              )}
+
+              {/* Risks List */}
+              {risks && risks.length > 0 ? (
+                <div className="space-y-2">
+                  {risks.map((risk: any) => (
+                    <div key={risk.id} className="flex items-start gap-3 p-3 rounded-lg border">
+                      <SeverityBadge severity={risk.severity} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{risk.risk_description}</p>
+                        {risk.control_measures && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            <span className="font-medium">Controls:</span> {risk.control_measures}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {risk.creator?.full_name} · {format(new Date(risk.created_at), "MMM d, yyyy")}
+                        </p>
+                      </div>
+                      {!isApproved && (
+                        <Button
+                          variant="ghost" size="icon"
+                          onClick={() => mob?.id && deleteRisk.mutate({ riskId: risk.id, mobilizationId: mob.id })}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No risks documented yet.</p>
               )}
             </CardContent>
           </Card>
@@ -443,7 +510,6 @@ export default function SiteClearanceDetail() {
               <CardDescription>Upload photos, drawings, or supporting documents</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Dropzone */}
               {!isApproved && (
                 <div
                   {...getRootProps()}
@@ -460,7 +526,6 @@ export default function SiteClearanceDetail() {
                 </div>
               )}
 
-              {/* Attachment list */}
               {attachments && attachments.length > 0 && (
                 <div className="space-y-2">
                   {attachments.map((att: any) => (
@@ -593,5 +658,20 @@ function GateRow({ label, passed, detail, critical }: { label: string; passed: b
       <span className={`flex-1 text-sm ${passed ? "font-medium" : "text-muted-foreground"}`}>{label}</span>
       {detail && <Badge variant={passed ? "default" : "outline"} className="text-xs">{detail}</Badge>}
     </div>
+  );
+}
+
+const SEVERITY_COLORS: Record<string, string> = {
+  low: "bg-green-100 text-green-800 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800",
+  medium: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800",
+  high: "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800",
+  critical: "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800",
+};
+
+function SeverityBadge({ severity }: { severity: string }) {
+  return (
+    <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold capitalize shrink-0 ${SEVERITY_COLORS[severity] || SEVERITY_COLORS.medium}`}>
+      {severity}
+    </span>
   );
 }
