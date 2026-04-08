@@ -1,43 +1,31 @@
 
 
-# Fix: Worker Approval "start_date" Trigger Error
+# Fix: Gate Pass Photo Upload Bugs
 
-## Root Cause
+## Confirmed Bugs
 
-Two duplicate triggers on `contractor_workers` — `enforce_contractor_access_duration_trigger` and `trg_enforce_contractor_access_duration` — both fire on UPDATE and reference `NEW.start_date` and `NEW.end_date`. These columns do **not exist** on the `contractor_workers` table.
+1. **Dead code** (lines 171-203): `data.photos` upload is nested inside `if (data.plate_photos)` — general photos never upload unless plate photos exist
+2. **Crash risk** (line 173): `for (const photo of data.photos)` has no null guard — crashes if `data.photos` is undefined
+3. **Wrong storage path** (line 175): Missing `tenantId/` prefix — inconsistent with all other uploads and will be blocked by storage RLS
+4. **Silent failures** (lines 78-96): `gate_pass_items` insert swallows errors, pushing empty string IDs, causing downstream photo uploads to be silently skipped
 
-When the security approval sets `approval_status = 'approved'`, the trigger fires and crashes with: `record "new" has no field "start_date"`.
+## Changes — Single File
 
-## Fix (Single Migration)
+**`src/features/contractors/services/materialGatePassCreateService.ts`**
 
-Drop both broken triggers and recreate a single, corrected trigger that uses columns that actually exist on the table. Based on the project's access-duration logic, the trigger should set `approved_at` (already handled by the mutation) and optionally compute an `access_expiry_date` if that column exists — or simply be a no-op if access duration is tracked elsewhere (e.g., `project_worker_assignments`).
+### Change 1: Add `.throwOnError()` to `gate_pass_items` insert (lines 78-96)
+Replace manual error handling with `.throwOnError()` so RLS violations surface immediately and stop the creation flow.
 
-### Migration SQL
+### Change 2: Add `.throwOnError()` to `gate_pass_item_photos` insert (lines 133-141)
+Same treatment for consistency.
 
-```sql
--- Drop both duplicate broken triggers
-DROP TRIGGER IF EXISTS enforce_contractor_access_duration_trigger ON public.contractor_workers;
-DROP TRIGGER IF EXISTS trg_enforce_contractor_access_duration ON public.contractor_workers;
+### Change 3: Move `data.photos` block outside `if (data.plate_photos)` (lines 147-203)
+Close the `if (data.plate_photos)` block after line 170, then start a new `if (data.photos && data.photos.length > 0)` block for general photos.
 
--- Drop the broken function
-DROP FUNCTION IF EXISTS public.enforce_contractor_access_duration();
-```
+### Change 4: Fix storage path (line 175)
+Change `${result.id}/...` to `${tenantId}/${result.id}/...`.
 
-This removes the faulty triggers entirely. The approval mutations already set `approved_at` and `security_approved_at` timestamps in code, so no replacement trigger is needed.
+## No Other Files Changed
 
-If access duration enforcement is desired later, a new trigger can be added referencing actual columns.
-
-## Files Changed
-
-- **Database migration only** — no application code changes needed. The mutation code in `use-worker-approval-mutations.ts` is correct; it's the DB trigger that's broken.
-
-## What This Fixes
-
-1. Security approval of workers (the immediate error)
-2. Stage 1 contractor approval (same trigger fires on `pending` → `pending_security` but doesn't crash because the condition checks for `approved` status — however it's still dead code)
-3. Removes duplicate trigger (two triggers calling the same broken function)
-
-## Expected Result
-
-After the migration, approving "Ahmad Mohammed Al-Harbi" (or any worker) will succeed without errors. The full workflow — pending → pending_security → approved → induction sent → QR generated — will complete end-to-end.
+The item photo loop (lines 100-143) is structurally correct. No pre-buffering needed. No race condition exists.
 
