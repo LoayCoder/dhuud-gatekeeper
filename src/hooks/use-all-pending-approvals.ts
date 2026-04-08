@@ -39,8 +39,7 @@ const INCIDENT_APPROVAL_STATUSES = [
 
 // Gate pass approval statuses
 const GATE_PASS_APPROVAL_STATUSES = [
-  'pending_pm_approval',
-  'pending_safety_approval',
+  'pending_acknowledgment',
 ] as const;
 
 // Worker approval statuses
