@@ -215,6 +215,9 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                     <p className="text-sm text-muted-foreground">
                       {t("contractors.workers.onboardDescription", "Send induction video and generate QR code in one step.")}
                     </p>
+                    {hasAutoLinkedProject ? (
+                      <AssignedProjectBadge projectName={autoLinkedProjectName} t={t} />
+                    ) : (
                     <div className="space-y-2">
                       <label className="text-sm font-medium">
                         {t("contractors.workers.selectProjectForQR", "Select Project")}
@@ -233,6 +236,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
                         <p className="text-sm text-muted-foreground">{t("contractors.workers.noProjects", "No projects assigned to this company")}</p>
                       )}
                     </div>
+                    )}
                     <Button
                       onClick={() => onboardWorker.mutate({ workerId: worker.id, projectId: selectedProjectId }, { onSuccess: () => refetchQRCode() })}
                       disabled={!selectedProjectId || onboardWorker.isPending}
