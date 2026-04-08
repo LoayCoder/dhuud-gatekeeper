@@ -99,6 +99,7 @@ export default function PublicRequestPage() {
       requesterEmail: '',
       requesterCompany: '',
       branchId: '',
+      departmentId: '',
       passType: 'in_out',
       vehiclePlateLetters: '',
       vehiclePlateNumbers: '',
