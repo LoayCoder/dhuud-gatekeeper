@@ -213,6 +213,7 @@ export default function PublicRequestPage() {
           'requesterEmail',
           'requesterCompany',
           'branchId',
+          'departmentId',
         ]);
       case 2: {
         const fieldsValid = await form.trigger([
@@ -330,6 +331,7 @@ export default function PublicRequestPage() {
       const result = await submitGatePass.mutateAsync({
         tenant_slug: tenantSlug,
         branch_id: data.branchId || undefined,
+        department_id: data.departmentId || undefined,
         requester_name: data.requesterName,
         requester_phone: data.requesterPhone,
         requester_email: data.requesterEmail || undefined,
@@ -542,7 +544,11 @@ export default function PublicRequestPage() {
                       name="branchId"
                       control={form.control}
                       render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select value={field.value} onValueChange={(val) => {
+                          field.onChange(val);
+                          // Reset department when branch changes
+                          form.setValue('departmentId', '');
+                        }}>
                           <SelectTrigger>
                             <SelectValue placeholder={isRTL ? "اختر الفرع" : "Select Branch"} />
                           </SelectTrigger>
@@ -556,6 +562,60 @@ export default function PublicRequestPage() {
                     />
                   </div>
                 )}
+
+                {/* Department Selector — mandatory */}
+                <div className="space-y-2">
+                  <Label>{isRTL ? "القسم" : "Department"} *</Label>
+                  <Controller
+                    name="departmentId"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={loadingDepartments}
+                        >
+                          <SelectTrigger className={fieldState.error ? "border-destructive" : ""}>
+                            <SelectValue placeholder={
+                              loadingDepartments
+                                ? (isRTL ? "جاري التحميل..." : "Loading...")
+                                : (isRTL ? "اختر القسم" : "Select Department")
+                            } />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(departments || []).map(d => (
+                              <SelectItem key={d.department_id} value={d.department_id}>
+                                {isRTL && d.department_name_ar ? d.department_name_ar : d.department_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {fieldState.error && (
+                          <p className="text-xs text-destructive mt-1">
+                            {isRTL ? "يرجى اختيار القسم" : String(fieldState.error.message)}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  />
+                  {/* Show resolved approver */}
+                  {selectedDeptApprover && (
+                    <div className="flex items-center gap-2 bg-muted/50 rounded-md p-2 text-xs text-muted-foreground">
+                      <User className="h-3 w-3 shrink-0" />
+                      <span>
+                        {isRTL ? "سيتم توجيه الطلب إلى:" : "Request will be routed to:"}{" "}
+                        <span className="font-medium text-foreground">{selectedDeptApprover.approver_name}</span>
+                        {" "}
+                        <span className="text-muted-foreground">
+                          ({selectedDeptApprover.approver_role === 'department_representative'
+                            ? (isRTL ? "ممثل القسم" : "Dept. Representative")
+                            : (isRTL ? "مدير القسم" : "Dept. Manager")})
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}
