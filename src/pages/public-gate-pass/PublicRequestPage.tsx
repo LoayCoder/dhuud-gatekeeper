@@ -46,6 +46,7 @@ import {
   usePublicBranches,
   useSubmitPublicGatePass,
 } from "@/hooks/public-gate-pass";
+import { usePublicDepartments } from "@/features/contractors/hooks/use-public-departments";
 import { PublicGatePassItemForm, GatePassItemData } from "./components/PublicGatePassItemForm";
 import { PublicVehiclePlateInput } from "./components/PublicVehiclePlateInput";
 import { format, addDays, isBefore, startOfDay } from "date-fns";
