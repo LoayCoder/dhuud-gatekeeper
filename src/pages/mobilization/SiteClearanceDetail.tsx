@@ -472,29 +472,61 @@ export default function SiteClearanceDetail() {
 
               {/* Risks List */}
               {risks && risks.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {risks.map((risk: any) => (
-                    <div key={risk.id} className="flex items-start gap-3 p-3 rounded-lg border">
-                      <SeverityBadge severity={risk.severity} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{risk.risk_description}</p>
-                        {risk.control_measures && (
+                    <div key={risk.id} className="p-4 rounded-lg border space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{risk.risk_description}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            <span className="font-medium">Controls:</span> {risk.control_measures}
+                            {risk.creator?.full_name} · {format(new Date(risk.created_at), "MMM d, yyyy")}
                           </p>
+                        </div>
+                        {!isApproved && (
+                          <Button
+                            variant="ghost" size="icon"
+                            onClick={() => mob?.id && deleteRisk.mutate({ riskId: risk.id, mobilizationId: mob.id })}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         )}
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {risk.creator?.full_name} · {format(new Date(risk.created_at), "MMM d, yyyy")}
-                        </p>
                       </div>
-                      {!isApproved && (
-                        <Button
-                          variant="ghost" size="icon"
-                          onClick={() => mob?.id && deleteRisk.mutate({ riskId: risk.id, mobilizationId: mob.id })}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">Severity</Label>
+                          {isApproved ? (
+                            <SeverityBadge severity={risk.severity} />
+                          ) : (
+                            <NativeSelect
+                              value={risk.severity}
+                              onChange={(val) => mob?.id && updateRisk.mutate({ riskId: risk.id, mobilizationId: mob.id, fields: { severity: val } })}
+                              options={[
+                                { value: "low", label: "Low" },
+                                { value: "medium", label: "Medium" },
+                                { value: "high", label: "High" },
+                                { value: "critical", label: "Critical" },
+                              ]}
+                            />
+                          )}
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">Control Measures</Label>
+                          {isApproved ? (
+                            <p className="text-sm">{risk.control_measures || "—"}</p>
+                          ) : (
+                            <Input
+                              defaultValue={risk.control_measures || ""}
+                              placeholder="Add control measures..."
+                              onBlur={(e) => {
+                                if (mob?.id && e.target.value !== (risk.control_measures || "")) {
+                                  updateRisk.mutate({ riskId: risk.id, mobilizationId: mob.id, fields: { control_measures: e.target.value } });
+                                }
+                              }}
+                              className="text-sm"
+                            />
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
