@@ -76,6 +76,7 @@ import { UserManagementModals } from './UserManagementModals';
 import { useUserManagementState, useUserManagementData, useUserManagementSaveActions, useUserManagementStatusActions, useUserManagementExtraActions } from './hooks/useUserManagement';
 
 export default function UserManagement() {
+  const navigate = useNavigate();
   const state = useUserManagementState();
   const data = useUserManagementData(state);
   const saveActions = useUserManagementSaveActions(state, data);
