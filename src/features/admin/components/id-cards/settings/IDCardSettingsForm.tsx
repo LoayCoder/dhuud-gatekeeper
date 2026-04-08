@@ -121,6 +121,29 @@ const PRESET_CONFIGS: Record<TemplatePreset, Partial<FormValues>> = {
   },
 };
 
+// Helper to build form values from settings
+function buildFormValues(s: Partial<TenantIDCardSettings>): FormValues {
+  return {
+    template_preset: (s.template_preset as TemplatePreset) || 'standard',
+    card_orientation: (s.card_orientation as CardOrientation) || 'portrait',
+    front_bg_color: s.front_bg_color || '#FFFFFF',
+    front_accent_color: s.front_accent_color || '#3b82f6',
+    front_text_color: s.front_text_color || '#1f2937',
+    show_photo: s.show_photo ?? true,
+    show_qr_code: s.show_qr_code ?? true,
+    qr_position: (s.qr_position as QRPosition) || 'bottom',
+    front_fields: (s.front_fields as string[]) || ['full_name', 'company', 'role'],
+    show_logo: s.show_logo ?? true,
+    logo_position: (s.logo_position as LogoPosition) || 'top-left',
+    show_tenant_name: s.show_tenant_name ?? true,
+    back_enabled: s.back_enabled ?? false,
+    back_bg_color: s.back_bg_color || '#f9fafb',
+    back_fields: (s.back_fields as string[]) || ['emergency_contact', 'safety_instructions'],
+    back_custom_text: s.back_custom_text || '',
+    back_custom_text_ar: s.back_custom_text_ar || '',
+  };
+}
+
 export function IDCardSettingsForm({
   settings,
   cardType,
@@ -134,26 +157,13 @@ export function IDCardSettingsForm({
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      template_preset: (settings.template_preset as TemplatePreset) || 'standard',
-      card_orientation: (settings.card_orientation as CardOrientation) || 'portrait',
-      front_bg_color: settings.front_bg_color || '#FFFFFF',
-      front_accent_color: settings.front_accent_color || '#3b82f6',
-      front_text_color: settings.front_text_color || '#1f2937',
-      show_photo: settings.show_photo ?? true,
-      show_qr_code: settings.show_qr_code ?? true,
-      qr_position: (settings.qr_position as QRPosition) || 'bottom',
-      front_fields: (settings.front_fields as string[]) || ['full_name', 'company', 'role'],
-      show_logo: settings.show_logo ?? true,
-      logo_position: (settings.logo_position as LogoPosition) || 'top-left',
-      show_tenant_name: settings.show_tenant_name ?? true,
-      back_enabled: settings.back_enabled ?? false,
-      back_bg_color: settings.back_bg_color || '#f9fafb',
-      back_fields: (settings.back_fields as string[]) || ['emergency_contact', 'safety_instructions'],
-      back_custom_text: settings.back_custom_text || '',
-      back_custom_text_ar: settings.back_custom_text_ar || '',
-    },
+    defaultValues: buildFormValues(settings),
   });
+
+  // Reset form when card type or settings change (e.g. tab switch)
+  useEffect(() => {
+    form.reset(buildFormValues(settings));
+  }, [cardType, JSON.stringify(settings)]);
 
   // Watch form values and notify parent
   const watchedValues = form.watch();

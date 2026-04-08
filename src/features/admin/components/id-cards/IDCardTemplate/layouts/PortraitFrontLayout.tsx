@@ -20,8 +20,8 @@ export function PortraitFrontLayout({
   isRTL,
   getFieldValue,
 }: LayoutProps) {
-  const photoSize = Math.round(width * 0.38);
-  const qrSize = Math.round(width * 0.30);
+  const photoSize = Math.round(width * 0.32);
+  const qrSize = Math.round(width * 0.22);
   const accentColor = CARD_TYPE_COLORS[cardType] || settings.front_accent_color;
 
   return (
