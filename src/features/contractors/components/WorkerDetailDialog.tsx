@@ -98,15 +98,10 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
     }
     setIsSendingInduction(true);
     try {
-      const languageVideo = videos.find((v) => v.language === worker.preferred_language && v.is_active);
-      const defaultVideo = videos.find((v) => v.language === "en" && v.is_active);
-      const videoToSend = languageVideo || defaultVideo;
-      if (!videoToSend) {
-        toast.error(t("contractors.messages.noVideoAvailable", "No induction video available for this language"));
-        return;
-      }
+      // Use send-induction-video which delegates to shared induction-sender module
+      // No need to manually select video — the shared module handles language-based selection
       const { error } = await supabase.functions.invoke("send-induction-video", {
-        body: { workerId: worker.id, videoId: videoToSend.id, projectId: selectedProjectId, mobileNumber: worker.mobile_number, language: worker.preferred_language },
+        body: { workerId: worker.id, projectId: selectedProjectId },
       });
       if (error) throw error;
       toast.success(t("contractors.messages.inductionSent", "Induction video sent successfully"));
