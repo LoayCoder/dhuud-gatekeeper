@@ -1,16 +1,19 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { usePTWTypes, usePTWProjects } from "@/hooks/ptw";
+import { usePTWTypes } from "@/hooks/ptw";
 import { useSites } from "@/hooks/use-sites";
 import { useMobilizationCheck } from "@/features/ptw/hooks/use-mobilization-check";
 import { MobilizationStatusBanner } from '@/features/ptw';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Flame, Construction, Shield, Shovel, Radiation, Zap, Mountain, FileWarning, Wrench } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const permitTypeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   HOT_WORK: Flame,
@@ -36,11 +39,56 @@ interface PermitBasicsStepProps {
     planned_start_time?: string;
     planned_end_time?: string;
     job_description?: string;
-    // Auto-populated from project
     contractor_id?: string;
     contractor_name?: string;
   };
   onChange: (data: Partial<PermitBasicsStepProps["data"]>) => void;
+}
+
+/**
+ * Hook to fetch contractor_projects that have an approved mobilization.
+ * These are the only projects eligible for PTW permit creation.
+ */
+function useApprovedProjects() {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  return useQuery({
+    queryKey: ["approved-projects-for-ptw", tenantId],
+    queryFn: async () => {
+      if (!tenantId) return [];
+
+      // Get all mobilizations that are approved
+      const { data: mobilizations, error: mobError } = await supabase
+        .from("project_mobilizations")
+        .select("project_id")
+        .eq("status", "approved")
+        .is("deleted_at", null);
+
+      if (mobError || !mobilizations || mobilizations.length === 0) return [];
+
+      const approvedProjectIds = mobilizations.map((m: any) => m.project_id);
+
+      // Get those contractor_projects
+      const { data: projects, error } = await supabase
+        .from("contractor_projects")
+        .select(`
+          id, project_name, project_code, company_id, site_id, project_manager_id,
+          company:contractor_companies(company_name),
+          site:sites(id, name),
+          project_manager:profiles!contractor_projects_project_manager_id_fkey(full_name)
+        `)
+        .eq("tenant_id", tenantId)
+        .in("id", approvedProjectIds)
+        .eq("status", "active")
+        .is("deleted_at", null)
+        .order("project_name");
+
+      if (error) throw error;
+      return projects || [];
+    },
+    enabled: !!tenantId,
+  });
 }
 
 export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
@@ -48,7 +96,7 @@ export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
   const isRTL = i18n.language === "ar" || i18n.language === "ur";
   
   const { data: permitTypes, isLoading: typesLoading, error: typesError } = usePTWTypes();
-  const { data: projects, isLoading: projectsLoading, error: projectsError } = usePTWProjects();
+  const { data: projects, isLoading: projectsLoading, error: projectsError } = useApprovedProjects();
   const { data: sites, isLoading: sitesLoading } = useSites();
 
   useEffect(() => {
@@ -63,29 +111,32 @@ export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
 
   // Auto-populate contractor and site when project is selected
   useEffect(() => {
-    if (mobilizationStatus && data.project_id) {
-      const updates: Partial<PermitBasicsStepProps["data"]> = {};
-      
-      // Auto-populate contractor info
-      if (mobilizationStatus.contractorId && mobilizationStatus.contractorId !== data.contractor_id) {
-        updates.contractor_id = mobilizationStatus.contractorId;
-        updates.contractor_name = mobilizationStatus.contractorName || undefined;
-      }
-      
-      // Auto-populate site if project has one and user hasn't selected one yet
-      if (mobilizationStatus.siteId && !data.site_id) {
-        updates.site_id = mobilizationStatus.siteId;
-      }
-      
-      if (Object.keys(updates).length > 0) {
-        onChange(updates);
+    if (data.project_id && projects) {
+      const selectedProject = projects.find((p: any) => p.id === data.project_id);
+      if (selectedProject) {
+        const updates: Partial<PermitBasicsStepProps["data"]> = {};
+        
+        const company = selectedProject.company as { company_name: string } | null;
+        if (company && company.company_name !== data.contractor_name) {
+          updates.contractor_id = (selectedProject as any).company_id;
+          updates.contractor_name = company.company_name;
+        }
+        
+        const site = selectedProject.site as { id: string; name: string } | null;
+        if (site && !data.site_id) {
+          updates.site_id = site.id;
+        }
+        
+        if (Object.keys(updates).length > 0) {
+          onChange(updates);
+        }
       }
     }
-  }, [mobilizationStatus, data.project_id, data.contractor_id, data.site_id, onChange]);
+  }, [data.project_id, projects, data.contractor_name, data.site_id, onChange]);
 
   return (
     <div className="space-y-6">
-      {/* Project Selection */}
+      {/* Project Selection — only approved mobilization projects */}
       <div className="space-y-2">
         <Label htmlFor="project_id">
           {t("ptw.form.project", "Project")} <span className="text-destructive">*</span>
@@ -101,11 +152,11 @@ export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
               <SelectValue placeholder={t("ptw.form.selectProject", "Select project")} />
             </SelectTrigger>
             <SelectContent>
-              {projects?.map((project) => (
+              {projects?.map((project: any) => (
                 <SelectItem key={project.id} value={project.id}>
                   <div className="flex items-center gap-2">
-                    <span>{project.name}</span>
-                    <span className="text-xs text-muted-foreground">({project.reference_id})</span>
+                    <span>{project.project_name}</span>
+                    <span className="text-xs text-muted-foreground">({project.project_code})</span>
                   </div>
                 </SelectItem>
               ))}
@@ -114,12 +165,12 @@ export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
         )}
         {projects?.length === 0 && !projectsLoading && (
           <p className="text-sm text-muted-foreground">
-            {t("ptw.form.noActiveProjects", "No active projects available. Please complete project mobilization first.")}
+            {t("ptw.form.noActiveProjects", "No projects with approved mobilization. Complete site mobilization first.")}
           </p>
         )}
       </div>
 
-      {/* Mobilization Status Banner - Shows when project is selected */}
+      {/* Mobilization Status Banner */}
       {data.project_id && (
         <MobilizationStatusBanner 
           status={mobilizationStatus} 
@@ -168,7 +219,6 @@ export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
             {t("ptw.form.permitTypesError", "Failed to load permit types. Please try again.")}
           </p>
         )}
-        {/* Type Indicators */}
         {selectedType && (
           <div className="flex flex-wrap gap-2 mt-2">
             {selectedType.requires_gas_test && (
@@ -269,4 +319,3 @@ export function PermitBasicsStep({ data, onChange }: PermitBasicsStepProps) {
     </div>
   );
 }
-
