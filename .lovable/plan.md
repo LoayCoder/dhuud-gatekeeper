@@ -1,143 +1,151 @@
 
 
-# Gate Pass Workflow Audit Report
+# Worker Approval → Induction → ID/QR → Activation: Unified Lifecycle Implementation
 
-## ✅ Compliance Summary
+## Current State (Problems Found)
 
-**Overall Status: NOT COMPLIANT**
+### CRITICAL: Double Induction Send
+`useSecurityApproveWorker` (line 210) calls `send-induction-video` AND then (line 228) calls `onboard-worker`, which ALSO sends an induction video internally. **Worker receives 2 WhatsApp messages.**
 
-The system has significant gaps against the required design. The mandatory **Acknowledgment layer** is partially implemented at the database level for public passes only, but is completely absent from the frontend, the main approval RPC, and internal/external workflows. Legacy statuses remain scattered across 47+ files.
+### CRITICAL: Project Resolution Failure  
+Line 196-204 only checks `project_worker_assignments`. When no assignment exists, `projectId` stays `null`. The `send-induction-video` edge function then falls back to `projectName = 'General'` and picks a random video (wrong language).
 
----
+### CRITICAL: Duplicated Induction Logic
+Full induction logic (video selection, record creation, message rendering, WhatsApp send) exists in THREE places:
+1. `supabase/functions/send-induction-video/index.ts` (386 lines)
+2. `supabase/functions/onboard-worker/index.ts` lines 96-193
+3. `supabase/functions/send-bulk-induction/index.ts` (similar pattern)
 
-## ⚠️ Issues Found
+### MAJOR: Misplaced Hook
+`useSendInductionVideo` in `use-worker-qr-codes.ts` (line 109-128) — induction hook in a QR file, with incomplete parameters (no projectId).
 
-### CRITICAL Issues
+### MAJOR: No Induction Gate
+Worker becomes `approved` immediately on security approval. No intermediate states like `pending_induction`. The DB has no `induction_status` column on `contractor_workers`.
 
-**C1. Acknowledgment step does NOT exist in the main approval RPC**
-The `approve_gate_pass_unified` function (latest migration `20260407204636`) routes `contractor` and `dept_approval` stages **directly to `pending_security_approval`**, completely skipping acknowledgment. There is no `WHEN 'pending_acknowledgment'` or `WHEN 'acknowledgment'` case in this function. Security approval happens immediately after dept/contractor approval.
-
-**C2. No `gate_pass_acknowledger` role exists**
-Search for `gate_pass_acknowledger` returns zero results across the entire codebase and all migrations. No role has been created to govern who can perform acknowledgments. The `can_approve_gate_pass` function has no case for an acknowledgment stage.
-
-**C3. `pending_acknowledgment` status is orphaned — only used in public `submit_public_gate_pass`**
-The public gate pass submission function (migration `20260406135308`) inserts passes with `status = 'pending_acknowledgment'`, but:
-- The frontend has **zero references** to `pending_acknowledgment` (confirmed by search)
-- `approve_gate_pass_unified` has no `WHEN 'pending_acknowledgment'` case — these passes are **permanently stuck** and cannot be approved
-- `can_approve_gate_pass` has no handler for this status
-- No UI badge, status label, or approval card recognizes this status
-
-**C4. Internal workflow skips acknowledgment entirely**
-Current actual flow: `pending_dept_approval → pending_security_approval → approved`
-Required flow: `pending_dept_approval → pending_acknowledgment → pending_security_approval → approved`
-
-**C5. External/Contractor workflow skips acknowledgment entirely**
-Current actual flow: `pending_contractor_approval → pending_security_approval → approved`
-Required flow: `pending_contractor_approval → pending_acknowledgment → pending_security_approval → approved`
-
-**C6. `rejectGatePass` function skips all notifications and audit logs**
-The `rejectGatePass` function (line 153-163 of `materialGatePassActionService.ts`) calls `approve_gate_pass_unified` with `action: "reject"` but does NOT execute any of the notification logic (WhatsApp, public notification, in-app notification, audit log) that `approveGatePass` does. All rejections via `useRejectGatePass` are **silent** — no audit trail, no notifications.
-
-### MAJOR Issues
-
-**M1. Public gate pass has no department selection**
-The public request form (`PublicRequestPage.tsx`) has no department selector. The word "department" does not appear anywhere in the public gate pass page files. Users select a **branch** only. The required design mandates department selection to resolve the approver (Dept Rep or Manager).
-
-**M2. `ApprovalFlowPreview` shows only 2 steps, missing acknowledgment**
-The preview component shows: Department Manager → Security Supervisor → Approved. It should show 3 steps: Department Approval → Gate Pass Acknowledgment → Security Supervisor → Approved.
-
-**M3. `workflow-definitions.ts` still shows legacy "Golf Club Management" step**
-Both `internalGatePassWorkflow` and `externalGatePassWorkflow` include a step labeled "Golf Club Management Acknowledgment" with `dbStatus: 'pending_club_mgmt_ack'`. This status is never produced by the current RPC (which skips it). The workflow diagrams shown to users are **incorrect**.
-
-**M4. 47 files still reference `pending_club_mgmt_ack`**
-365 occurrences across 47 files. This legacy status is never produced by the current system but clutters code, status maps, badge labels, and filter dropdowns.
-
-**M5. Legacy statuses `pending_pm_approval`, `pending_safety_approval` still handled in RPC**
-The `approve_gate_pass_unified` function still has `WHEN 'pm'` and `WHEN 'safety'` branches that route through a dead `pm → safety → approved` path. No code path can produce these statuses.
-
-### MINOR Issues
-
-**m1. `GatePassApprovalActions.tsx` lists legacy statuses as actionable**
-`pendingStatuses` array includes `pending_club_mgmt_ack`, `pending_pm_approval`, `pending_safety_approval`, `pending_dept_ack` — none of which are produced by the current system.
-
-**m2. `use-quick-action-counts.ts` queries for dead statuses**
-Counts `pending_pm_approval` and `pending_safety_approval` which always return 0.
-
-**m3. Boolean `can_approve_gate_pass` has stale `pending_club_mgmt_ack` case**
-The boolean version still checks for `pending_club_mgmt_ack` with `department_representative` or `department_manager` roles, but this status is never produced.
+### MAJOR: Raw YouTube URL Fallback
+`send-induction-video` line 234-236: if no induction record is created, falls back to `video.video_url` (raw YouTube link) instead of portal URL.
 
 ---
 
-## 🔧 Recommended Fixes
+## Implementation Plan
 
-### Phase 1: Database — Create Acknowledgment Infrastructure (Migration)
+### Phase 1: Create Shared Induction Module
 
-1. **Insert `gate_pass_acknowledger` role** into the `roles` table
-2. **Update `approve_gate_pass_unified`:**
-   - `contractor` stage → route to `pending_acknowledgment` (not `pending_security_approval`)
-   - `dept_approval` stage → route to `pending_acknowledgment` (not `pending_security_approval`)
-   - Add new `WHEN 'pending_acknowledgment'` case → route to `pending_security_approval`, record acknowledger in `club_mgmt_ack_by/at/notes` columns (reuse existing columns)
-   - Remove dead `pm` and `safety` cases
-3. **Update `can_approve_gate_pass` (JSONB version):**
-   - Add `WHEN 'acknowledgment'` case: allow users with `gate_pass_acknowledger` role
-4. **Update `can_approve_gate_pass` (boolean version):**
-   - Add `WHEN 'pending_acknowledgment'` case: check for `gate_pass_acknowledger` role
-5. **Migrate stuck records:** Any passes in `pending_club_mgmt_ack` → move to `pending_acknowledgment`
+**New file: `supabase/functions/_shared/induction-sender.ts`**
 
-### Phase 2: Frontend — Add `pending_acknowledgment` Status Support
+Single source of truth for ALL induction logic:
+- **Project resolution**: Check `project_worker_assignments` first, fall back to `contractor_workers.project_id`
+- **Video selection**: Filter by worker's `preferred_language`, fall back to Arabic → English → first available
+- **Induction record**: ALWAYS create BEFORE composing message
+- **Portal URL**: ALWAYS use `{appUrl}/worker-induction/{inductionId}` — NEVER raw video URL
+- **Message rendering**: Template lookup → localized fallback
+- **WhatsApp send**: Via shared `whatsapp-provider.ts`
+- **Audit log**: Record send attempt
 
-6. **Add `pending_acknowledgment`** to all status maps across ~28 files:
-   - `GatePassApprovalActions.tsx` — add to `pendingStatuses`, add `getActionLabel` case
-   - `GatePassApprovalQueue.tsx` — add `getApprovalStage` case
-   - `GatePassDetailDialog` — add variant, label, isPendingAction entry
-   - All status badge maps, filter dropdowns, PDF templates
-   - `materialGatePassQueryService.ts` — add acknowledger query path
-   - `use-quick-action-counts.ts` — count `pending_acknowledgment`
-7. **Remove legacy status references** (`pending_club_mgmt_ack`, `pending_pm_approval`, `pending_safety_approval`, `pending_dept_ack`) from all frontend files
-8. **Update `ApprovalFlowPreview.tsx`** — add "Gate Pass Acknowledgment" as step 2 (3 steps total)
-9. **Update `workflow-definitions.ts`** — replace `club_mgmt_ack` with `gate_pass_acknowledgment` step in both workflows
+Exports a single function: `sendInductionToWorker(supabase, { workerId, projectId?, videoId?, tenantId })`
 
-### Phase 3: Fix `rejectGatePass` Silent Failures
+### Phase 2: Refactor Edge Functions
 
-10. **Replace `rejectGatePass`** function body to call `approveGatePass(passId, "reject", reason, userId)` instead — this ensures rejections trigger the same audit logs, WhatsApp notifications, and public notifications as approvals
+**`onboard-worker/index.ts`**:
+- DELETE inline induction logic (lines 96-193, ~100 lines)
+- DELETE `getLocalizedInductionMessage` function
+- IMPORT and CALL `sendInductionToWorker` from shared module
+- Keep QR generation logic (Steps 2-3) — this is correct and unique to onboard-worker
 
-### Phase 4: Public Gate Pass — Department Selection
+**`send-induction-video/index.ts`**:
+- REPLACE entire body with call to shared `sendInductionToWorker`
+- Keep as thin wrapper (accepts request, normalizes params, delegates to shared module)
+- DELETE `getLocalizedMessage` function
 
-11. **Add department selector** to `PublicRequestPage.tsx` Step 1
-    - Query departments filtered by selected branch (only departments with a dept rep or manager)
-    - Display resolved approver name after selection
-    - Pass `department_id` to `submit_public_gate_pass`
-12. **Update `submit_public_gate_pass` SQL function** to accept and store `department_id`
+**`send-bulk-induction/index.ts`**:
+- REPLACE per-worker induction logic with loop calling `sendInductionToWorker`
 
-### Phase 5: Notifications
+### Phase 3: Fix Frontend Approval Trigger
 
-13. **Update gate pass notification edge functions** to notify `gate_pass_acknowledger` role users when status changes to `pending_acknowledgment`
-14. **Notify security supervisors** when acknowledger acts (existing flow for `pending_security_approval`)
+**`use-worker-approval-mutations.ts`**:
+
+1. **Remove duplicate `send-induction-video` call** (lines 209-223) — `onboard-worker` already handles this
+2. **Fix project resolution** (lines 193-207): Add fallback to `contractor_workers.project_id`:
+   - The worker data at line 153 already selects the record — but doesn't include `project_id`
+   - Add `project_id` to the select at line 153
+   - Use `data.project_id` as fallback when `project_worker_assignments` returns nothing
+3. **Remove `if (projectId)` guard** (line 226): Always call `onboard-worker`. If no project, still send induction (onboard-worker will handle gracefully)
+
+### Phase 4: Clean Up Misplaced Hooks
+
+**`use-worker-qr-codes.ts`**:
+- REMOVE `useSendInductionVideo` (lines 109-128) — orphaned, incomplete, wrong file
+
+**`WorkerDetailDialog.tsx`**:
+- The manual `handleSendInduction` (line 94) calls `send-induction-video` directly — this is the RESEND path (admin manually triggers). This is legitimate but should use the `useSendInduction` hook from `use-worker-inductions.ts` instead of raw `supabase.functions.invoke`. Update to use the hook.
+
+### Phase 5: Add Induction Status Tracking on Worker
+
+**Database migration** — add `induction_status` column to `contractor_workers`:
+
+```sql
+ALTER TABLE contractor_workers 
+ADD COLUMN induction_status text DEFAULT 'none'
+CHECK (induction_status IN ('none', 'pending', 'sent', 'completed', 'expired'));
+```
+
+**Create trigger**: When `worker_inductions.status` changes to 'completed' (acknowledged), update `contractor_workers.induction_status = 'completed'`.
+
+**Update `onboard-worker`**: After sending induction, update `contractor_workers.induction_status = 'sent'`.
+
+### Phase 6: Security Approval ≠ Full Activation
+
+The current system sets `approval_status = 'approved'` on security approval and that's the final state. The plan introduces induction tracking but does NOT change the existing `approval_status` enum — instead, activation is determined by `approval_status = 'approved' AND induction_status = 'completed'`.
+
+**Frontend enforcement**:
+- Worker dashboard/cards show "Pending Induction" badge when `approval_status = 'approved'` but `induction_status != 'completed'`
+- QR code validation (gate guard) checks both: approved AND induction completed
+- Worker list filters: add "Pending Induction" filter option
+
+### Phase 7: Dashboard Integration
+
+Update these to reflect induction status:
+- **Worker list/table**: Show induction status badge (Pending/Sent/Completed/Expired)
+- **Contractor Dashboard stats**: Add induction completion rate widget
+- **Worker Detail Dialog**: Induction tab already exists — ensure it reflects real-time status
+- **Quick action counts**: Include `pending_induction` count for relevant roles
 
 ---
 
-## 🔍 Missing Components
+## Files to Create
+| File | Purpose |
+|------|---------|
+| `supabase/functions/_shared/induction-sender.ts` | Single source of truth for induction logic |
+| Migration SQL | Add `induction_status` column + trigger |
 
-| Component | Status |
-|-----------|--------|
-| `gate_pass_acknowledger` role in DB | **NOT CREATED** |
-| `pending_acknowledgment` handling in `approve_gate_pass_unified` | **NOT IMPLEMENTED** |
-| `pending_acknowledgment` handling in `can_approve_gate_pass` | **NOT IMPLEMENTED** |
-| `pending_acknowledgment` in any frontend status map | **NOT IMPLEMENTED** |
-| Department selector in public gate pass form | **NOT IMPLEMENTED** |
-| Acknowledgment step in `ApprovalFlowPreview` | **NOT IMPLEMENTED** |
-| Rejection notifications/audit (via `rejectGatePass`) | **BROKEN** — silent failures |
-| Workflow diagrams matching actual system | **STALE** — show legacy Golf Club step |
-| Acknowledger notification triggers | **NOT IMPLEMENTED** |
+## Files to Modify
+| File | Change |
+|------|--------|
+| `supabase/functions/onboard-worker/index.ts` | Replace inline induction with shared module call |
+| `supabase/functions/send-induction-video/index.ts` | Thin wrapper around shared module |
+| `supabase/functions/send-bulk-induction/index.ts` | Use shared module per worker |
+| `src/features/contractors/hooks/use-contractor-workers/use-worker-approval-mutations.ts` | Remove duplicate send, fix project fallback, remove guard |
+| `src/features/contractors/hooks/use-worker-qr-codes.ts` | Remove misplaced `useSendInductionVideo` |
+| `src/features/contractors/components/WorkerDetailDialog.tsx` | Use hook instead of raw invoke |
+| `src/features/contractors/hooks/use-contractor-workers/types.ts` | Add `induction_status` field |
 
----
+## Files NOT Changed
+- `use-worker-inductions.ts` — Already correct (proper hook for send/resend)
+- `use-worker-onboarding.ts` — Already correct (wrapper for `onboard-worker`)
+- `_shared/qr-generator.ts` — Already correct
+- `_shared/whatsapp-provider.ts` — Already correct
 
-## Summary
+## What Gets Deleted
+1. ~100 lines of inline induction logic from `onboard-worker`
+2. `getLocalizedInductionMessage` from `onboard-worker`
+3. `getLocalizedMessage` from `send-induction-video` (moved to shared module)
+4. `useSendInductionVideo` from `use-worker-qr-codes.ts`
+5. Duplicate `send-induction-video` call from security approval flow
 
-The plan from the previous conversation correctly identified the problems but **was never implemented**. The only changes applied were:
-1. Photo upload bug fixes (completed successfully)
-2. `approve_gate_pass_unified` modified to skip `club_mgmt_ack` (routing directly to security)
-3. Public `submit_public_gate_pass` uses `pending_acknowledgment` status — but nothing can process it
-
-The acknowledgment layer needs to be built end-to-end: role creation, RPC routing, authorization checks, frontend status support, UI flow preview, public department selection, and notification triggers.
+## Anti-Recurrence Guarantee
+- **One module** (`induction-sender.ts`) owns all induction logic
+- **One trigger point** (`onboard-worker`) handles post-approval automation
+- **No fallback to "General"** — project is always resolved or explicitly absent
+- **No raw YouTube URLs** — induction record always created first, portal URL always used
+- **No duplicate sends** — only `onboard-worker` triggers induction during approval
 
