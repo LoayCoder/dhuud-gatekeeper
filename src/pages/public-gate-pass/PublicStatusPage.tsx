@@ -221,7 +221,7 @@ export default function PublicStatusPage() {
   }
 
   const { gate_pass: gatePass, branch, tenant } = data;
-  const statusInfo = STATUS_CONFIG[gatePass.status] || STATUS_CONFIG.pending_mgmt;
+  const statusInfo = STATUS_CONFIG[gatePass.status] || STATUS_CONFIG.pending_dept_approval;
   const currentTimelineStep = getTimelineCurrentStep(gatePass.status);
   const isRejected = gatePass.status === 'rejected' || gatePass.status === 'cancelled';
   const isCompleted = gatePass.status === 'used' || gatePass.status === 'expired';
