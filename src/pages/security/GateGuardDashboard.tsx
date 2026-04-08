@@ -448,8 +448,6 @@ const GateGuardDashboard = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t('common.allStatuses', 'All Statuses')}</SelectItem>
-                    <SelectItem value="pending_pm_approval">{t('contractors.gatePasses.status.pendingPm', 'Pending PM')}</SelectItem>
-                    <SelectItem value="pending_safety_approval">{t('contractors.gatePasses.status.pendingSafety', 'Pending Safety')}</SelectItem>
                     <SelectItem value="approved">{t('contractors.gatePasses.status.approved', 'Approved')}</SelectItem>
                     <SelectItem value="rejected">{t('contractors.gatePasses.status.rejected', 'Rejected')}</SelectItem>
                     <SelectItem value="completed">{t('contractors.gatePasses.status.completed', 'Completed')}</SelectItem>
