@@ -207,43 +207,59 @@ export function UserDetailPopover({ user, onEdit, onToggleStatus, onDelete }: Us
           <Separator />
 
           {/* Actions */}
-          <div className="p-2 flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 gap-1.5"
-              onClick={handleEdit}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-              {t('common.edit')}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 gap-1.5"
-              onClick={handleStatusClick}
-            >
-              {user.is_active ? (
-                <>
-                  <UserX className="h-3.5 w-3.5" />
-                  {t('userManagement.deactivate')}
-                </>
-              ) : (
-                <>
-                  <UserCheck className="h-3.5 w-3.5" />
-                  {t('userManagement.activate')}
-                </>
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={handleDeleteClick}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              {t('common.delete')}
-            </Button>
+          <div className="p-2 space-y-1">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 gap-1.5"
+                onClick={handleEdit}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                {t('common.edit')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 gap-1.5"
+                onClick={handleStatusClick}
+              >
+                {user.is_active ? (
+                  <>
+                    <UserX className="h-3.5 w-3.5" />
+                    {t('userManagement.deactivate')}
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="h-3.5 w-3.5" />
+                    {t('userManagement.activate')}
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={handleDeleteClick}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {t('common.delete')}
+              </Button>
+            </div>
+            {showIdCard && idCardPersonData && cachedProfile?.tenant_id && (
+              <div className="flex justify-center pt-1">
+                <IDCardActionButton
+                  cardType={idCardType}
+                  entityId={user.id}
+                  personData={idCardPersonData}
+                  tenantId={cachedProfile.tenant_id}
+                  recipientPhone={user.phone_number || undefined}
+                  variant="outline"
+                  size="sm"
+                  showLabel
+                />
+              </div>
+            )}
           </div>
         </PopoverContent>
       </Popover>
