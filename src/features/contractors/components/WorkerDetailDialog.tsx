@@ -96,7 +96,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
   const needsPhotoGate = isApprovedOrSecurityApproved && !isPhotoVerified;
 
   const handleGenerateQR = async () => {
-    if (!selectedProjectId) {
+    if (!effectiveProjectId) {
       toast.error(t("contractors.messages.selectProject", "Please select a project first"));
       return;
     }
@@ -106,7 +106,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
       const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id).single();
       if (!profile?.tenant_id) throw new Error("Could not determine tenant");
       const { error } = await supabase.functions.invoke("generate-worker-qr", {
-        body: { worker_id: worker.id, project_id: selectedProjectId, tenant_id: profile.tenant_id },
+        body: { worker_id: worker.id, project_id: effectiveProjectId, tenant_id: profile.tenant_id },
       });
       if (error) throw error;
       toast.success(t("contractors.messages.qrGenerated", "QR code generated successfully"));
@@ -119,7 +119,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
   };
 
   const handleSendInduction = async () => {
-    if (!selectedProjectId) {
+    if (!effectiveProjectId) {
       toast.error(t("contractors.messages.selectProjectForInduction", "Please select a project first"));
       return;
     }
@@ -128,7 +128,7 @@ export function WorkerDetailDialog({ open, onOpenChange, worker, readOnly = fals
       // Use send-induction-video which delegates to shared induction-sender module
       // No need to manually select video — the shared module handles language-based selection
       const { error } = await supabase.functions.invoke("send-induction-video", {
-        body: { workerId: worker.id, projectId: selectedProjectId },
+        body: { workerId: worker.id, projectId: effectiveProjectId },
       });
       if (error) throw error;
       toast.success(t("contractors.messages.inductionSent", "Induction video sent successfully"));
