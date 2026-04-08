@@ -36,6 +36,23 @@ export function UserDetailPopover({ user, onEdit, onToggleStatus, onDelete }: Us
   const [open, setOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const cachedProfile = useCachedProfile();
+
+  // Determine if user should get an ID card button
+  const showIdCard = ['employee', 'member'].includes(user.user_type || '');
+  const idCardType: IDCardType = 'employee';
+
+  const idCardPersonData: IDCardPersonData | null = useMemo(() => {
+    if (!showIdCard) return null;
+    return {
+      id: user.id,
+      fullName: user.full_name || '',
+      role: user.job_title || undefined,
+      department: user.department_name || undefined,
+      employeeId: user.employee_id || undefined,
+      qrToken: user.id,
+    };
+  }, [showIdCard, user.id, user.full_name, user.job_title, user.department_name, user.employee_id]);
 
   const hierarchyArrow = direction === 'rtl' ? 'â†' : 'â†’';
 
