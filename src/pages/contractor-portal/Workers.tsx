@@ -18,31 +18,6 @@ import { ContractorPortalRoute } from "@/components/access-control";
 import { useBlacklistNationalIds } from "@/features/security";
 import type { ContractorWorker } from "@/features/contractors/hooks/use-contractor-workers";
 
-interface PortalWorker {
-  id: string;
-  full_name: string;
-  full_name_ar?: string | null;
-  id_type?: string;
-  national_id: string;
-  date_of_birth?: string | null;
-  gender?: string | null;
-  mobile_number: string;
-  email?: string | null;
-  emergency_contact_name?: string | null;
-  emergency_contact_phone?: string | null;
-  nationality?: string | null;
-  worker_role?: string;
-  preferred_language: string;
-  approval_status: string;
-  photo_path?: string | null;
-  fitness_to_work?: string | null;
-  fitness_acknowledged?: boolean | null;
-  medical_check_date?: string | null;
-  fitness_expiry_date?: string | null;
-  medical_certificate_path?: string | null;
-  training_certifications?: string[];
-  edit_pending_approval?: boolean;
-}
 
 function ContractorPortalWorkersContent() {
   const { t } = useTranslation();
