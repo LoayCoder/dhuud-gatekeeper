@@ -132,6 +132,15 @@ export default function SiteClearanceDetail() {
     toast.success("Site Clearance approved — PTW enabled");
   };
 
+  const handleSaveDraft = async () => {
+    if (!mob?.id) return;
+    await updateMob.mutateAsync({
+      mobilizationId: mob.id,
+      updates: { status: "draft" },
+    });
+    toast.success("Saved as draft");
+  };
+
   if (detailLoading) {
     return <div className="space-y-6"><Skeleton className="h-10 w-64" /><Skeleton className="h-48 w-full" /></div>;
   }
