@@ -16777,6 +16777,7 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           high_risk_zones_marked: boolean
+          high_risk_zones_notes: string | null
           id: string
           known_risks: string | null
           mobilization_percentage: number
@@ -16789,10 +16790,13 @@ export type Database = {
           status: string
           tenant_id: string
           underground_utilities_identified: boolean
+          underground_utilities_notes: string | null
           updated_at: string
           utility_verified: boolean
+          utility_verified_notes: string | null
           validity_days: number
           work_boundaries_defined: boolean
+          work_boundaries_notes: string | null
         }
         Insert: {
           approved_at?: string | null
@@ -16804,6 +16808,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           high_risk_zones_marked?: boolean
+          high_risk_zones_notes?: string | null
           id?: string
           known_risks?: string | null
           mobilization_percentage?: number
@@ -16816,10 +16821,13 @@ export type Database = {
           status?: string
           tenant_id: string
           underground_utilities_identified?: boolean
+          underground_utilities_notes?: string | null
           updated_at?: string
           utility_verified?: boolean
+          utility_verified_notes?: string | null
           validity_days?: number
           work_boundaries_defined?: boolean
+          work_boundaries_notes?: string | null
         }
         Update: {
           approved_at?: string | null
@@ -16831,6 +16839,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           high_risk_zones_marked?: boolean
+          high_risk_zones_notes?: string | null
           id?: string
           known_risks?: string | null
           mobilization_percentage?: number
@@ -16843,10 +16852,13 @@ export type Database = {
           status?: string
           tenant_id?: string
           underground_utilities_identified?: boolean
+          underground_utilities_notes?: string | null
           updated_at?: string
           utility_verified?: boolean
+          utility_verified_notes?: string | null
           validity_days?: number
           work_boundaries_defined?: boolean
+          work_boundaries_notes?: string | null
         }
         Relationships: [
           {
@@ -21125,6 +21137,67 @@ export type Database = {
           },
           {
             foreignKeyName: "site_clearance_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_clearance_risks: {
+        Row: {
+          control_measures: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          mobilization_id: string
+          risk_description: string
+          severity: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          control_measures?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          mobilization_id: string
+          risk_description: string
+          severity?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          control_measures?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          mobilization_id?: string
+          risk_description?: string
+          severity?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_clearance_risks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_risks_mobilization_id_fkey"
+            columns: ["mobilization_id"]
+            isOneToOne: false
+            referencedRelation: "project_mobilizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_risks_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
