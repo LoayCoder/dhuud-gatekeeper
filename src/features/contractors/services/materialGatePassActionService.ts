@@ -151,15 +151,7 @@ export const approveGatePass = async (passId: string, action: "approve" | "rejec
 };
 
 export const rejectGatePass = async (passId: string, reason: string, userId: string): Promise<{ passId: string; newStatus: string }> => {
-    const { data, error } = await supabase.rpc("approve_gate_pass_unified", {
-        p_user_id: userId,
-        p_gate_pass_id: passId,
-        p_action: "reject",
-        p_notes: reason,
-    });
-
-    if (error) throw error;
-    return { passId, newStatus: data };
+    return approveGatePass(passId, "reject", reason, userId);
 };
 
 export const verifyGatePass = async (passId: string, action: "entry" | "exit", tenantId: string, userId: string): Promise<{ passId: string; action: string }> => {
