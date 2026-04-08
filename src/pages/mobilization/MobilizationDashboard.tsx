@@ -128,15 +128,18 @@ function MobilizationProjectCard({ project }: { project: any }) {
   const mobStatus = mob?.status || "none";
   const percentage = mob?.mobilization_percentage || 0;
 
+  const projectName = typeof project.project_name === 'string' ? project.project_name : '';
+  const projectCode = typeof project.project_code === 'string' ? project.project_code : '';
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <CardTitle className="text-sm font-medium break-words">
-              {project.project_name}
+              {projectName}
             </CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">{project.project_code}</p>
+            <p className="text-xs text-muted-foreground mt-1">{projectCode}</p>
           </div>
           <Badge variant={mobilizationStatusBadge[mobStatus] || "outline"}>
             {mobStatus === "none"
