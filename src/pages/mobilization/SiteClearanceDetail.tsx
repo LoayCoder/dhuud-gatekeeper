@@ -13,12 +13,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
-  ArrowLeft, Building2, Calendar, CheckCircle2, Clock,
+  ArrowLeft, ArrowRight, Building2, Calendar, CheckCircle2, Clock,
   XCircle, FileText, Shield, Users, Briefcase,
   AlertTriangle, MapPin, User, Loader2, Lock,
   Upload, Trash2, Eye, Zap, Wrench, Droplets,
   Construction, Wifi, HardHat, ShieldCheck, PenLine,
-  History, Download, Ban,
+  History, Download, Ban, Save,
 } from "lucide-react";
 import { useMobilizationDetail } from "@/features/mobilization/hooks/use-mobilization-detail";
 import { useEnsureMobilization, useUpdateMobilization } from "@/features/mobilization/hooks/use-mobilizations";
