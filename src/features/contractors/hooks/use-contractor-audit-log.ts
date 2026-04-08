@@ -30,6 +30,8 @@ type LegacyAuditAction =
   | "worker_blacklisted"
   | "worker_deleted"
   | "worker_edit_approved"
+  | "worker_security_approved"
+  | "worker_security_rejected"
   | "gate_pass_created"
   | "gate_pass_approved"
   | "gate_pass_rejected"
@@ -47,6 +49,8 @@ const ACTION_MAP: Record<string, string> = {
   worker_blacklisted: 'suspended',
   worker_deleted: 'deleted',
   worker_edit_approved: 'approved',
+  worker_security_approved: 'security_approved',
+  worker_security_rejected: 'security_rejected',
   gate_pass_created: 'created',
   gate_pass_approved: 'approved',
   gate_pass_rejected: 'rejected',

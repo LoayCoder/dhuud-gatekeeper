@@ -222,16 +222,19 @@ export function useSecurityApproveWorker() {
                 console.error("Failed to send induction video:", e);
             }
 
-            // Auto-trigger onboarding (QR code generation)
-            try {
-                await supabase.functions.invoke("onboard-worker", {
-                    body: {
-                        workerId: data.id,
-                        tenant_id: data.tenant_id,
-                    },
-                });
-            } catch (e) {
-                console.error("Failed to auto-onboard worker:", e);
+            // Auto-trigger onboarding (QR code generation) - only if project is assigned
+            if (projectId) {
+                try {
+                    await supabase.functions.invoke("onboard-worker", {
+                        body: {
+                            worker_id: data.id,
+                            project_id: projectId,
+                            tenant_id: data.tenant_id,
+                        },
+                    });
+                } catch (e) {
+                    console.error("Failed to auto-onboard worker:", e);
+                }
             }
         },
         onError: (error: Error) => {
