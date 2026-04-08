@@ -1,151 +1,76 @@
 
 
-# Worker Approval → Induction → ID/QR → Activation: Unified Lifecycle Implementation
+# Worker Profile Consistency, Project Auto-Linking & Alert Unification
 
-## Current State (Problems Found)
+## Root Cause Analysis
 
-### CRITICAL: Double Induction Send
-`useSecurityApproveWorker` (line 210) calls `send-induction-video` AND then (line 228) calls `onboard-worker`, which ALSO sends an induction video internally. **Worker receives 2 WhatsApp messages.**
+**Issue 1 — Manual project selection in Induction tab**: `WorkerDetailDialog.tsx` always renders a `<Select>` dropdown for project, with state `selectedProjectId` initialized to `""`. It never auto-resolves the worker's assigned project from `useWorkerProjectAssignment`. The hook exists and works, but the dialog doesn't use it.
 
-### CRITICAL: Project Resolution Failure  
-Line 196-204 only checks `project_worker_assignments`. When no assignment exists, `projectId` stays `null`. The `send-induction-video` edge function then falls back to `projectName = 'General'` and picks a random video (wrong language).
+**Issue 2 — Different alerts across portals**: The contractor portal query (`useContractorPortalWorkers`, line 98-114 of `use-contractor-portal.ts`) is missing critical fields that `WorkerComplianceFlags` depends on:
+- Missing: `tenant_id`, `company_id`, `rejection_reason`, `worker_type`, `safety_officer_id`, `photo_verified_by`, `photo_verified_at`, `security_approval_status`, `induction_status`
+- Missing join: `company:contractor_companies(company_name, assigned_branch_id)`
+- Missing join: `latest_induction:worker_inductions(id, status, expires_at)`
 
-### CRITICAL: Duplicated Induction Logic
-Full induction logic (video selection, record creation, message rendering, WhatsApp send) exists in THREE places:
-1. `supabase/functions/send-induction-video/index.ts` (386 lines)
-2. `supabase/functions/onboard-worker/index.ts` lines 96-193
-3. `supabase/functions/send-bulk-induction/index.ts` (similar pattern)
+When `WorkerComplianceFlags` receives a worker with `undefined` for these fields, it triggers false alerts (e.g., `!worker.fitness_acknowledged` is true when field is undefined, `!worker.photo_path` triggers even though photo exists but wasn't selected, etc.).
 
-### MAJOR: Misplaced Hook
-`useSendInductionVideo` in `use-worker-qr-codes.ts` (line 109-128) — induction hook in a QR file, with incomplete parameters (no projectId).
-
-### MAJOR: No Induction Gate
-Worker becomes `approved` immediately on security approval. No intermediate states like `pending_induction`. The DB has no `induction_status` column on `contractor_workers`.
-
-### MAJOR: Raw YouTube URL Fallback
-`send-induction-video` line 234-236: if no induction record is created, falls back to `video.video_url` (raw YouTube link) instead of portal URL.
-
----
+**Issue 3 — QR tab also has manual project selection**: Same problem as induction — the Quick Onboard card requires manual project selection even when the worker already has one.
 
 ## Implementation Plan
 
-### Phase 1: Create Shared Induction Module
+### 1. Fix Contractor Portal Worker Query (Root cause of alert inconsistency)
 
-**New file: `supabase/functions/_shared/induction-sender.ts`**
+**File: `src/features/contractors/hooks/use-contractor-portal.ts`** — `useContractorPortalWorkers`
 
-Single source of truth for ALL induction logic:
-- **Project resolution**: Check `project_worker_assignments` first, fall back to `contractor_workers.project_id`
-- **Video selection**: Filter by worker's `preferred_language`, fall back to Arabic → English → first available
-- **Induction record**: ALWAYS create BEFORE composing message
-- **Portal URL**: ALWAYS use `{appUrl}/worker-induction/{inductionId}` — NEVER raw video URL
-- **Message rendering**: Template lookup → localized fallback
-- **WhatsApp send**: Via shared `whatsapp-provider.ts`
-- **Audit log**: Record send attempt
+Update the select to match the admin query fields exactly:
+- Add: `tenant_id, company_id, rejection_reason, worker_type, safety_officer_id, photo_verified_by, photo_verified_at, security_approval_status, induction_status`
+- Add join: `company:contractor_companies(company_name, assigned_branch_id)`
+- Add join: `latest_induction:worker_inductions(id, status, expires_at)`
+- Apply the same `latest_induction` array→single transform as the admin query
 
-Exports a single function: `sendInductionToWorker(supabase, { workerId, projectId?, videoId?, tenantId })`
+This ensures `WorkerComplianceFlags` receives identical data regardless of entry point.
 
-### Phase 2: Refactor Edge Functions
+### 2. Auto-Link Project in WorkerDetailDialog
 
-**`onboard-worker/index.ts`**:
-- DELETE inline induction logic (lines 96-193, ~100 lines)
-- DELETE `getLocalizedInductionMessage` function
-- IMPORT and CALL `sendInductionToWorker` from shared module
-- Keep QR generation logic (Steps 2-3) — this is correct and unique to onboard-worker
+**File: `src/features/contractors/components/WorkerDetailDialog.tsx`**
 
-**`send-induction-video/index.ts`**:
-- REPLACE entire body with call to shared `sendInductionToWorker`
-- Keep as thin wrapper (accepts request, normalizes params, delegates to shared module)
-- DELETE `getLocalizedMessage` function
+- Import and call `useWorkerProjectAssignment(worker?.id)`
+- In a `useEffect`, when `projectAssignment?.project_id` exists, set `selectedProjectId` to that value automatically
+- In the Induction tab and QR tab:
+  - If project is already assigned: show project name as a **read-only badge/display** instead of a dropdown
+  - If no project is assigned: keep the dropdown (this is the only valid case for manual selection)
+- The "Send Induction" and "Onboard Worker" buttons use the auto-resolved project
 
-**`send-bulk-induction/index.ts`**:
-- REPLACE per-worker induction logic with loop calling `sendInductionToWorker`
+### 3. Unify Data Shape Type
 
-### Phase 3: Fix Frontend Approval Trigger
+**File: `src/features/contractors/hooks/use-contractor-workers/types.ts`**
 
-**`use-worker-approval-mutations.ts`**:
+Already has all fields. No change needed — the issue is the portal query not selecting them.
 
-1. **Remove duplicate `send-induction-video` call** (lines 209-223) — `onboard-worker` already handles this
-2. **Fix project resolution** (lines 193-207): Add fallback to `contractor_workers.project_id`:
-   - The worker data at line 153 already selects the record — but doesn't include `project_id`
-   - Add `project_id` to the select at line 153
-   - Use `data.project_id` as fallback when `project_worker_assignments` returns nothing
-3. **Remove `if (projectId)` guard** (line 226): Always call `onboard-worker`. If no project, still send induction (onboard-worker will handle gracefully)
+### 4. Extract Project Display Logic into Shared Component
 
-### Phase 4: Clean Up Misplaced Hooks
+Create a small utility in the dialog that conditionally renders:
+- **Project assigned** → Read-only card showing project name + status badge
+- **No project** → Select dropdown (existing behavior)
 
-**`use-worker-qr-codes.ts`**:
-- REMOVE `useSendInductionVideo` (lines 109-128) — orphaned, incomplete, wrong file
+This applies to both the Induction tab and QR/Onboard tab to avoid duplication within the dialog.
 
-**`WorkerDetailDialog.tsx`**:
-- The manual `handleSendInduction` (line 94) calls `send-induction-video` directly — this is the RESEND path (admin manually triggers). This is legitimate but should use the `useSendInduction` hook from `use-worker-inductions.ts` instead of raw `supabase.functions.invoke`. Update to use the hook.
+### 5. Verify WorkerComplianceFlags Logic
 
-### Phase 5: Add Induction Status Tracking on Worker
-
-**Database migration** — add `induction_status` column to `contractor_workers`:
-
-```sql
-ALTER TABLE contractor_workers 
-ADD COLUMN induction_status text DEFAULT 'none'
-CHECK (induction_status IN ('none', 'pending', 'sent', 'completed', 'expired'));
-```
-
-**Create trigger**: When `worker_inductions.status` changes to 'completed' (acknowledged), update `contractor_workers.induction_status = 'completed'`.
-
-**Update `onboard-worker`**: After sending induction, update `contractor_workers.induction_status = 'sent'`.
-
-### Phase 6: Security Approval ≠ Full Activation
-
-The current system sets `approval_status = 'approved'` on security approval and that's the final state. The plan introduces induction tracking but does NOT change the existing `approval_status` enum — instead, activation is determined by `approval_status = 'approved' AND induction_status = 'completed'`.
-
-**Frontend enforcement**:
-- Worker dashboard/cards show "Pending Induction" badge when `approval_status = 'approved'` but `induction_status != 'completed'`
-- QR code validation (gate guard) checks both: approved AND induction completed
-- Worker list filters: add "Pending Induction" filter option
-
-### Phase 7: Dashboard Integration
-
-Update these to reflect induction status:
-- **Worker list/table**: Show induction status badge (Pending/Sent/Completed/Expired)
-- **Contractor Dashboard stats**: Add induction completion rate widget
-- **Worker Detail Dialog**: Induction tab already exists — ensure it reflects real-time status
-- **Quick action counts**: Include `pending_induction` count for relevant roles
-
----
-
-## Files to Create
-| File | Purpose |
-|------|---------|
-| `supabase/functions/_shared/induction-sender.ts` | Single source of truth for induction logic |
-| Migration SQL | Add `induction_status` column + trigger |
+Review `getComplianceFlags` for defensive handling of undefined fields. Add explicit null checks where fields might be missing (defensive, but the real fix is Step 1).
 
 ## Files to Modify
+
 | File | Change |
 |------|--------|
-| `supabase/functions/onboard-worker/index.ts` | Replace inline induction with shared module call |
-| `supabase/functions/send-induction-video/index.ts` | Thin wrapper around shared module |
-| `supabase/functions/send-bulk-induction/index.ts` | Use shared module per worker |
-| `src/features/contractors/hooks/use-contractor-workers/use-worker-approval-mutations.ts` | Remove duplicate send, fix project fallback, remove guard |
-| `src/features/contractors/hooks/use-worker-qr-codes.ts` | Remove misplaced `useSendInductionVideo` |
-| `src/features/contractors/components/WorkerDetailDialog.tsx` | Use hook instead of raw invoke |
-| `src/features/contractors/hooks/use-contractor-workers/types.ts` | Add `induction_status` field |
+| `src/features/contractors/hooks/use-contractor-portal.ts` | Align `useContractorPortalWorkers` select with admin query |
+| `src/features/contractors/components/WorkerDetailDialog.tsx` | Auto-resolve project, show read-only when assigned |
+| `src/features/contractors/components/shared/WorkerComplianceFlags.tsx` | Minor defensive checks |
 
-## Files NOT Changed
-- `use-worker-inductions.ts` — Already correct (proper hook for send/resend)
-- `use-worker-onboarding.ts` — Already correct (wrapper for `onboard-worker`)
-- `_shared/qr-generator.ts` — Already correct
-- `_shared/whatsapp-provider.ts` — Already correct
+## What Gets Fixed
 
-## What Gets Deleted
-1. ~100 lines of inline induction logic from `onboard-worker`
-2. `getLocalizedInductionMessage` from `onboard-worker`
-3. `getLocalizedMessage` from `send-induction-video` (moved to shared module)
-4. `useSendInductionVideo` from `use-worker-qr-codes.ts`
-5. Duplicate `send-induction-video` call from security approval flow
-
-## Anti-Recurrence Guarantee
-- **One module** (`induction-sender.ts`) owns all induction logic
-- **One trigger point** (`onboard-worker`) handles post-approval automation
-- **No fallback to "General"** — project is always resolved or explicitly absent
-- **No raw YouTube URLs** — induction record always created first, portal URL always used
-- **No duplicate sends** — only `onboard-worker` triggers induction during approval
+1. **Alerts unified** — Same worker data → same compliance flags everywhere
+2. **Project auto-linked** — No manual selection when project exists
+3. **Induction tab clean** — Shows assigned project as read-only, sends automatically
+4. **QR/Onboard tab clean** — Same auto-link behavior
+5. **No new tables or migrations needed** — This is purely a frontend data alignment fix
 
