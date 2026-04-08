@@ -105,13 +105,13 @@ Deno.serve(async (req) => {
     await supabase
       .from('worker_qr_codes')
       .update({
-        is_active: false,
+        is_revoked: true,
         revoked_at: new Date().toISOString(),
         revocation_reason: 'Replaced by new QR code',
       })
       .eq('worker_id', worker_id)
       .eq('project_id', project_id)
-      .eq('is_active', true);
+      .eq('is_revoked', false);
 
     // Generate new QR token
     const qrToken = crypto.randomUUID();
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
         qr_token: qrToken,
         valid_from: validFrom.toISOString(),
         valid_until: validUntil.toISOString(),
-        is_active: true,
+        is_revoked: false,
         tenant_id,
       })
       .select()
