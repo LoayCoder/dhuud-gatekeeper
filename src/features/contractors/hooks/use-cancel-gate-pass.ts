@@ -50,10 +50,8 @@ export function useCancelGatePass() {
         "pending_contractor_approval",
         "pending_security_approval",
         // Legacy statuses
-        "pending_club_mgmt_ack",
-        "pending_pm_approval",
+        "pending_acknowledgment",
         "pending_pm",
-        "pending_safety_approval",
       ];
       if (!cancellableStatuses.includes(pass.status)) {
         throw new Error(

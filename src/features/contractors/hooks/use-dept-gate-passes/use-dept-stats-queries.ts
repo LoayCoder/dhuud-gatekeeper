@@ -146,9 +146,7 @@ export function useDeptGatePassStats() {
                 "pending_dept_approval",
                 "pending_contractor_approval",
                 "pending_security_approval",
-                "pending_dept_ack",
-                "pending_pm_approval",
-                "pending_safety_approval",
+                "pending_acknowledgment",
             ];
             const pending = allPasses.filter(p => pendingStatuses.includes(p.status)).length;
 

@@ -50,7 +50,7 @@ function DeptGatePassListContent() {
       pending: { variant: "warning", label: t("gatePasses.status.pending", "Pending") },
       pending_dept_approval: { variant: "warning", label: t("gatePasses.status.pending_dept_approval", "Pending Dept") },
       pending_contractor_approval: { variant: "warning", label: t("gatePasses.status.pending_contractor_approval", "Pending Contractor") },
-      pending_club_mgmt_ack: { variant: "warning", label: t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management") },
+      pending_acknowledgment: { variant: "warning", label: t("gatePasses.status.pending_acknowledgment", "Pending Acknowledgment") },
       pending_security_approval: { variant: "warning", label: t("gatePasses.status.pending_security", "Pending Security") },
       pm_approved: { variant: "secondary", label: t("gatePasses.status.pm_approved", "PM Approved") },
       approved: { variant: "success", label: t("gatePasses.status.approved", "Approved") },
@@ -96,7 +96,7 @@ function DeptGatePassListContent() {
                 <SelectContent>
                   <SelectItem value="all">{t("common.all", "All")}</SelectItem>
                   <SelectItem value="pending_dept_approval">{t("gatePasses.status.pending_dept_approval", "Pending Dept")}</SelectItem>
-                  <SelectItem value="pending_club_mgmt_ack">{t("gatePasses.status.pending_club_mgmt_ack", "Pending Golf Club Management")}</SelectItem>
+                  <SelectItem value="pending_acknowledgment">{t("gatePasses.status.pending_acknowledgment", "Pending Acknowledgment")}</SelectItem>
                   <SelectItem value="pending_security_approval">{t("gatePasses.status.pending_security", "Pending Security")}</SelectItem>
                   <SelectItem value="approved">{t("gatePasses.status.approved", "Approved")}</SelectItem>
                   <SelectItem value="rejected">{t("gatePasses.status.rejected", "Rejected")}</SelectItem>

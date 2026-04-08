@@ -17,7 +17,7 @@ function ContractorPortalDashboardContent() {
   const activeProjects = projects?.filter(p => p.status === "active") || [];
   const approvedWorkers = workers?.filter(w => w.approval_status === "approved") || [];
   const pendingWorkers = workers?.filter(w => w.approval_status === "pending") || [];
-  const pendingGatePasses = gatePasses?.filter(gp => gp.status === "pending_pm_approval" || gp.status === "pending_safety_approval") || [];
+  const pendingGatePasses = gatePasses?.filter(gp => gp.status === "pending_acknowledgment" || gp.status === "pending_security_approval") || [];
 
   if (isLoading) {
     return (

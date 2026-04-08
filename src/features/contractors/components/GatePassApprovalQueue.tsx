@@ -84,19 +84,12 @@ export function GatePassApprovalQueue({ passes }: GatePassApprovalQueueProps) {
     switch (status) {
       case "pending_contractor_approval":
         return { label: t("contractorPortal.gatePasses.awaitingContractor", "Awaiting Contractor Approval"), step: 1, role: "contractor_consultant" };
-      case "pending_dept_ack":
-        return { label: t("contractorPortal.gatePasses.awaitingDeptAck", "Awaiting Dept Acknowledgment"), step: 2, role: "department_representative" };
       case "pending_dept_approval":
         return { label: t("contractorPortal.gatePasses.awaitingDeptApproval", "Awaiting Dept Approval"), step: 1, role: "department_representative" };
-      case "pending_club_mgmt_ack":
-        return { label: t("contractorPortal.gatePasses.awaitingMgmtAck", "Awaiting Management (Legacy)"), step: 2, role: "department_representative" };
+      case "pending_acknowledgment":
+        return { label: t("contractorPortal.gatePasses.awaitingAcknowledgment", "Awaiting Acknowledgment"), step: 2, role: "gate_pass_acknowledger" };
       case "pending_security_approval":
         return { label: t("contractorPortal.gatePasses.awaitingSecurity", "Awaiting Security Approval"), step: 3, role: "security_supervisor" };
-      // Legacy statuses for backward compatibility
-      case "pending_pm_approval":
-        return { label: t("contractorPortal.gatePasses.awaitingPm", "Awaiting PM Approval"), step: 1, role: "pm" };
-      case "pending_safety_approval":
-        return { label: t("contractorPortal.gatePasses.awaitingSafety", "Awaiting Safety Approval"), step: 2, role: "safety" };
       default:
         return { label: status, step: 0, role: "unknown" };
     }

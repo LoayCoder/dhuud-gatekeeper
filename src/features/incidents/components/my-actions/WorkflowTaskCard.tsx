@@ -444,8 +444,7 @@ export function GatePassCard({ gatePass }: GatePassCardProps) {
   const getStatusVariant = (status: string | null) => {
     switch (status) {
       case 'approved': return 'default';
-      case 'pending_pm_approval':
-      case 'pending_safety_approval': return 'outline';
+      case 'pending_acknowledgment':
       default: return 'secondary';
     }
   };

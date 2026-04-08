@@ -265,7 +265,7 @@ export async function fetchGatePassStats(tenantId: string, now: string, userId: 
             .eq('tenant_id', tenantId)
             .eq('requested_by', userId)
             .is('deleted_at', null)
-            .in('status', ['pending_pm_approval', 'pending_safety_approval', 'pending_club_mgmt_ack']),
+            .in('status', ['pending_dept_approval', 'pending_contractor_approval', 'pending_acknowledgment', 'pending_security_approval']),
         supabase
             .from('material_gate_passes')
             .select('id', { count: 'exact', head: true })

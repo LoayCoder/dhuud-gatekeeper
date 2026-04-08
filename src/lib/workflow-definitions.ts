@@ -417,20 +417,20 @@ export const internalGatePassWorkflow: WorkflowDefinition = {
       labelAr: 'تمت الموافقة؟'
     },
     
-    // --- 3. GOLF CLUB MANAGEMENT ACKNOWLEDGMENT ---
+    // --- 3. GATE PASS ACKNOWLEDGMENT ---
     {
-      id: 'club_mgmt_ack',
+      id: 'gate_pass_ack',
       type: 'approval',
-      label: 'Golf Club Management Acknowledgment',
-      labelAr: 'إقرار إدارة النادي',
-      actor: 'Golf Club Management Rep',
-      actorAr: 'ممثل إدارة نادي الجولف',
-      dbStatus: 'pending_club_mgmt_ack',
-      description: 'Mandatory site entry acknowledgment',
-      descriptionAr: 'إقرار دخول الموقع إلزامي'
+      label: 'Gate Pass Acknowledgment',
+      labelAr: 'إقرار تصريح البوابة',
+      actor: 'Gate Pass Acknowledger',
+      actorAr: 'مُعتمد تصريح البوابة',
+      dbStatus: 'pending_acknowledgment',
+      description: 'Mandatory acknowledgment before security approval',
+      descriptionAr: 'إقرار إلزامي قبل موافقة الأمن'
     },
     {
-      id: 'club_mgmt_decision',
+      id: 'ack_decision',
       type: 'decision',
       label: 'Acknowledged?',
       labelAr: 'تم الإقرار؟'
@@ -517,12 +517,12 @@ export const internalGatePassWorkflow: WorkflowDefinition = {
     // Main flow
     { from: 'request_submit', to: 'dept_approval' },
     { from: 'dept_approval', to: 'dept_decision' },
-    { from: 'dept_decision', to: 'club_mgmt_ack', condition: 'approve' },
+    { from: 'dept_decision', to: 'gate_pass_ack', condition: 'approve' },
     { from: 'dept_decision', to: 'pass_rejected', condition: 'reject' },
     
-    { from: 'club_mgmt_ack', to: 'club_mgmt_decision' },
-    { from: 'club_mgmt_decision', to: 'security_approval', condition: 'approve' },
-    { from: 'club_mgmt_decision', to: 'pass_rejected', condition: 'reject' },
+    { from: 'gate_pass_ack', to: 'ack_decision' },
+    { from: 'ack_decision', to: 'security_approval', condition: 'approve' },
+    { from: 'ack_decision', to: 'pass_rejected', condition: 'reject' },
     
     { from: 'security_approval', to: 'security_decision' },
     { from: 'security_decision', to: 'pass_approved', condition: 'approve' },
@@ -579,20 +579,20 @@ export const externalGatePassWorkflow: WorkflowDefinition = {
       labelAr: 'تمت الموافقة؟'
     },
     
-    // --- 3. GOLF CLUB MANAGEMENT ACKNOWLEDGMENT ---
+    // --- 3. GATE PASS ACKNOWLEDGMENT ---
     {
-      id: 'club_mgmt_ack',
+      id: 'gate_pass_ack',
       type: 'approval',
-      label: 'Golf Club Management Acknowledgment',
-      labelAr: 'إقرار إدارة النادي',
-      actor: 'Golf Club Management Rep',
-      actorAr: 'ممثل إدارة نادي الجولف',
-      dbStatus: 'pending_club_mgmt_ack',
-      description: 'Mandatory site entry acknowledgment',
-      descriptionAr: 'إقرار دخول الموقع إلزامي'
+      label: 'Gate Pass Acknowledgment',
+      labelAr: 'إقرار تصريح البوابة',
+      actor: 'Gate Pass Acknowledger',
+      actorAr: 'مُعتمد تصريح البوابة',
+      dbStatus: 'pending_acknowledgment',
+      description: 'Mandatory acknowledgment before security approval',
+      descriptionAr: 'إقرار إلزامي قبل موافقة الأمن'
     },
     {
-      id: 'club_mgmt_decision',
+      id: 'ack_decision',
       type: 'decision',
       label: 'Acknowledged?',
       labelAr: 'تم الإقرار؟'
@@ -679,12 +679,12 @@ export const externalGatePassWorkflow: WorkflowDefinition = {
     // Main flow
     { from: 'request_submit', to: 'contractor_approval' },
     { from: 'contractor_approval', to: 'contractor_decision' },
-    { from: 'contractor_decision', to: 'club_mgmt_ack', condition: 'approve' },
+    { from: 'contractor_decision', to: 'gate_pass_ack', condition: 'approve' },
     { from: 'contractor_decision', to: 'pass_rejected', condition: 'reject' },
     
-    { from: 'club_mgmt_ack', to: 'club_mgmt_decision' },
-    { from: 'club_mgmt_decision', to: 'security_approval', condition: 'approve' },
-    { from: 'club_mgmt_decision', to: 'pass_rejected', condition: 'reject' },
+    { from: 'gate_pass_ack', to: 'ack_decision' },
+    { from: 'ack_decision', to: 'security_approval', condition: 'approve' },
+    { from: 'ack_decision', to: 'pass_rejected', condition: 'reject' },
     
     { from: 'security_approval', to: 'security_decision' },
     { from: 'security_decision', to: 'pass_approved', condition: 'approve' },
