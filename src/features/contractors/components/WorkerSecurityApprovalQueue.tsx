@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ShieldCheck, CheckCircle, XCircle, Building2, Phone, CreditCard, User, ShieldAlert, Video, Eye } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import {
   usePendingSecurityApprovals,
