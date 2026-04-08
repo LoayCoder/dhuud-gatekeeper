@@ -2,7 +2,6 @@ import { useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,20 +10,17 @@ import { format } from "date-fns";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
 import { 
-  User, 
-  Building2, 
-  Clock, 
-  HardHat,
-  Shield, 
-  Phone,
   AlertTriangle,
   CheckCircle2,
   XCircle,
   Download,
   Share2,
-  ShieldCheck
+  Shield, 
+  Phone,
 } from "lucide-react";
-
+import { IDCardTemplate } from "@/features/admin/components/id-cards/IDCardTemplate/IDCardTemplate";
+import { DEFAULT_CARD_SETTINGS } from "@/types/id-card.types";
+import type { TenantIDCardSettings, IDCardPersonData, IDCardTenantData } from "@/types/id-card.types";
 
 interface PageContent {
   title?: string;
@@ -52,12 +48,20 @@ interface WorkerAccessData {
   page_content: PageContent | null;
   worker: {
     full_name: string;
+    full_name_ar: string | null;
     nationality: string | null;
     company_name: string | null;
+    company_name_ar: string | null;
     worker_type: string | null;
+    role: string | null;
+    role_ar: string | null;
+    employee_id: string | null;
+    national_id: string | null;
+    photo_url: string | null;
   };
   project: {
     project_name: string;
+    project_name_ar: string | null;
     tenant_name: string | null;
     hsse_instructions_ar: string | null;
     hsse_instructions_en: string | null;
@@ -70,59 +74,87 @@ interface WorkerAccessData {
     hsse_department_name: string | null;
     hsse_department_name_ar: string | null;
   } | null;
+  id_card_settings: Record<string, unknown> | null;
   settings: {
     allow_download: boolean;
     allow_share: boolean;
   };
 }
 
+/**
+ * Build TenantIDCardSettings from API response or use defaults
+ */
+function buildCardSettings(raw: Record<string, unknown> | null): TenantIDCardSettings {
+  const defaults = DEFAULT_CARD_SETTINGS.worker;
+  if (!raw) {
+    return {
+      id: 'default',
+      tenant_id: '',
+      card_type: 'worker',
+      front_bg_color: '#ffffff',
+      front_accent_color: defaults.front_accent_color || '#C43718',
+      front_text_color: '#1a1a1a',
+      show_photo: true,
+      show_qr_code: true,
+      qr_position: 'right' as const,
+      front_fields: defaults.front_fields || ['full_name', 'company', 'role', 'project', 'valid_until'],
+      back_enabled: defaults.back_enabled || false,
+      back_bg_color: '#ffffff',
+      back_fields: defaults.back_fields || [],
+      back_custom_text: null,
+      back_custom_text_ar: null,
+      card_orientation: 'portrait' as const,
+      show_logo: true,
+      logo_position: 'top-center' as const,
+      show_tenant_name: true,
+      template_preset: defaults.template_preset || 'safety',
+      is_active: true,
+      created_at: '',
+      updated_at: '',
+    } as TenantIDCardSettings;
+  }
+  return raw as unknown as TenantIDCardSettings;
+}
+
 export default function WorkerAccessPass() {
   const { token } = useParams<{ token: string }>();
-  const badgeRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const { data: accessData, isLoading, error } = useQuery({
     queryKey: ['worker-access-pass', token],
     queryFn: async () => {
       if (!token) throw new Error('No token provided');
-      
-      // Call edge function to bypass RLS (workers are unauthenticated)
       const { data, error } = await supabase.functions.invoke('get-worker-access-pass', {
         body: { token }
       });
-      
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      
       return data as WorkerAccessData;
     },
     enabled: !!token,
   });
 
-  // Get language and RTL from API response
   const language = accessData?.language || 'en';
   const isRTL = language === 'ar' || language === 'ur';
   const content = accessData?.page_content;
+  const cardLang = (language === 'ar' || language === 'ur') ? 'ar' : 'en';
 
-  // Helper function to get content from page_content with English fallback
   const getContent = (key: keyof PageContent, fallbackEn: string): string => {
     return content?.[key] || fallbackEn;
   };
 
   const handleDownload = async () => {
-    if (!badgeRef.current) return;
-    
+    if (!cardRef.current) return;
     try {
-      const canvas = await html2canvas(badgeRef.current, {
-        scale: 2,
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 3,
         backgroundColor: null,
         useCORS: true,
       });
-      
       const link = document.createElement('a');
       link.download = `worker-pass-${accessData?.worker.full_name || 'badge'}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
-      
       toast.success(getContent('save_pass', 'Pass saved successfully'));
     } catch (err) {
       console.error('Download failed:', err);
@@ -133,22 +165,16 @@ export default function WorkerAccessPass() {
   const handleShare = async () => {
     const shareUrl = window.location.href;
     const shareText = `${getContent('title', 'Worker Access Pass')}: ${accessData?.worker.full_name}`;
-    
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: shareText,
-          url: shareUrl,
-        });
+        await navigator.share({ title: shareText, url: shareUrl });
       } catch (err) {
-        // User cancelled or share failed, copy to clipboard as fallback
         if ((err as Error).name !== 'AbortError') {
           await navigator.clipboard.writeText(shareUrl);
           toast.success('Link copied to clipboard');
         }
       }
     } else {
-      // Fallback: copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
       toast.success('Link copied to clipboard');
     }
@@ -194,168 +220,86 @@ export default function WorkerAccessPass() {
   const worker = accessData.worker;
   const project = accessData.project;
   const branding = accessData.tenant_branding;
-  const settings = accessData.settings;
+  const pageSettings = accessData.settings;
 
   const hsseInstructions = isRTL 
     ? project.hsse_instructions_ar || project.hsse_instructions_en
     : project.hsse_instructions_en || project.hsse_instructions_ar;
 
-  // Get HSSE department name
-  const getHsseDeptName = () => {
-    if (isRTL && branding?.hsse_department_name_ar) {
-      return branding.hsse_department_name_ar;
-    }
-    return branding?.hsse_department_name || 'HSSE Department';
+  // Build IDCardTemplate props
+  const cardSettings = buildCardSettings(accessData.id_card_settings);
+
+  const personData: IDCardPersonData = {
+    id: accessData.qr_token,
+    fullName: worker.full_name,
+    fullNameAr: worker.full_name_ar || undefined,
+    photo: worker.photo_url || undefined,
+    role: worker.role || worker.worker_type || undefined,
+    roleAr: worker.role_ar || undefined,
+    company: worker.company_name || undefined,
+    companyAr: worker.company_name_ar || undefined,
+    employeeId: worker.employee_id || undefined,
+    nationalId: worker.national_id || undefined,
+    project: project.project_name,
+    projectAr: project.project_name_ar || undefined,
+    validUntil: accessData.valid_until,
+    qrToken: accessData.qr_token,
+    qrUrl: `WORKER:${accessData.qr_token}`,
+    emergencyContact: project.emergency_contact_number || undefined,
+    safetyInstructions: hsseInstructions || undefined,
   };
 
-  // QR code value format for gate scanner
-  const qrValue = `WORKER:${accessData.qr_token}`;
-
-  // Dynamic header color based on brand color
-  const headerStyle = branding?.brand_color ? {
-    backgroundColor: branding.brand_color,
-  } : {};
+  const tenantData: IDCardTenantData = {
+    id: '',
+    name: project.tenant_name || 'Facility',
+    nameAr: undefined,
+    logoUrl: branding?.logo_light_url || undefined,
+    hsseDepartmentName: branding?.hsse_department_name || undefined,
+    hsseDepartmentNameAr: branding?.hsse_department_name_ar || undefined,
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background p-4" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background p-4" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="max-w-md mx-auto space-y-4">
-        {/* Header Card with QR */}
-        <Card className="overflow-hidden" ref={badgeRef}>
-          <div 
-            className="bg-primary text-primary-foreground p-4 text-center"
-            style={headerStyle}
-          >
-            {/* Tenant Logo */}
-            {branding?.logo_light_url ? (
-              <img 
-                src={branding.logo_light_url} 
-                alt={project.tenant_name || 'Company'} 
-                className="h-12 mx-auto mb-2 object-contain"
-              />
-            ) : (
-              <HardHat className="h-8 w-8 mx-auto mb-2" />
-            )}
-            <h1 className="text-xl font-bold">
-              {getContent('title', 'Worker Access Pass')}
-            </h1>
-            <p className="text-primary-foreground/80 text-sm">
-              {project.tenant_name || 'Facility'}
-            </p>
-            {/* HSSE Department Name */}
-            <p className="text-primary-foreground/70 text-xs mt-1">
-              {getHsseDeptName()}
-            </p>
+        {/* Status Badge */}
+        <div className="flex justify-center">
+          {accessData.is_revoked ? (
+            <Badge variant="destructive" className="text-sm px-4 py-1.5">
+              <XCircle className="h-4 w-4 me-1" />
+              {getContent('status_revoked', 'Revoked')}
+            </Badge>
+          ) : isExpired ? (
+            <Badge variant="secondary" className="text-sm px-4 py-1.5 bg-amber-500 text-white hover:bg-amber-600">
+              <AlertTriangle className="h-4 w-4 me-1" />
+              {getContent('status_expired', 'Expired')}
+            </Badge>
+          ) : (
+            <Badge variant="default" className="text-sm px-4 py-1.5 bg-green-500 hover:bg-green-600">
+              <CheckCircle2 className="h-4 w-4 me-1" />
+              {getContent('status_active', 'Active')}
+            </Badge>
+          )}
+        </div>
+
+        {/* ID Card - New Template */}
+        <div className={`flex justify-center ${!isActive ? 'opacity-60' : ''}`}>
+          <div ref={cardRef}>
+            <IDCardTemplate
+              cardType="worker"
+              personData={personData}
+              tenantData={tenantData}
+              settings={cardSettings}
+              side="front"
+              language={cardLang as 'en' | 'ar'}
+              scale={1.2}
+            />
           </div>
-          
-          <CardContent className="pt-6">
-            {/* Worker Role Badge */}
-            {worker.worker_type && worker.worker_type !== 'worker' && (
-              <div className="flex justify-center mb-4">
-                <Badge 
-                  className={`text-sm px-4 py-1.5 font-bold ${
-                    worker.worker_type === 'site_representative' 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'bg-green-600 text-white hover:bg-green-700'
-                  }`}
-                >
-                  {worker.worker_type === 'site_representative' ? (
-                    <>
-                      <Building2 className="h-4 w-4 me-1.5" />
-                      {isRTL ? 'ممثل الموقع' : 'SITE REPRESENTATIVE'}
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck className="h-4 w-4 me-1.5" />
-                      {isRTL ? 'مسؤول السلامة' : 'SAFETY OFFICER'}
-                    </>
-                  )}
-                </Badge>
-              </div>
-            )}
-            
-            {/* Status Badge */}
-            <div className="flex justify-center mb-4">
-              {accessData.is_revoked ? (
-                <Badge variant="destructive" className="text-sm px-4 py-1">
-                  <XCircle className="h-4 w-4 me-1" />
-                  {getContent('status_revoked', 'Revoked')}
-                </Badge>
-              ) : isExpired ? (
-                <Badge variant="secondary" className="text-sm px-4 py-1 bg-amber-500 text-white hover:bg-amber-600">
-                  <AlertTriangle className="h-4 w-4 me-1" />
-                  {getContent('status_expired', 'Expired')}
-                </Badge>
-              ) : (
-                <Badge variant="default" className="text-sm px-4 py-1 bg-green-500 hover:bg-green-600">
-                  <CheckCircle2 className="h-4 w-4 me-1" />
-                  {getContent('status_active', 'Active')}
-                </Badge>
-              )}
-            </div>
-
-            {/* QR Code */}
-            <div className="flex justify-center mb-6">
-              <div className={`bg-white p-4 rounded-lg shadow-inner ${!isActive ? 'opacity-50' : ''}`}>
-                <QRCodeSVG 
-                  value={qrValue} 
-                  size={180}
-                  level="H"
-                />
-              </div>
-            </div>
-
-            {/* Worker Info */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <User className="h-5 w-5 text-primary shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    {getContent('worker_name_label', 'Worker Name')}
-                  </p>
-                  <p className="font-medium">{worker.full_name}</p>
-                </div>
-              </div>
-
-
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <Building2 className="h-5 w-5 text-primary shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    {getContent('company_label', 'Company')}
-                  </p>
-                  <p className="font-medium">{worker.company_name || '-'}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <HardHat className="h-5 w-5 text-primary shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    {getContent('project_label', 'Project')}
-                  </p>
-                  <p className="font-medium">{project.project_name}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <Clock className="h-5 w-5 text-primary shrink-0" />
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    {getContent('valid_until_label', 'Valid Until')}
-                  </p>
-                  <p className={`font-medium ${isExpired ? 'text-destructive' : ''}`}>
-                    {format(new Date(accessData.valid_until), 'PPp')}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        </div>
 
         {/* Action Buttons */}
-        {(settings.allow_download || settings.allow_share) && (
+        {(pageSettings.allow_download || pageSettings.allow_share) && (
           <div className="flex gap-2">
-            {settings.allow_download && (
+            {pageSettings.allow_download && (
               <Button 
                 variant="outline" 
                 className="flex-1"
@@ -365,7 +309,7 @@ export default function WorkerAccessPass() {
                 {getContent('save_pass', 'Save Pass')}
               </Button>
             )}
-            {settings.allow_share && (
+            {pageSettings.allow_share && (
               <Button 
                 variant="outline" 
                 className="flex-1"
