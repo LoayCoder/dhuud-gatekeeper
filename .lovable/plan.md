@@ -2,45 +2,59 @@
 
 ## Problem
 
-The recent color changes made the homepage cards look heavy and cluttered:
-- Thick colored left borders (`border-s-4`) are too prominent
-- Colored background tints (`dark:bg-destructive/5`, etc.) make cards look inconsistent
-- The `--card` and `--border` CSS variable changes altered the entire app's appearance
+Current color tokens show almost zero contrast between page background and cards:
 
-## Plan: Revert and Apply Minimal Fix
+```text
+Light Mode:
+  --background: 0 0% 100%    (pure white)
+  --card:       0 0% 100%    (pure white)  ← IDENTICAL
 
-### 1. Revert ActionCard styles (src/components/home/ActionCard.tsx)
-
-Remove the colored left borders and background tints. Keep cards clean with just:
-- Clean `bg-card` background (no color tint)
-- No `border-s-4` — use only the standard `border border-border` 
-- Keep the existing icon color scheme (icon background + icon color) as they were originally fine
-- Restore original icon opacity levels
-
-Updated styles — simple and clean:
-```typescript
-danger: {
-  bg: 'bg-card',
-  iconBg: 'bg-destructive/10 dark:bg-destructive/20',
-  iconColor: 'text-destructive',
-  hoverBg: 'group-hover:bg-destructive/15 dark:group-hover:bg-destructive/25',
-}
-// Same pattern for all schemes
+Dark Mode:
+  --background: 220 13% 13%  (L=13%)
+  --card:       220 15% 15%  (L=15%)      ← only 2% difference
 ```
 
-### 2. Revert CSS variables (src/index.css)
+Cards (action cards + HSSE contact) blend into the page. The border at `border-border/50` is too faint to compensate.
 
-Restore the original dark mode values:
-- `--card: 220 15% 15%` (revert from 18%)
-- `--border: 217 25% 24%` (revert from 28%)
+## Solution: Adjust background vs card surface contrast
 
-### 3. Add only a subtle card elevation difference
+The minimal, professional fix is to **lower the page background slightly** so cards "float" on top, rather than making cards darker. This preserves the clean card look.
 
-Instead of colored borders, use a slightly more visible border in dark mode and a soft shadow — enough to distinguish cards without being heavy:
-- `border-border/60` instead of `border-border/50` in dark mode
-- Keep `shadow-sm` for light separation
+### Color layers proposed
 
-### Files to modify
-- `src/components/home/ActionCard.tsx` — remove colored borders and tints, restore clean card style
-- `src/index.css` — revert `--card` and `--border` to original values
+```text
+LIGHT MODE (white layers):
+  Page background:  210 20% 97%   (#F5F7FA — cool off-white, subtle blue tint)
+  Card surface:     0 0% 100%     (#FFFFFF — stays pure white)
+  → Cards pop naturally against the slightly tinted background
+
+DARK MODE (dark layers):  
+  Page background:  220 13% 10%   (darker — was 13%)
+  Card surface:     220 15% 17%   (lighter — was 15%)
+  → 7% lightness gap instead of current 2%
+```
+
+### What changes
+
+**File: `src/index.css`** — Only 4 CSS variable values change:
+
+```css
+/* Light mode */
+--background: 210 20% 97%;      /* was: 0 0% 100% */
+/* --card stays 0 0% 100% */
+
+/* Dark mode */  
+--background: 220 13% 10%;      /* was: 220 13% 13% */
+--card: 220 15% 17%;            /* was: 220 15% 15% */
+```
+
+**File: `src/components/home/HSSEContactCompact.tsx`** — No change needed; it already uses `bg-card` and `border-border/50` which will automatically benefit from the new contrast.
+
+**File: `src/components/home/ActionCard.tsx`** — No change needed; same reason.
+
+### Why this works
+- Light mode: Cards are white on a very light blue-gray background — clean, professional, cards clearly visible
+- Dark mode: 7% lightness gap makes cards clearly distinct without looking heavy
+- Only CSS variables change — zero component code changes needed
+- All existing cards, dialogs, and popovers benefit automatically
 
