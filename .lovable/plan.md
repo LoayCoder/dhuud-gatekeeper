@@ -1,63 +1,54 @@
 
 
-# Enhance Site Risk Verification Notes & Known Risks with Severity
+## Problem
 
-## What Changes
+The homepage action cards lack visual contrast in both light and dark modes. The card background (`bg-card`) is nearly identical to the page background, making cards blend together. The icon color washes (10-20% opacity) are too subtle, especially in dark mode.
 
-### 1. Site Risk Verification — Add Notes Field Per Item
-Each of the 4 verification checkboxes (Utility Verification, Underground Utilities, High-Risk Zones, Work Boundaries) will get a text input below it for adding notes/comments specific to that verification item.
+From the screenshot: the dark mode cards appear as flat dark rectangles with barely visible borders, and the colored icon backgrounds don't pop enough.
 
-**Database:** Add 4 new columns to `project_mobilizations`:
-- `utility_verified_notes TEXT`
-- `underground_utilities_notes TEXT`
-- `high_risk_zones_notes TEXT`
-- `work_boundaries_notes TEXT`
+## Plan
 
-**UI:** Below each checkbox item's description, render a small `Input` or `Textarea` for notes. Save alongside the boolean when verification is toggled or notes are typed.
+### 1. Enhance ActionCard visual distinction (src/components/home/ActionCard.tsx)
 
-### 2. Known Risks — Multiple Entries with Severity
-Replace the current single textarea fields (`known_risks`, `control_measures`) with a dedicated table for multiple risk entries.
+- Add a **colored left/start border** (3-4px) to each card matching its color scheme — this is a proven HSSE pattern already used in inspections
+- Increase icon background opacity from 10-20% to 20-30% (light) and 25-40% (dark) for stronger color presence
+- Add a subtle **inner glow/gradient** on hover to reinforce the color identity
+- Use `border-border` with higher visibility in dark mode
 
-**Database:** Create new table `site_clearance_risks`:
-```sql
-CREATE TABLE public.site_clearance_risks (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id UUID NOT NULL REFERENCES tenants(id),
-  mobilization_id UUID NOT NULL REFERENCES project_mobilizations(id) ON DELETE CASCADE,
-  risk_description TEXT NOT NULL,
-  severity TEXT NOT NULL DEFAULT 'medium'
-    CHECK (severity IN ('low','medium','high','critical')),
-  control_measures TEXT,
-  created_by UUID REFERENCES profiles(id),
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  deleted_at TIMESTAMPTZ
-);
+### 2. Improve dark mode card surface contrast (src/index.css)
+
+- Bump `--card` in dark mode from `220 15% 15%` to `220 15% 18%` — gives ~5% more lightness separation from the background (`220 13% 13%`)
+- Slightly increase `--border` in dark mode from `217 25% 24%` to `217 25% 28%` for more visible card edges
+
+### 3. Update color scheme styles (src/components/home/ActionCard.tsx)
+
+For each color scheme, add:
+- `border-s-4 border-s-{color}` — colored start border for instant visual identity
+- Stronger dark-mode icon backgrounds (e.g., `dark:bg-destructive/30` instead of `/20`)
+- A subtle card background tint in dark mode (e.g., `dark:bg-destructive/5`) so cards aren't all the same gray
+
+### Technical Details
+
+**ActionCard.tsx** — Updated `colorSchemeStyles` record:
+```typescript
+danger: {
+  bg: 'bg-card border-s-4 border-s-destructive/70 dark:border-s-destructive dark:bg-destructive/5',
+  iconBg: 'bg-destructive/15 dark:bg-destructive/25',
+  iconColor: 'text-destructive',
+  hoverBg: '...',
+}
+// Similar for warning, info, success, primary, default
 ```
-With RLS tenant isolation and soft-delete filtering.
 
-**UI (Tab 3 — Risks):** Replace the two textareas with:
-- A list of added risks, each showing: severity badge (color-coded), risk description, control measures
-- An "Add Risk" form with: severity selector (Low/Medium/High/Critical), risk description textarea, control measures textarea
-- Delete button per risk entry
-- Keep the attachments section below unchanged
+**index.css** — Dark mode token adjustments:
+```css
+.dark {
+  --card: 220 15% 18%;        /* was 15% */
+  --border: 217 25% 28%;      /* was 24% */
+}
+```
 
-## Files to Create/Modify
-
-| Action | File | Change |
-|--------|------|--------|
-| **MIGRATE** | New migration SQL | Add 4 notes columns to `project_mobilizations` + create `site_clearance_risks` table |
-| **MODIFY** | `src/features/mobilization/services/siteClearanceService.ts` | Add CRUD functions for risks; update `updateSiteRiskVerification` to accept notes |
-| **MODIFY** | `src/features/mobilization/hooks/use-site-clearance.ts` | Add `useSiteClearanceRisks`, `useAddRisk`, `useDeleteRisk` hooks; update verification mutation to include notes |
-| **MODIFY** | `src/pages/mobilization/SiteClearanceDetail.tsx` | Add notes input under each verification item; replace risks tab with multi-entry list + severity |
-
-## UI Details
-
-**Risk severity colors** (HSSE standard):
-- Low → green
-- Medium → amber/yellow
-- High → orange
-- Critical → red
-
-**Verification notes:** Small single-line `Input` below each item description, placeholder "Add notes..." — saved via the same `updateSiteRiskVerification` mutation with added notes fields.
+### Files to modify
+- `src/components/home/ActionCard.tsx` — color scheme styles with colored borders + stronger tints
+- `src/index.css` — dark mode card/border contrast tokens
 
