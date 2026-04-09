@@ -21,6 +21,8 @@ export interface GatePassVerificationResult {
     status: string;
     entry_time: string | null;
     exit_time: string | null;
+    entry_confirmed_at: string | null;
+    exit_confirmed_at: string | null;
     project_name: string;
     company_name: string;
   };

@@ -39,7 +39,7 @@ export function useKPIHistoricalTrend(
       });
 
       if (error) throw error;
-      return (data || []) as KPITrendData[];
+      return (data || []) as unknown as KPITrendData[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

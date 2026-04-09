@@ -623,7 +623,7 @@ export function useBulkApproveGatePasses() {
           }
 
           // Parse RPC response
-          const response = data as { success: boolean; error?: string; new_status?: string };
+          const response = data as unknown as { success: boolean; error?: string; new_status?: string };
           if (!response.success) {
             results.failed++;
             results.errors.push({ passId, error: response.error || "Approval failed" });
