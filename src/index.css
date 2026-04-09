@@ -165,7 +165,7 @@ All colors MUST be HSL.
     --background: 220 13% 13%;
     --foreground: 210 40% 98%;
 
-    --card: 220 15% 18%;
+    --card: 220 15% 15%;
     --card-foreground: 210 40% 98%;
 
     --popover: 220 15% 15%;
@@ -215,7 +215,7 @@ All colors MUST be HSL.
     --brand-background: 220 13% 13%;
 
     /* Borders & Inputs */
-    --border: 217 25% 28%;
+    --border: 217 25% 24%;
     --input: 217 25% 24%;
     --ring: var(--primary);
 
