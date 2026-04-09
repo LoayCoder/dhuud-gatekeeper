@@ -126,7 +126,9 @@ export default function IncidentReport() {
   const { profile } = useAuth();
   
   // Event type selection mode: null = show selector, 'observation' = quick card, 'incident' = wizard
-  const [reportMode, setReportMode] = useState<'observation' | 'incident' | null>(null);
+  const modeParam = searchParams.get('mode');
+  const initialMode = modeParam === 'observation' || modeParam === 'incident' ? modeParam : null;
+  const [reportMode, setReportMode] = useState<'observation' | 'incident' | null>(initialMode);
   
   // Get assetId from URL if present (from QR scan)
   const preselectedAssetId = searchParams.get('assetId');
