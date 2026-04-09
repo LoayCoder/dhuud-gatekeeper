@@ -17,7 +17,9 @@ export function useIncidentReportState() {
   const direction = i18n.dir();
   const { profile } = useAuth();
   
-  const [reportMode, setReportMode] = useState<'observation' | 'incident' | null>(null);
+  const modeParam = searchParams.get('mode');
+  const initialMode = modeParam === 'observation' || modeParam === 'incident' ? modeParam : null;
+  const [reportMode, setReportMode] = useState<'observation' | 'incident' | null>(initialMode);
   const preselectedAssetId = searchParams.get('assetId');
   const incidentFormSchema = createIncidentFormSchema(t);
   
