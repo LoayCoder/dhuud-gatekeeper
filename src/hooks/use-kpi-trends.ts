@@ -99,7 +99,7 @@ export function useKPIPeriodComparison(
       
       // Convert to a map for easy access
       const comparisonMap: Record<string, KPIPeriodComparison> = {};
-      (data || []).forEach((item: KPIPeriodComparison) => {
+      ((data || []) as unknown as KPIPeriodComparison[]).forEach((item: KPIPeriodComparison) => {
         comparisonMap[item.metric_name] = item;
       });
       

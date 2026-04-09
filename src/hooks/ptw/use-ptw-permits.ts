@@ -72,8 +72,8 @@ export function usePTWPermits(filters: PTWPermitFilters = {}) {
       if (!tenantId) return [];
 
       // Branch filtering is now handled by RLS via branch_id column
-      let query = (supabase as never)
-        .from("ptw_permits")
+      let query = supabase
+        .from("ptw_permits" as never)
         .select(`
           id, tenant_id, branch_id, reference_id, project_id, type_id, status,
           site_id, building_id, floor_zone_id, location_details, gps_lat, gps_lng,
@@ -106,7 +106,7 @@ export function usePTWPermits(filters: PTWPermitFilters = {}) {
       const { data, error } = await query;
       if (error) throw error;
       
-      return data as PTWPermit[];
+      return data as never as PTWPermit[];
     },
     enabled: !!tenantId,
   });
