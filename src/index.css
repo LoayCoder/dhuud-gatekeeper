@@ -73,7 +73,7 @@ All colors MUST be HSL.
     --font-rubik: 'Rubik', sans-serif;
 
     /* Base Colors - Industrial & Professional */
-    --background: 0 0% 100%;
+    --background: 210 20% 97%;
     --foreground: 220 13% 13%;
 
     /* Card & Surfaces */
@@ -162,10 +162,10 @@ All colors MUST be HSL.
 
   .dark {
     /* Dark mode with industrial tones */
-    --background: 220 13% 13%;
+    --background: 220 13% 10%;
     --foreground: 210 40% 98%;
 
-    --card: 220 15% 15%;
+    --card: 220 15% 17%;
     --card-foreground: 210 40% 98%;
 
     --popover: 220 15% 15%;
