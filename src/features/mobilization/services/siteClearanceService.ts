@@ -316,10 +316,10 @@ export async function updateSiteClearanceRisk(
 }
 
 export async function deleteSiteClearanceRisk(riskId: string) {
-  const { error } = await supabase
-    .from('site_clearance_risks')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', riskId);
+  const { error } = await (supabase.rpc as (...args: unknown[]) => ReturnType<typeof supabase.rpc>)(
+    'soft_delete_site_clearance_risk',
+    { p_risk_id: riskId }
+  );
 
   if (error) throw error;
 }
