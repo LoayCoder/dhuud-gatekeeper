@@ -10,6 +10,7 @@ interface ActionCardProps {
   icon: LucideIcon;
   path: string;
   colorScheme: CardColorScheme;
+  onClickOverride?: () => void;
 }
 
 const colorSchemeStyles: Record<CardColorScheme, {
