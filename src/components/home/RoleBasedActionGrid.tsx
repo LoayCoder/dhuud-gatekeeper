@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useHomeActions } from '@/hooks/use-home-actions';
 import { ActionCard } from './ActionCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ReportingTypeDialog } from './ReportingTypeDialog';
 
 interface RoleBasedActionGridProps {
   className?: string;
@@ -9,6 +11,7 @@ interface RoleBasedActionGridProps {
 
 export function RoleBasedActionGrid({ className }: RoleBasedActionGridProps) {
   const { cards, isLoading } = useHomeActions();
+  const [reportingDialogOpen, setReportingDialogOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -47,8 +50,17 @@ export function RoleBasedActionGrid({ className }: RoleBasedActionGridProps) {
           icon={card.icon}
           path={card.path}
           colorScheme={card.colorScheme}
+          onClickOverride={
+            card.id === 'reportings'
+              ? () => setReportingDialogOpen(true)
+              : undefined
+          }
         />
       ))}
+      <ReportingTypeDialog
+        open={reportingDialogOpen}
+        onOpenChange={setReportingDialogOpen}
+      />
     </div>
   );
 }
