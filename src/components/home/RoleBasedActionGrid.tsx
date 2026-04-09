@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useHomeActions } from '@/hooks/use-home-actions';
 import { ActionCard } from './ActionCard';
+import { ReportingTypeDialog } from './ReportingTypeDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface RoleBasedActionGridProps {
@@ -9,6 +11,7 @@ interface RoleBasedActionGridProps {
 
 export function RoleBasedActionGrid({ className }: RoleBasedActionGridProps) {
   const { cards, isLoading } = useHomeActions();
+  const [reportingDialogOpen, setReportingDialogOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -29,26 +32,36 @@ export function RoleBasedActionGrid({ className }: RoleBasedActionGridProps) {
   }
 
   return (
-    <div
-      className={cn(
-        'grid gap-3 sm:gap-4',
-        // Responsive grid: 2 cols mobile, 3 tablet, 4 desktop
-        'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
-        // Auto-fit rows to available space
-        'auto-rows-fr',
-        className
-      )}
-    >
-      {cards.map((card) => (
-        <ActionCard
-          key={card.id}
-          labelKey={card.labelKey}
-          descriptionKey={card.descriptionKey}
-          icon={card.icon}
-          path={card.path}
-          colorScheme={card.colorScheme}
-        />
-      ))}
-    </div>
+    <>
+      <div
+        className={cn(
+          'grid gap-3 sm:gap-4',
+          'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
+          'auto-rows-fr',
+          className
+        )}
+      >
+        {cards.map((card) => (
+          <ActionCard
+            key={card.id}
+            labelKey={card.labelKey}
+            descriptionKey={card.descriptionKey}
+            icon={card.icon}
+            path={card.path}
+            colorScheme={card.colorScheme}
+            onClickOverride={
+              card.id === 'reportings'
+                ? () => setReportingDialogOpen(true)
+                : undefined
+            }
+          />
+        ))}
+      </div>
+
+      <ReportingTypeDialog
+        open={reportingDialogOpen}
+        onOpenChange={setReportingDialogOpen}
+      />
+    </>
   );
 }

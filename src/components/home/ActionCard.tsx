@@ -62,25 +62,24 @@ export function ActionCard({
   icon: Icon,
   path,
   colorScheme,
+  onClickOverride,
 }: ActionCardProps) {
   const { t } = useTranslation();
   const styles = colorSchemeStyles[colorScheme];
 
-  return (
-    <Link
-      to={path}
-      className={cn(
-        'group relative flex flex-col items-center justify-center gap-3 p-4',
-        'rounded-xl border border-border/50 shadow-sm',
-        'transition-all duration-200 ease-out',
-        'hover:shadow-md hover:border-border',
-        'active:scale-[0.98]',
-        'touch-action-manipulation select-none',
-        'min-h-[120px] sm:min-h-[140px]',
-        styles.bg
-      )}
-    >
-      {/* Icon container */}
+  const sharedClassName = cn(
+    'group relative flex flex-col items-center justify-center gap-3 p-4',
+    'rounded-xl border border-border/50 shadow-sm',
+    'transition-all duration-200 ease-out',
+    'hover:shadow-md hover:border-border',
+    'active:scale-[0.98]',
+    'touch-action-manipulation select-none',
+    'min-h-[120px] sm:min-h-[140px]',
+    styles.bg
+  );
+
+  const content = (
+    <>
       <div
         className={cn(
           'flex items-center justify-center',
@@ -92,11 +91,23 @@ export function ActionCard({
       >
         <Icon className={cn('w-6 h-6 sm:w-7 sm:h-7', styles.iconColor)} />
       </div>
-
-      {/* Label */}
       <span className="text-sm sm:text-base font-medium text-foreground text-center leading-tight">
         {t(labelKey)}
       </span>
+    </>
+  );
+
+  if (onClickOverride) {
+    return (
+      <button type="button" onClick={onClickOverride} className={sharedClassName}>
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link to={path} className={sharedClassName}>
+      {content}
     </Link>
   );
 }
