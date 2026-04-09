@@ -1,60 +1,41 @@
 
 
-## Problem
+## Reporting Card Popup — Two-Circle Selector
 
-Current color tokens show almost zero contrast between page background and cards:
+### What We're Building
 
-```text
-Light Mode:
-  --background: 0 0% 100%    (pure white)
-  --card:       0 0% 100%    (pure white)  ← IDENTICAL
+When users tap the **Reportings** card on the homepage, instead of navigating directly to `/incidents/report`, a premium popup (Dialog) appears with two circular buttons:
 
-Dark Mode:
-  --background: 220 13% 13%  (L=13%)
-  --card:       220 15% 15%  (L=15%)      ← only 2% difference
-```
+1. **Observation** (Eye icon, warning color) → navigates to `/incidents/report` with observation mode
+2. **Incident** (Siren icon, danger/red color) → navigates to `/incidents/report` with incident mode
 
-Cards (action cards + HSSE contact) blend into the page. The border at `border-border/50` is too faint to compensate.
+The popup uses large circular icon containers (similar to the existing `EventTypeSelector` design) with smooth animations.
 
-## Solution: Adjust background vs card surface contrast
+### How It Works
 
-The minimal, professional fix is to **lower the page background slightly** so cards "float" on top, rather than making cards darker. This preserves the clean card look.
+- The `ActionCard` for the `reportings` card (id: `reportings`) will **not** navigate via `<Link>`. Instead, it opens a Dialog.
+- The Dialog shows two large circles side by side with icons, labels, and brief descriptions — all already translated (`quickObservation.observationTitle`, `quickObservation.incidentTitle`, etc.).
+- Tapping a circle navigates to `/incidents/report?mode=observation` or `/incidents/report?mode=incident` and closes the dialog.
+- All other cards continue to work as normal `<Link>` navigation.
 
-### Color layers proposed
+### Technical Details
 
-```text
-LIGHT MODE (white layers):
-  Page background:  210 20% 97%   (#F5F7FA — cool off-white, subtle blue tint)
-  Card surface:     0 0% 100%     (#FFFFFF — stays pure white)
-  → Cards pop naturally against the slightly tinted background
+**File: `src/components/home/ActionCard.tsx`**
+- Add an optional `onClickOverride` callback prop. When present, render a `<button>` instead of `<Link>`.
 
-DARK MODE (dark layers):  
-  Page background:  220 13% 10%   (darker — was 13%)
-  Card surface:     220 15% 17%   (lighter — was 15%)
-  → 7% lightness gap instead of current 2%
-```
+**File: `src/components/home/ReportingTypeDialog.tsx`** (new)
+- A Dialog component with two large circular buttons (w-20 h-20 rounded-full).
+- Uses existing translation keys: `quickObservation.observationTitle`, `quickObservation.incidentTitle`, `quickObservation.observationDescription`, `quickObservation.incidentDescription`.
+- Icons: `Eye` (observation), `Siren` (incident).
+- Colors: warning scheme for observation, destructive scheme for incident.
+- Passes `dir={i18n.dir()}` to DialogContent for RTL support.
 
-### What changes
+**File: `src/components/home/RoleBasedActionGrid.tsx`**
+- For the card with `id === 'reportings'`, render ActionCard with `onClickOverride` that opens the ReportingTypeDialog.
+- Manage dialog open state here.
 
-**File: `src/index.css`** — Only 4 CSS variable values change:
-
-```css
-/* Light mode */
---background: 210 20% 97%;      /* was: 0 0% 100% */
-/* --card stays 0 0% 100% */
-
-/* Dark mode */  
---background: 220 13% 10%;      /* was: 220 13% 13% */
---card: 220 15% 17%;            /* was: 220 15% 15% */
-```
-
-**File: `src/components/home/HSSEContactCompact.tsx`** — No change needed; it already uses `bg-card` and `border-border/50` which will automatically benefit from the new contrast.
-
-**File: `src/components/home/ActionCard.tsx`** — No change needed; same reason.
-
-### Why this works
-- Light mode: Cards are white on a very light blue-gray background — clean, professional, cards clearly visible
-- Dark mode: 7% lightness gap makes cards clearly distinct without looking heavy
-- Only CSS variables change — zero component code changes needed
-- All existing cards, dialogs, and popovers benefit automatically
+### Files to Create/Modify
+- **Create**: `src/components/home/ReportingTypeDialog.tsx`
+- **Modify**: `src/components/home/ActionCard.tsx` — add `onClickOverride` prop
+- **Modify**: `src/components/home/RoleBasedActionGrid.tsx` — handle reportings card specially
 
