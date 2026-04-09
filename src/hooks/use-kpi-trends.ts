@@ -39,7 +39,7 @@ export function useKPIHistoricalTrend(
       });
 
       if (error) throw error;
-      return (data || []) as KPITrendData[];
+      return (data || []) as unknown as KPITrendData[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -99,7 +99,7 @@ export function useKPIPeriodComparison(
       
       // Convert to a map for easy access
       const comparisonMap: Record<string, KPIPeriodComparison> = {};
-      (data || []).forEach((item: KPIPeriodComparison) => {
+      ((data || []) as unknown as KPIPeriodComparison[]).forEach((item: KPIPeriodComparison) => {
         comparisonMap[item.metric_name] = item;
       });
       

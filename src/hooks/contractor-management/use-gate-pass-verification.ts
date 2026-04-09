@@ -21,6 +21,8 @@ export interface GatePassVerificationResult {
     status: string;
     entry_time: string | null;
     exit_time: string | null;
+    entry_confirmed_at: string | null;
+    exit_confirmed_at: string | null;
     project_name: string;
     company_name: string;
   };
@@ -115,6 +117,8 @@ export function useVerifyGatePassQR() {
           status: gatePass.status,
           entry_time: gatePass.entry_time,
           exit_time: gatePass.exit_time,
+          entry_confirmed_at: (gatePass as Record<string, unknown>).entry_confirmed_at as string | null ?? null,
+          exit_confirmed_at: (gatePass as Record<string, unknown>).exit_confirmed_at as string | null ?? null,
           project_name: gatePass.project?.project_name || "",
           company_name: gatePass.project?.company?.company_name || "",
         },
