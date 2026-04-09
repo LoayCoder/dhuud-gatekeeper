@@ -39,8 +39,7 @@ export function useKPIHistoricalTrend(
       });
 
       if (error) throw error;
-      // RPC returns JSONB, cast through unknown
-      return (data as unknown as KPITrendData[]) || [];
+      return (data || []) as unknown as KPITrendData[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -100,8 +99,7 @@ export function useKPIPeriodComparison(
       
       // Convert to a map for easy access - RPC returns JSONB
       const comparisonMap: Record<string, KPIPeriodComparison> = {};
-      const results = (data as unknown as KPIPeriodComparison[]) || [];
-      results.forEach((item: KPIPeriodComparison) => {
+      ((data || []) as unknown as KPIPeriodComparison[]).forEach((item: KPIPeriodComparison) => {
         comparisonMap[item.metric_name] = item;
       });
       

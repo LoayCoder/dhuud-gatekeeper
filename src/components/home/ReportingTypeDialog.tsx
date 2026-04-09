@@ -25,58 +25,73 @@ export function ReportingTypeDialog({ open, onOpenChange }: ReportingTypeDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir={i18n.dir()} className="sm:max-w-md">
+      <DialogContent
+        dir={i18n.dir()}
+        className="sm:max-w-md"
+      >
         <DialogHeader>
           <DialogTitle className="text-center">
-            {t('quickObservation.selectEventType')}
+            {t('quickObservation.selectType', 'What would you like to report?')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex justify-center gap-8 py-6">
           {/* Observation */}
           <button
+            type="button"
             onClick={() => handleSelect('observation')}
             className="flex flex-col items-center gap-3 group"
           >
             <div
               className={cn(
-                'flex items-center justify-center',
-                'w-20 h-20 rounded-full',
+                'w-20 h-20 rounded-full flex items-center justify-center',
                 'bg-warning/10 dark:bg-warning/20',
+                'border-2 border-warning/30',
                 'transition-all duration-200',
-                'group-hover:bg-warning/20 dark:group-hover:bg-warning/30',
-                'group-hover:scale-105',
+                'group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-warning/20',
+                'group-hover:border-warning/60',
                 'group-active:scale-95'
               )}
             >
               <Eye className="w-9 h-9 text-warning" />
             </div>
-            <span className="text-sm font-medium text-foreground">
-              {t('quickObservation.observationTitle')}
-            </span>
+            <div className="text-center">
+              <span className="block text-sm font-semibold text-foreground">
+                {t('quickObservation.observationTitle', 'Observation')}
+              </span>
+              <span className="block text-xs text-muted-foreground mt-0.5 max-w-[120px]">
+                {t('quickObservation.observationDescription', 'Report a safety observation')}
+              </span>
+            </div>
           </button>
 
           {/* Incident */}
           <button
+            type="button"
             onClick={() => handleSelect('incident')}
             className="flex flex-col items-center gap-3 group"
           >
             <div
               className={cn(
-                'flex items-center justify-center',
-                'w-20 h-20 rounded-full',
+                'w-20 h-20 rounded-full flex items-center justify-center',
                 'bg-destructive/10 dark:bg-destructive/20',
+                'border-2 border-destructive/30',
                 'transition-all duration-200',
-                'group-hover:bg-destructive/20 dark:group-hover:bg-destructive/30',
-                'group-hover:scale-105',
+                'group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-destructive/20',
+                'group-hover:border-destructive/60',
                 'group-active:scale-95'
               )}
             >
               <Siren className="w-9 h-9 text-destructive" />
             </div>
-            <span className="text-sm font-medium text-foreground">
-              {t('quickObservation.incidentTitle')}
-            </span>
+            <div className="text-center">
+              <span className="block text-sm font-semibold text-foreground">
+                {t('quickObservation.incidentTitle', 'Incident')}
+              </span>
+              <span className="block text-xs text-muted-foreground mt-0.5 max-w-[120px]">
+                {t('quickObservation.incidentDescription', 'Report a safety incident')}
+              </span>
+            </div>
           </button>
         </div>
       </DialogContent>
