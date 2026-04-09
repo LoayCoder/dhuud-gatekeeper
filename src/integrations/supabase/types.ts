@@ -733,7 +733,7 @@ export type Database = {
           last_escalated_at: string | null
           recommendation: string | null
           reference_id: string
-          response_id: string
+          response_id: string | null
           risk_level: string | null
           session_id: string
           status: string | null
@@ -757,7 +757,7 @@ export type Database = {
           last_escalated_at?: string | null
           recommendation?: string | null
           reference_id: string
-          response_id: string
+          response_id?: string | null
           risk_level?: string | null
           session_id: string
           status?: string | null
@@ -781,7 +781,7 @@ export type Database = {
           last_escalated_at?: string | null
           recommendation?: string | null
           reference_id?: string
-          response_id?: string
+          response_id?: string | null
           risk_level?: string | null
           session_id?: string
           status?: string | null
@@ -1929,7 +1929,7 @@ export type Database = {
             foreignKeyName: "asset_inspection_part_results_inspection_id_fkey"
             columns: ["inspection_id"]
             isOneToOne: false
-            referencedRelation: "asset_inspections"
+            referencedRelation: "inspection_session_assets"
             referencedColumns: ["id"]
           },
           {
@@ -3624,6 +3624,9 @@ export type Database = {
       }
       branches: {
         Row: {
+          address: string | null
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string | null
           deleted_at: string | null
           id: string
@@ -3631,9 +3634,14 @@ export type Database = {
           location: string | null
           longitude: number | null
           name: string
+          name_ar: string | null
+          phone: string | null
           tenant_id: string
         }
         Insert: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -3641,9 +3649,14 @@ export type Database = {
           location?: string | null
           longitude?: number | null
           name: string
+          name_ar?: string | null
+          phone?: string | null
           tenant_id: string
         }
         Update: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -3651,6 +3664,8 @@ export type Database = {
           location?: string | null
           longitude?: number | null
           name?: string
+          name_ar?: string | null
+          phone?: string | null
           tenant_id?: string
         }
         Relationships: [
@@ -5004,7 +5019,7 @@ export type Database = {
           assigned_workers_count: number
           boundary_polygon: Json | null
           branch_id: string | null
-          company_id: string
+          company_id: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -5020,6 +5035,7 @@ export type Database = {
           project_manager_id: string | null
           project_name: string
           project_name_ar: string | null
+          project_type: string
           required_safety_officers: number
           site_id: string | null
           start_date: string
@@ -5031,7 +5047,7 @@ export type Database = {
           assigned_workers_count?: number
           boundary_polygon?: Json | null
           branch_id?: string | null
-          company_id: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -5047,6 +5063,7 @@ export type Database = {
           project_manager_id?: string | null
           project_name: string
           project_name_ar?: string | null
+          project_type?: string
           required_safety_officers?: number
           site_id?: string | null
           start_date: string
@@ -5058,7 +5075,7 @@ export type Database = {
           assigned_workers_count?: number
           boundary_polygon?: Json | null
           branch_id?: string | null
-          company_id?: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -5074,6 +5091,7 @@ export type Database = {
           project_manager_id?: string | null
           project_name?: string
           project_name_ar?: string | null
+          project_type?: string
           required_safety_officers?: number
           site_id?: string | null
           start_date?: string
@@ -5152,6 +5170,9 @@ export type Database = {
           last_exit_at: string | null
           mobile_number: string
           national_id: string | null
+          nationality: string | null
+          phone: string | null
+          photo_path: string | null
           tenant_id: string
           updated_at: string
           user_id: string | null
@@ -5174,6 +5195,9 @@ export type Database = {
           last_exit_at?: string | null
           mobile_number: string
           national_id?: string | null
+          nationality?: string | null
+          phone?: string | null
+          photo_path?: string | null
           tenant_id: string
           updated_at?: string
           user_id?: string | null
@@ -5196,6 +5220,9 @@ export type Database = {
           last_exit_at?: string | null
           mobile_number?: string
           national_id?: string | null
+          nationality?: string | null
+          phone?: string | null
+          photo_path?: string | null
           tenant_id?: string
           updated_at?: string
           user_id?: string | null
@@ -5641,6 +5668,8 @@ export type Database = {
       }
       contractor_workers: {
         Row: {
+          access_end_date: string | null
+          access_start_date: string | null
           approval_status: string
           approved_at: string | null
           approved_by: string | null
@@ -5648,21 +5677,45 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string | null
+          date_of_birth: string | null
           deleted_at: string | null
           edit_pending_approval: boolean | null
           edited_at: string | null
           edited_by: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          expiry_date: string | null
+          expiry_final_warning_sent_at: string | null
+          expiry_warning_sent_at: string | null
+          fitness_acknowledged: boolean | null
+          fitness_acknowledged_at: string | null
+          fitness_acknowledged_by: string | null
+          fitness_expiry_date: string | null
+          fitness_to_work: string | null
           full_name: string
           full_name_ar: string | null
+          gender: string | null
           id: string
           id_card_generated_at: string | null
           id_card_image_path: string | null
           id_card_sent_at: string | null
+          id_type: string
+          induction_status: string
+          medical_certificate_path: string | null
+          medical_check_date: string | null
           mobile_number: string
           national_id: string
           nationality: string | null
           photo_path: string | null
+          photo_verified_at: string | null
+          photo_verified_by: string | null
           preferred_language: string
+          project_id: string | null
+          ptw_access_approved_at: string | null
+          ptw_access_approved_by: string | null
+          ptw_access_requested_at: string | null
+          ptw_access_status: string | null
           rejection_reason: string | null
           safety_officer_id: string | null
           security_approval_status: string | null
@@ -5670,10 +5723,15 @@ export type Database = {
           security_approved_by: string | null
           security_rejection_reason: string | null
           tenant_id: string
+          training_certifications: string[]
           updated_at: string
+          user_type: string | null
+          worker_role: string
           worker_type: string | null
         }
         Insert: {
+          access_end_date?: string | null
+          access_start_date?: string | null
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
@@ -5681,21 +5739,45 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by?: string | null
+          date_of_birth?: string | null
           deleted_at?: string | null
           edit_pending_approval?: boolean | null
           edited_at?: string | null
           edited_by?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          expiry_date?: string | null
+          expiry_final_warning_sent_at?: string | null
+          expiry_warning_sent_at?: string | null
+          fitness_acknowledged?: boolean | null
+          fitness_acknowledged_at?: string | null
+          fitness_acknowledged_by?: string | null
+          fitness_expiry_date?: string | null
+          fitness_to_work?: string | null
           full_name: string
           full_name_ar?: string | null
+          gender?: string | null
           id?: string
           id_card_generated_at?: string | null
           id_card_image_path?: string | null
           id_card_sent_at?: string | null
+          id_type?: string
+          induction_status?: string
+          medical_certificate_path?: string | null
+          medical_check_date?: string | null
           mobile_number: string
           national_id: string
           nationality?: string | null
           photo_path?: string | null
+          photo_verified_at?: string | null
+          photo_verified_by?: string | null
           preferred_language?: string
+          project_id?: string | null
+          ptw_access_approved_at?: string | null
+          ptw_access_approved_by?: string | null
+          ptw_access_requested_at?: string | null
+          ptw_access_status?: string | null
           rejection_reason?: string | null
           safety_officer_id?: string | null
           security_approval_status?: string | null
@@ -5703,10 +5785,15 @@ export type Database = {
           security_approved_by?: string | null
           security_rejection_reason?: string | null
           tenant_id: string
+          training_certifications?: string[]
           updated_at?: string
+          user_type?: string | null
+          worker_role?: string
           worker_type?: string | null
         }
         Update: {
+          access_end_date?: string | null
+          access_start_date?: string | null
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
@@ -5714,21 +5801,45 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string | null
+          date_of_birth?: string | null
           deleted_at?: string | null
           edit_pending_approval?: boolean | null
           edited_at?: string | null
           edited_by?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          expiry_date?: string | null
+          expiry_final_warning_sent_at?: string | null
+          expiry_warning_sent_at?: string | null
+          fitness_acknowledged?: boolean | null
+          fitness_acknowledged_at?: string | null
+          fitness_acknowledged_by?: string | null
+          fitness_expiry_date?: string | null
+          fitness_to_work?: string | null
           full_name?: string
           full_name_ar?: string | null
+          gender?: string | null
           id?: string
           id_card_generated_at?: string | null
           id_card_image_path?: string | null
           id_card_sent_at?: string | null
+          id_type?: string
+          induction_status?: string
+          medical_certificate_path?: string | null
+          medical_check_date?: string | null
           mobile_number?: string
           national_id?: string
           nationality?: string | null
           photo_path?: string | null
+          photo_verified_at?: string | null
+          photo_verified_by?: string | null
           preferred_language?: string
+          project_id?: string | null
+          ptw_access_approved_at?: string | null
+          ptw_access_approved_by?: string | null
+          ptw_access_requested_at?: string | null
+          ptw_access_status?: string | null
           rejection_reason?: string | null
           safety_officer_id?: string | null
           security_approval_status?: string | null
@@ -5736,7 +5847,10 @@ export type Database = {
           security_approved_by?: string | null
           security_rejection_reason?: string | null
           tenant_id?: string
+          training_certifications?: string[]
           updated_at?: string
+          user_type?: string | null
+          worker_role?: string
           worker_type?: string | null
         }
         Relationships: [
@@ -5766,6 +5880,20 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_photo_verified_by_fkey"
+            columns: ["photo_verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_workers_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
             referencedColumns: ["id"]
           },
           {
@@ -5931,6 +6059,7 @@ export type Database = {
           disputed_by: string | null
           due_date: string | null
           escalation_level: number | null
+          failure_context_snapshot: Json | null
           finding_id: string | null
           id: string
           incident_id: string | null
@@ -5984,6 +6113,7 @@ export type Database = {
           disputed_by?: string | null
           due_date?: string | null
           escalation_level?: number | null
+          failure_context_snapshot?: Json | null
           finding_id?: string | null
           id?: string
           incident_id?: string | null
@@ -6037,6 +6167,7 @@ export type Database = {
           disputed_by?: string | null
           due_date?: string | null
           escalation_level?: number | null
+          failure_context_snapshot?: Json | null
           finding_id?: string | null
           id?: string
           incident_id?: string | null
@@ -7724,6 +7855,32 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gate_pass_counters: {
+        Row: {
+          counter_type: string
+          current_value: number
+          tenant_id: string
+        }
+        Insert: {
+          counter_type?: string
+          current_value?: number
+          tenant_id: string
+        }
+        Update: {
+          counter_type?: string
+          current_value?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_pass_counters_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -10190,15 +10347,18 @@ export type Database = {
           id: string
           incident_id: string
           injured_person_name: string
+          injury_classification: string | null
           injury_date: string | null
           injury_description: string | null
           injury_severity: string | null
           injury_type: string[] | null
+          involvement_type: string
           is_platform_user: boolean | null
           linked_contractor_worker_id: string | null
           linked_user_id: string | null
           medical_attention_required: boolean | null
           national_id: string | null
+          person_type: string
           recorded_by: string | null
           recorder_role: string | null
           restricted_duty_days: number | null
@@ -10218,15 +10378,18 @@ export type Database = {
           id?: string
           incident_id: string
           injured_person_name: string
+          injury_classification?: string | null
           injury_date?: string | null
           injury_description?: string | null
           injury_severity?: string | null
           injury_type?: string[] | null
+          involvement_type?: string
           is_platform_user?: boolean | null
           linked_contractor_worker_id?: string | null
           linked_user_id?: string | null
           medical_attention_required?: boolean | null
           national_id?: string | null
+          person_type?: string
           recorded_by?: string | null
           recorder_role?: string | null
           restricted_duty_days?: number | null
@@ -10246,15 +10409,18 @@ export type Database = {
           id?: string
           incident_id?: string
           injured_person_name?: string
+          injury_classification?: string | null
           injury_date?: string | null
           injury_description?: string | null
           injury_severity?: string | null
           injury_type?: string[] | null
+          involvement_type?: string
           is_platform_user?: boolean | null
           linked_contractor_worker_id?: string | null
           linked_user_id?: string | null
           medical_attention_required?: boolean | null
           national_id?: string | null
+          person_type?: string
           recorded_by?: string | null
           recorder_role?: string | null
           restricted_duty_days?: number | null
@@ -10880,6 +11046,9 @@ export type Database = {
           ai_analysis_result: Json | null
           all_actions_verified: boolean | null
           approval_manager_id: string | null
+          approval_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
           assigned_environmental_expert_id: string | null
           auto_declassify_to: string | null
           branch_id: string | null
@@ -10949,6 +11118,7 @@ export type Database = {
           expert_rejected_at: string | null
           expert_rejected_by: string | null
           expert_rejection_reason: string | null
+          expert_resubmission_count: number | null
           expert_screened_at: string | null
           expert_screened_by: string | null
           expert_screening_notes: string | null
@@ -10976,6 +11146,8 @@ export type Database = {
           investigation_approved_at: string | null
           investigation_approved_by: string | null
           investigation_complete: boolean | null
+          investigation_locked: boolean | null
+          investigation_started_at: string | null
           is_admin_override: boolean | null
           is_recordable: boolean | null
           latitude: number | null
@@ -10983,6 +11155,7 @@ export type Database = {
           legal_review_notes: string | null
           legal_reviewed_at: string | null
           legal_reviewer_id: string | null
+          litigation_hold: boolean | null
           location: string | null
           location_city: string | null
           location_country: string | null
@@ -10994,6 +11167,8 @@ export type Database = {
           manager_decision: string | null
           manager_decision_at: string | null
           manager_rejection_reason: string | null
+          manager_severity_override: boolean | null
+          manager_severity_override_reason: string | null
           media_attachments: Json | null
           mediation_completed_at: string | null
           mediation_decision: string | null
@@ -11014,6 +11189,7 @@ export type Database = {
           original_severity_v2:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          osha_reportable: boolean | null
           patrol_checkpoint_id: string | null
           patrol_id: string | null
           potential_severity_approved_at: string | null
@@ -11032,6 +11208,7 @@ export type Database = {
           reference_id: string | null
           rejection_return_count: number | null
           related_contractor_company_id: string | null
+          reopen_count: number | null
           reporter_branch_id: string | null
           reporter_dispute_notes: string | null
           reporter_disputes_rejection: boolean | null
@@ -11060,6 +11237,7 @@ export type Database = {
           severity_pending_approval: boolean | null
           severity_v2: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id: string | null
+          sla_breached: boolean | null
           source_observation_id: string | null
           special_event_id: string | null
           status: Database["public"]["Enums"]["incident_status"] | null
@@ -11111,6 +11289,9 @@ export type Database = {
           ai_analysis_result?: Json | null
           all_actions_verified?: boolean | null
           approval_manager_id?: string | null
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           assigned_environmental_expert_id?: string | null
           auto_declassify_to?: string | null
           branch_id?: string | null
@@ -11180,6 +11361,7 @@ export type Database = {
           expert_rejected_at?: string | null
           expert_rejected_by?: string | null
           expert_rejection_reason?: string | null
+          expert_resubmission_count?: number | null
           expert_screened_at?: string | null
           expert_screened_by?: string | null
           expert_screening_notes?: string | null
@@ -11207,6 +11389,8 @@ export type Database = {
           investigation_approved_at?: string | null
           investigation_approved_by?: string | null
           investigation_complete?: boolean | null
+          investigation_locked?: boolean | null
+          investigation_started_at?: string | null
           is_admin_override?: boolean | null
           is_recordable?: boolean | null
           latitude?: number | null
@@ -11214,6 +11398,7 @@ export type Database = {
           legal_review_notes?: string | null
           legal_reviewed_at?: string | null
           legal_reviewer_id?: string | null
+          litigation_hold?: boolean | null
           location?: string | null
           location_city?: string | null
           location_country?: string | null
@@ -11225,6 +11410,8 @@ export type Database = {
           manager_decision?: string | null
           manager_decision_at?: string | null
           manager_rejection_reason?: string | null
+          manager_severity_override?: boolean | null
+          manager_severity_override_reason?: string | null
           media_attachments?: Json | null
           mediation_completed_at?: string | null
           mediation_decision?: string | null
@@ -11245,6 +11432,7 @@ export type Database = {
           original_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          osha_reportable?: boolean | null
           patrol_checkpoint_id?: string | null
           patrol_id?: string | null
           potential_severity_approved_at?: string | null
@@ -11263,6 +11451,7 @@ export type Database = {
           reference_id?: string | null
           rejection_return_count?: number | null
           related_contractor_company_id?: string | null
+          reopen_count?: number | null
           reporter_branch_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
@@ -11291,6 +11480,7 @@ export type Database = {
           severity_pending_approval?: boolean | null
           severity_v2?: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id?: string | null
+          sla_breached?: boolean | null
           source_observation_id?: string | null
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
@@ -11342,6 +11532,9 @@ export type Database = {
           ai_analysis_result?: Json | null
           all_actions_verified?: boolean | null
           approval_manager_id?: string | null
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           assigned_environmental_expert_id?: string | null
           auto_declassify_to?: string | null
           branch_id?: string | null
@@ -11411,6 +11604,7 @@ export type Database = {
           expert_rejected_at?: string | null
           expert_rejected_by?: string | null
           expert_rejection_reason?: string | null
+          expert_resubmission_count?: number | null
           expert_screened_at?: string | null
           expert_screened_by?: string | null
           expert_screening_notes?: string | null
@@ -11438,6 +11632,8 @@ export type Database = {
           investigation_approved_at?: string | null
           investigation_approved_by?: string | null
           investigation_complete?: boolean | null
+          investigation_locked?: boolean | null
+          investigation_started_at?: string | null
           is_admin_override?: boolean | null
           is_recordable?: boolean | null
           latitude?: number | null
@@ -11445,6 +11641,7 @@ export type Database = {
           legal_review_notes?: string | null
           legal_reviewed_at?: string | null
           legal_reviewer_id?: string | null
+          litigation_hold?: boolean | null
           location?: string | null
           location_city?: string | null
           location_country?: string | null
@@ -11456,6 +11653,8 @@ export type Database = {
           manager_decision?: string | null
           manager_decision_at?: string | null
           manager_rejection_reason?: string | null
+          manager_severity_override?: boolean | null
+          manager_severity_override_reason?: string | null
           media_attachments?: Json | null
           mediation_completed_at?: string | null
           mediation_decision?: string | null
@@ -11476,6 +11675,7 @@ export type Database = {
           original_severity_v2?:
             | Database["public"]["Enums"]["severity_level_v2"]
             | null
+          osha_reportable?: boolean | null
           patrol_checkpoint_id?: string | null
           patrol_id?: string | null
           potential_severity_approved_at?: string | null
@@ -11494,6 +11694,7 @@ export type Database = {
           reference_id?: string | null
           rejection_return_count?: number | null
           related_contractor_company_id?: string | null
+          reopen_count?: number | null
           reporter_branch_id?: string | null
           reporter_dispute_notes?: string | null
           reporter_disputes_rejection?: boolean | null
@@ -11522,6 +11723,7 @@ export type Database = {
           severity_pending_approval?: boolean | null
           severity_v2?: Database["public"]["Enums"]["severity_level_v2"] | null
           site_id?: string | null
+          sla_breached?: boolean | null
           source_observation_id?: string | null
           special_event_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"] | null
@@ -11575,6 +11777,13 @@ export type Database = {
           {
             foreignKeyName: "incidents_approval_manager_id_fkey"
             columns: ["approval_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_approved_by_fkey"
+            columns: ["approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -12445,7 +12654,11 @@ export type Database = {
       }
       inspection_session_assets: {
         Row: {
+          asset_code_snapshot: string | null
           asset_id: string
+          asset_location_snapshot: string | null
+          asset_name_snapshot: string | null
+          asset_type_snapshot: string | null
           branch_id: string | null
           created_at: string | null
           failure_reason: string | null
@@ -12462,7 +12675,11 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          asset_code_snapshot?: string | null
           asset_id: string
+          asset_location_snapshot?: string | null
+          asset_name_snapshot?: string | null
+          asset_type_snapshot?: string | null
           branch_id?: string | null
           created_at?: string | null
           failure_reason?: string | null
@@ -12479,7 +12696,11 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          asset_code_snapshot?: string | null
           asset_id?: string
+          asset_location_snapshot?: string | null
+          asset_name_snapshot?: string | null
+          asset_type_snapshot?: string | null
           branch_id?: string | null
           created_at?: string | null
           failure_reason?: string | null
@@ -12553,6 +12774,7 @@ export type Database = {
           compliance_percentage: number | null
           created_at: string | null
           deleted_at: string | null
+          execution_mode: string | null
           failed_count: number | null
           floor_zone_id: string | null
           gps_boundary: Json | null
@@ -12570,6 +12792,7 @@ export type Database = {
           site_id: string | null
           started_at: string | null
           status: string
+          subtype_id: string | null
           template_id: string
           tenant_id: string
           total_assets: number | null
@@ -12589,6 +12812,7 @@ export type Database = {
           compliance_percentage?: number | null
           created_at?: string | null
           deleted_at?: string | null
+          execution_mode?: string | null
           failed_count?: number | null
           floor_zone_id?: string | null
           gps_boundary?: Json | null
@@ -12606,6 +12830,7 @@ export type Database = {
           site_id?: string | null
           started_at?: string | null
           status?: string
+          subtype_id?: string | null
           template_id: string
           tenant_id: string
           total_assets?: number | null
@@ -12625,6 +12850,7 @@ export type Database = {
           compliance_percentage?: number | null
           created_at?: string | null
           deleted_at?: string | null
+          execution_mode?: string | null
           failed_count?: number | null
           floor_zone_id?: string | null
           gps_boundary?: Json | null
@@ -12642,6 +12868,7 @@ export type Database = {
           site_id?: string | null
           started_at?: string | null
           status?: string
+          subtype_id?: string | null
           template_id?: string
           tenant_id?: string
           total_assets?: number | null
@@ -12690,6 +12917,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_sessions_subtype_id_fkey"
+            columns: ["subtype_id"]
+            isOneToOne: false
+            referencedRelation: "asset_subtypes"
             referencedColumns: ["id"]
           },
           {
@@ -12882,6 +13116,7 @@ export type Database = {
         Row: {
           area_type: string | null
           branch_id: string | null
+          building_id: string | null
           category_id: string | null
           code: string
           created_at: string | null
@@ -12900,6 +13135,7 @@ export type Database = {
           scope_description: string | null
           site_id: string | null
           standard_reference: string | null
+          subtype_id: string | null
           template_type: string
           tenant_id: string
           type_id: string | null
@@ -12909,6 +13145,7 @@ export type Database = {
         Insert: {
           area_type?: string | null
           branch_id?: string | null
+          building_id?: string | null
           category_id?: string | null
           code: string
           created_at?: string | null
@@ -12927,6 +13164,7 @@ export type Database = {
           scope_description?: string | null
           site_id?: string | null
           standard_reference?: string | null
+          subtype_id?: string | null
           template_type?: string
           tenant_id: string
           type_id?: string | null
@@ -12936,6 +13174,7 @@ export type Database = {
         Update: {
           area_type?: string | null
           branch_id?: string | null
+          building_id?: string | null
           category_id?: string | null
           code?: string
           created_at?: string | null
@@ -12954,6 +13193,7 @@ export type Database = {
           scope_description?: string | null
           site_id?: string | null
           standard_reference?: string | null
+          subtype_id?: string | null
           template_type?: string
           tenant_id?: string
           type_id?: string | null
@@ -12966,6 +13206,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_templates_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
             referencedColumns: ["id"]
           },
           {
@@ -12994,6 +13241,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_templates_subtype_id_fkey"
+            columns: ["subtype_id"]
+            isOneToOne: false
+            referencedRelation: "asset_subtypes"
             referencedColumns: ["id"]
           },
           {
@@ -14292,9 +14546,11 @@ export type Database = {
           contractor_approved_by: string | null
           created_at: string
           deleted_at: string | null
+          department_id: string | null
           driver_id: string | null
           driver_mobile: string | null
           driver_name: string | null
+          end_date: string | null
           entry_confirmed_at: string | null
           entry_confirmed_by: string | null
           entry_gate_id: string | null
@@ -14307,13 +14563,25 @@ export type Database = {
           guard_verified_by: string | null
           id: string
           is_internal_request: boolean | null
+          is_public_request: boolean | null
           material_description: string
+          notes: string | null
+          notify_email: boolean | null
+          notify_sms: boolean | null
+          notify_whatsapp: boolean | null
+          original_end_date: string | null
           pass_date: string
           pass_type: string
           pm_approved_at: string | null
           pm_approved_by: string | null
           pm_notes: string | null
           project_id: string | null
+          public_access_token: string | null
+          public_requester_company: string | null
+          public_requester_email: string | null
+          public_requester_name: string | null
+          public_requester_phone: string | null
+          purpose: string | null
           qr_code_token: string | null
           qr_generated_at: string | null
           quantity: string | null
@@ -14321,7 +14589,11 @@ export type Database = {
           rejected_at: string | null
           rejected_by: string | null
           rejection_reason: string | null
-          requested_by: string
+          renewal_count: number | null
+          renewal_expires_at: string | null
+          renewed_at: string | null
+          renewed_by: string | null
+          requested_by: string | null
           safety_approved_at: string | null
           safety_approved_by: string | null
           safety_notes: string | null
@@ -14329,12 +14601,18 @@ export type Database = {
           security_approval_status: string | null
           security_approved_at: string | null
           security_approved_by: string | null
+          start_date: string | null
           status: string
+          submission_ip: string | null
+          submitted_at: string | null
           tenant_id: string
           time_window_end: string | null
           time_window_start: string | null
+          token_expires_at: string | null
           updated_at: string
           vehicle_plate: string | null
+          vehicle_plate_letters: string | null
+          vehicle_plate_numbers: string | null
         }
         Insert: {
           approval_from_id?: string | null
@@ -14349,9 +14627,11 @@ export type Database = {
           contractor_approved_by?: string | null
           created_at?: string
           deleted_at?: string | null
+          department_id?: string | null
           driver_id?: string | null
           driver_mobile?: string | null
           driver_name?: string | null
+          end_date?: string | null
           entry_confirmed_at?: string | null
           entry_confirmed_by?: string | null
           entry_gate_id?: string | null
@@ -14364,13 +14644,25 @@ export type Database = {
           guard_verified_by?: string | null
           id?: string
           is_internal_request?: boolean | null
+          is_public_request?: boolean | null
           material_description: string
+          notes?: string | null
+          notify_email?: boolean | null
+          notify_sms?: boolean | null
+          notify_whatsapp?: boolean | null
+          original_end_date?: string | null
           pass_date: string
           pass_type?: string
           pm_approved_at?: string | null
           pm_approved_by?: string | null
           pm_notes?: string | null
           project_id?: string | null
+          public_access_token?: string | null
+          public_requester_company?: string | null
+          public_requester_email?: string | null
+          public_requester_name?: string | null
+          public_requester_phone?: string | null
+          purpose?: string | null
           qr_code_token?: string | null
           qr_generated_at?: string | null
           quantity?: string | null
@@ -14378,7 +14670,11 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_reason?: string | null
-          requested_by: string
+          renewal_count?: number | null
+          renewal_expires_at?: string | null
+          renewed_at?: string | null
+          renewed_by?: string | null
+          requested_by?: string | null
           safety_approved_at?: string | null
           safety_approved_by?: string | null
           safety_notes?: string | null
@@ -14386,12 +14682,18 @@ export type Database = {
           security_approval_status?: string | null
           security_approved_at?: string | null
           security_approved_by?: string | null
+          start_date?: string | null
           status?: string
+          submission_ip?: string | null
+          submitted_at?: string | null
           tenant_id: string
           time_window_end?: string | null
           time_window_start?: string | null
+          token_expires_at?: string | null
           updated_at?: string
           vehicle_plate?: string | null
+          vehicle_plate_letters?: string | null
+          vehicle_plate_numbers?: string | null
         }
         Update: {
           approval_from_id?: string | null
@@ -14406,9 +14708,11 @@ export type Database = {
           contractor_approved_by?: string | null
           created_at?: string
           deleted_at?: string | null
+          department_id?: string | null
           driver_id?: string | null
           driver_mobile?: string | null
           driver_name?: string | null
+          end_date?: string | null
           entry_confirmed_at?: string | null
           entry_confirmed_by?: string | null
           entry_gate_id?: string | null
@@ -14421,13 +14725,25 @@ export type Database = {
           guard_verified_by?: string | null
           id?: string
           is_internal_request?: boolean | null
+          is_public_request?: boolean | null
           material_description?: string
+          notes?: string | null
+          notify_email?: boolean | null
+          notify_sms?: boolean | null
+          notify_whatsapp?: boolean | null
+          original_end_date?: string | null
           pass_date?: string
           pass_type?: string
           pm_approved_at?: string | null
           pm_approved_by?: string | null
           pm_notes?: string | null
           project_id?: string | null
+          public_access_token?: string | null
+          public_requester_company?: string | null
+          public_requester_email?: string | null
+          public_requester_name?: string | null
+          public_requester_phone?: string | null
+          purpose?: string | null
           qr_code_token?: string | null
           qr_generated_at?: string | null
           quantity?: string | null
@@ -14435,7 +14751,11 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_reason?: string | null
-          requested_by?: string
+          renewal_count?: number | null
+          renewal_expires_at?: string | null
+          renewed_at?: string | null
+          renewed_by?: string | null
+          requested_by?: string | null
           safety_approved_at?: string | null
           safety_approved_by?: string | null
           safety_notes?: string | null
@@ -14443,12 +14763,18 @@ export type Database = {
           security_approval_status?: string | null
           security_approved_at?: string | null
           security_approved_by?: string | null
+          start_date?: string | null
           status?: string
+          submission_ip?: string | null
+          submitted_at?: string | null
           tenant_id?: string
           time_window_end?: string | null
           time_window_start?: string | null
+          token_expires_at?: string | null
           updated_at?: string
           vehicle_plate?: string | null
+          vehicle_plate_letters?: string | null
+          vehicle_plate_numbers?: string | null
         }
         Relationships: [
           {
@@ -14477,6 +14803,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_gate_passes_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {
@@ -16323,6 +16656,7 @@ export type Database = {
           id: string
           is_completed: boolean | null
           item_id: string | null
+          mobilization_id: string | null
           note: string | null
           project_id: string
           risk_assessment_id: string | null
@@ -16346,6 +16680,7 @@ export type Database = {
           id?: string
           is_completed?: boolean | null
           item_id?: string | null
+          mobilization_id?: string | null
           note?: string | null
           project_id: string
           risk_assessment_id?: string | null
@@ -16369,6 +16704,7 @@ export type Database = {
           id?: string
           is_completed?: boolean | null
           item_id?: string | null
+          mobilization_id?: string | null
           note?: string | null
           project_id?: string
           risk_assessment_id?: string | null
@@ -16394,10 +16730,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "project_clearance_execution_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "project_clearance_execution_mobilization_id_fkey"
+            columns: ["mobilization_id"]
             isOneToOne: false
-            referencedRelation: "ptw_projects"
+            referencedRelation: "project_mobilizations"
             referencedColumns: ["id"]
           },
           {
@@ -16426,6 +16762,131 @@ export type Database = {
             columns: ["witness_id"]
             isOneToOne: false
             referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_mobilizations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          clearance_expires_at: string | null
+          clearance_notes: string | null
+          control_measures: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          high_risk_zones_marked: boolean
+          high_risk_zones_notes: string | null
+          id: string
+          known_risks: string | null
+          mobilization_percentage: number
+          pre_checks_completed: boolean
+          project_id: string
+          ptw_enabled: boolean
+          rejection_reason: string | null
+          risk_assessment_required: boolean
+          site_clearance_approved: boolean
+          status: string
+          tenant_id: string
+          underground_utilities_identified: boolean
+          underground_utilities_notes: string | null
+          updated_at: string
+          utility_verified: boolean
+          utility_verified_notes: string | null
+          validity_days: number
+          work_boundaries_defined: boolean
+          work_boundaries_notes: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          clearance_expires_at?: string | null
+          clearance_notes?: string | null
+          control_measures?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          high_risk_zones_marked?: boolean
+          high_risk_zones_notes?: string | null
+          id?: string
+          known_risks?: string | null
+          mobilization_percentage?: number
+          pre_checks_completed?: boolean
+          project_id: string
+          ptw_enabled?: boolean
+          rejection_reason?: string | null
+          risk_assessment_required?: boolean
+          site_clearance_approved?: boolean
+          status?: string
+          tenant_id: string
+          underground_utilities_identified?: boolean
+          underground_utilities_notes?: string | null
+          updated_at?: string
+          utility_verified?: boolean
+          utility_verified_notes?: string | null
+          validity_days?: number
+          work_boundaries_defined?: boolean
+          work_boundaries_notes?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          clearance_expires_at?: string | null
+          clearance_notes?: string | null
+          control_measures?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          high_risk_zones_marked?: boolean
+          high_risk_zones_notes?: string | null
+          id?: string
+          known_risks?: string | null
+          mobilization_percentage?: number
+          pre_checks_completed?: boolean
+          project_id?: string
+          ptw_enabled?: boolean
+          rejection_reason?: string | null
+          risk_assessment_required?: boolean
+          site_clearance_approved?: boolean
+          status?: string
+          tenant_id?: string
+          underground_utilities_identified?: boolean
+          underground_utilities_notes?: string | null
+          updated_at?: string
+          utility_verified?: boolean
+          utility_verified_notes?: string | null
+          validity_days?: number
+          work_boundaries_defined?: boolean
+          work_boundaries_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_mobilizations_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_mobilizations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_mobilizations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_mobilizations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -16608,6 +17069,77 @@ export type Database = {
           },
         ]
       }
+      ptw_access_requests: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          rejection_reason: string | null
+          requested_by: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          requested_by: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          requested_by?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_access_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_access_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_access_requests_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_access_requests_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ptw_audit_logs: {
         Row: {
           action: string
@@ -16661,13 +17193,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ptw_audit_logs_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "ptw_projects"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ptw_audit_logs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -16687,7 +17212,8 @@ export type Database = {
           document_url: string | null
           id: string
           is_mandatory: boolean | null
-          project_id: string
+          mobilization_id: string | null
+          project_id: string | null
           rejection_reason: string | null
           requirement_name: string
           requirement_name_ar: string | null
@@ -16706,7 +17232,8 @@ export type Database = {
           document_url?: string | null
           id?: string
           is_mandatory?: boolean | null
-          project_id: string
+          mobilization_id?: string | null
+          project_id?: string | null
           rejection_reason?: string | null
           requirement_name: string
           requirement_name_ar?: string | null
@@ -16725,7 +17252,8 @@ export type Database = {
           document_url?: string | null
           id?: string
           is_mandatory?: boolean | null
-          project_id?: string
+          mobilization_id?: string | null
+          project_id?: string | null
           rejection_reason?: string | null
           requirement_name?: string
           requirement_name_ar?: string | null
@@ -16743,10 +17271,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ptw_clearance_checks_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "ptw_clearance_checks_mobilization_id_fkey"
+            columns: ["mobilization_id"]
             isOneToOne: false
-            referencedRelation: "ptw_projects"
+            referencedRelation: "project_mobilizations"
             referencedColumns: ["id"]
           },
           {
@@ -17213,6 +17741,65 @@ export type Database = {
           },
         ]
       }
+      ptw_permit_workers: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          is_permit_holder: boolean | null
+          permit_id: string
+          tenant_id: string
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_permit_holder?: boolean | null
+          permit_id: string
+          tenant_id: string
+          worker_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_permit_holder?: boolean | null
+          permit_id?: string
+          tenant_id?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ptw_permit_workers_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: false
+            referencedRelation: "ptw_permits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permit_workers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permit_workers_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ptw_permit_workers_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_workers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ptw_permits: {
         Row: {
           activated_at: string | null
@@ -17224,6 +17811,7 @@ export type Database = {
           closed_at: string | null
           closed_by: string | null
           closure_notes: string | null
+          contractor_project_id: string | null
           created_at: string | null
           created_by: string | null
           deleted_at: string | null
@@ -17242,9 +17830,10 @@ export type Database = {
           issuer_id: string | null
           job_description: string | null
           location_details: string | null
+          mobilization_id: string | null
           planned_end_time: string
           planned_start_time: string
-          project_id: string
+          project_id: string | null
           qr_code_token: string | null
           reference_id: string
           requested_at: string | null
@@ -17270,6 +17859,7 @@ export type Database = {
           closed_at?: string | null
           closed_by?: string | null
           closure_notes?: string | null
+          contractor_project_id?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
@@ -17288,9 +17878,10 @@ export type Database = {
           issuer_id?: string | null
           job_description?: string | null
           location_details?: string | null
+          mobilization_id?: string | null
           planned_end_time: string
           planned_start_time: string
-          project_id: string
+          project_id?: string | null
           qr_code_token?: string | null
           reference_id: string
           requested_at?: string | null
@@ -17316,6 +17907,7 @@ export type Database = {
           closed_at?: string | null
           closed_by?: string | null
           closure_notes?: string | null
+          contractor_project_id?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
@@ -17334,9 +17926,10 @@ export type Database = {
           issuer_id?: string | null
           job_description?: string | null
           location_details?: string | null
+          mobilization_id?: string | null
           planned_end_time?: string
           planned_start_time?: string
-          project_id?: string
+          project_id?: string | null
           qr_code_token?: string | null
           reference_id?: string
           requested_at?: string | null
@@ -17382,6 +17975,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ptw_permits_contractor_project_id_fkey"
+            columns: ["contractor_project_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_projects"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ptw_permits_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -17410,10 +18010,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ptw_permits_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "ptw_permits_mobilization_id_fkey"
+            columns: ["mobilization_id"]
             isOneToOne: false
-            referencedRelation: "ptw_projects"
+            referencedRelation: "project_mobilizations"
             referencedColumns: ["id"]
           },
           {
@@ -17988,6 +18588,129 @@ export type Database = {
           },
         ]
       }
+      public_gate_pass_items: {
+        Row: {
+          branch_id: string | null
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          gate_pass_id: string
+          id: string
+          item_name: string
+          photo_file_name: string | null
+          photo_file_size: number | null
+          photo_mime_type: string | null
+          photo_storage_path: string | null
+          quantity: string | null
+          sort_order: number | null
+          sr_number: string | null
+          tenant_id: string
+          unit: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          gate_pass_id: string
+          id?: string
+          item_name: string
+          photo_file_name?: string | null
+          photo_file_size?: number | null
+          photo_mime_type?: string | null
+          photo_storage_path?: string | null
+          quantity?: string | null
+          sort_order?: number | null
+          sr_number?: string | null
+          tenant_id: string
+          unit?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          gate_pass_id?: string
+          id?: string
+          item_name?: string
+          photo_file_name?: string | null
+          photo_file_size?: number | null
+          photo_mime_type?: string | null
+          photo_storage_path?: string | null
+          quantity?: string | null
+          sort_order?: number | null
+          sr_number?: string | null
+          tenant_id?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_gate_pass_items_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_gate_pass_items_gate_pass_id_fkey"
+            columns: ["gate_pass_id"]
+            isOneToOne: false
+            referencedRelation: "material_gate_passes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_gate_pass_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_request_rate_limits: {
+        Row: {
+          blocked_until: string | null
+          client_ip: string
+          created_at: string | null
+          first_request_at: string | null
+          id: string
+          last_request_at: string | null
+          request_count: number | null
+          request_type: string
+          tenant_id: string | null
+        }
+        Insert: {
+          blocked_until?: string | null
+          client_ip: string
+          created_at?: string | null
+          first_request_at?: string | null
+          id?: string
+          last_request_at?: string | null
+          request_count?: number | null
+          request_type?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          blocked_until?: string | null
+          client_ip?: string
+          created_at?: string | null
+          first_request_at?: string | null
+          id?: string
+          last_request_at?: string | null
+          request_count?: number | null
+          request_type?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_request_rate_limits_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_notification_preferences: {
         Row: {
           approvals_decision: boolean | null
@@ -18269,6 +18992,7 @@ export type Database = {
       risk_assessment_team: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           id: string
           is_required: boolean | null
           risk_assessment_id: string
@@ -18283,6 +19007,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_required?: boolean | null
           risk_assessment_id: string
@@ -18297,6 +19022,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_required?: boolean | null
           risk_assessment_id?: string
@@ -18555,7 +19281,7 @@ export type Database = {
             foreignKeyName: "risk_assessments_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "ptw_projects"
+            referencedRelation: "contractor_projects"
             referencedColumns: ["id"]
           },
           {
@@ -20299,6 +21025,253 @@ export type Database = {
           },
         ]
       }
+      site_clearance_attachments: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          file_name: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          mobilization_id: string
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          mobilization_id: string
+          storage_path: string
+          tenant_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          mobilization_id?: string
+          storage_path?: string
+          tenant_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_clearance_attachments_mobilization_id_fkey"
+            columns: ["mobilization_id"]
+            isOneToOne: false
+            referencedRelation: "project_mobilizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_attachments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_clearance_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          details: Json | null
+          discipline: string | null
+          id: string
+          mobilization_id: string
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          details?: Json | null
+          discipline?: string | null
+          id?: string
+          mobilization_id: string
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          details?: Json | null
+          discipline?: string | null
+          id?: string
+          mobilization_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_clearance_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_audit_logs_mobilization_id_fkey"
+            columns: ["mobilization_id"]
+            isOneToOne: false
+            referencedRelation: "project_mobilizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_clearance_risks: {
+        Row: {
+          control_measures: string | null
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          mobilization_id: string
+          residual_severity: string | null
+          risk_description: string
+          severity: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          control_measures?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          mobilization_id: string
+          residual_severity?: string | null
+          risk_description: string
+          severity?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          control_measures?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          mobilization_id?: string
+          residual_severity?: string | null
+          risk_description?: string
+          severity?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_clearance_risks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_risks_mobilization_id_fkey"
+            columns: ["mobilization_id"]
+            isOneToOne: false
+            referencedRelation: "project_mobilizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_risks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_clearance_signoffs: {
+        Row: {
+          comments: string | null
+          created_at: string
+          deleted_at: string | null
+          discipline: string
+          id: string
+          is_required: boolean
+          mobilization_id: string
+          signed_at: string | null
+          signed_by: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          discipline: string
+          id?: string
+          is_required?: boolean
+          mobilization_id: string
+          signed_at?: string | null
+          signed_by?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          discipline?: string
+          id?: string
+          is_required?: boolean
+          mobilization_id?: string
+          signed_at?: string | null
+          signed_by?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_clearance_signoffs_mobilization_id_fkey"
+            columns: ["mobilization_id"]
+            isOneToOne: false
+            referencedRelation: "project_mobilizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_signoffs_signed_by_fkey"
+            columns: ["signed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_clearance_signoffs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_departments: {
         Row: {
           created_at: string | null
@@ -21621,6 +22594,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          mfa_grace_until: string | null
           mfa_verified_at: string | null
           requires_setup: boolean
           tenant_id: string
@@ -21630,6 +22604,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          mfa_grace_until?: string | null
           mfa_verified_at?: string | null
           requires_setup?: boolean
           tenant_id: string
@@ -21639,6 +22614,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          mfa_grace_until?: string | null
           mfa_verified_at?: string | null
           requires_setup?: boolean
           tenant_id?: string
@@ -21657,6 +22633,7 @@ export type Database = {
       }
       tenants: {
         Row: {
+          allow_public_gate_pass_requests: boolean | null
           app_icon_dark_url: string | null
           app_icon_light_url: string | null
           background_color: string | null
@@ -21693,10 +22670,14 @@ export type Database = {
           notes: string | null
           plan_id: string | null
           preferred_currency: string
+          public_gate_pass_domain: string | null
+          public_gate_pass_instructions: string | null
+          public_gate_pass_instructions_ar: string | null
           secondary_color: string | null
           secondary_color_dark: string | null
           security_scan_enabled: boolean | null
           session_timeout_minutes: number | null
+          short_name: string | null
           sidebar_icon_dark_url: string | null
           sidebar_icon_light_url: string | null
           slug: string
@@ -21716,6 +22697,7 @@ export type Database = {
           visitor_hsse_instructions_en: string | null
         }
         Insert: {
+          allow_public_gate_pass_requests?: boolean | null
           app_icon_dark_url?: string | null
           app_icon_light_url?: string | null
           background_color?: string | null
@@ -21752,10 +22734,14 @@ export type Database = {
           notes?: string | null
           plan_id?: string | null
           preferred_currency?: string
+          public_gate_pass_domain?: string | null
+          public_gate_pass_instructions?: string | null
+          public_gate_pass_instructions_ar?: string | null
           secondary_color?: string | null
           secondary_color_dark?: string | null
           security_scan_enabled?: boolean | null
           session_timeout_minutes?: number | null
+          short_name?: string | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
           slug: string
@@ -21775,6 +22761,7 @@ export type Database = {
           visitor_hsse_instructions_en?: string | null
         }
         Update: {
+          allow_public_gate_pass_requests?: boolean | null
           app_icon_dark_url?: string | null
           app_icon_light_url?: string | null
           background_color?: string | null
@@ -21811,10 +22798,14 @@ export type Database = {
           notes?: string | null
           plan_id?: string | null
           preferred_currency?: string
+          public_gate_pass_domain?: string | null
+          public_gate_pass_instructions?: string | null
+          public_gate_pass_instructions_ar?: string | null
           secondary_color?: string | null
           secondary_color_dark?: string | null
           security_scan_enabled?: boolean | null
           session_timeout_minutes?: number | null
+          short_name?: string | null
           sidebar_icon_dark_url?: string | null
           sidebar_icon_light_url?: string | null
           slug?: string
@@ -22147,6 +23138,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_branch_assignments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -24835,7 +25833,7 @@ export type Database = {
       auto_block_ip: {
         Args: {
           _block_type: string
-          _duration?: unknown
+          _duration?: string
           _failed_attempts: number
           _ip_address: string
           _reason: string
@@ -24843,6 +25841,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      auto_expire_pending_gate_passes: { Args: never; Returns: number }
       bulk_restore_assets: { Args: { p_asset_ids: string[] }; Returns: number }
       bulk_soft_delete_assets: {
         Args: { p_asset_ids: string[] }
@@ -25015,6 +26014,10 @@ export type Database = {
         Args: { _incident_id: string; _user_id: string }
         Returns: boolean
       }
+      can_start_investigation: {
+        Args: { p_incident_id: string; p_user_id: string }
+        Returns: boolean
+      }
       can_view_incident: {
         Args: { _incident_reporter_id: string; _user_id: string }
         Returns: boolean
@@ -25044,6 +26047,20 @@ export type Database = {
           sample_data: Json
           severity: string
           table_name: string
+        }[]
+      }
+      check_duplicate_incident: {
+        Args: {
+          p_department_id: string
+          p_occurred_at: string
+          p_tenant_id: string
+          p_title: string
+        }
+        Returns: {
+          duplicate_id: string
+          duplicate_reference_id: string
+          duplicate_title: string
+          similarity_score: number
         }[]
       }
       check_incident_closure_prerequisites: {
@@ -25132,10 +26149,16 @@ export type Database = {
         Args: { _completion_notes?: string; _task_id: string; _user_id: string }
         Returns: Json
       }
-      consultant_complete_screening: {
-        Args: { p_incident_id: string; p_notes?: string }
-        Returns: Json
-      }
+      consultant_complete_screening:
+        | { Args: { p_incident_id: string; p_notes?: string }; Returns: Json }
+        | {
+            Args: {
+              p_incident_id: string
+              p_review_notes?: string
+              p_user_id?: string
+            }
+            Returns: Json
+          }
       consultant_identify_violation: {
         Args: {
           p_incident_id: string
@@ -25406,6 +26429,10 @@ export type Database = {
       }
       get_auth_tenant_id: { Args: never; Returns: string }
       get_auth_tenant_id_bypass: { Args: never; Returns: string }
+      get_auto_approver_for_gate_pass: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       get_badge_statistics: {
         Args: never
         Returns: {
@@ -25526,7 +26553,12 @@ export type Database = {
             }[]
           }
       get_events_by_location: {
-        Args: { p_end_date?: string; p_start_date?: string }
+        Args: {
+          p_branch_id?: string
+          p_end_date?: string
+          p_site_id?: string
+          p_start_date?: string
+        }
         Returns: Json
       }
       get_findings_distribution: { Args: never; Returns: Json }
@@ -25575,9 +26607,22 @@ export type Database = {
           role_name: string
         }[]
       }
+      get_hsse_dashboard_summary: {
+        Args: {
+          p_branch_id?: string
+          p_end_date?: string
+          p_site_id?: string
+          p_start_date?: string
+        }
+        Returns: Json
+      }
       get_hsse_event_dashboard_stats:
         | {
-            Args: { p_end_date?: string; p_start_date?: string }
+            Args: {
+              p_branch_id?: string
+              p_end_date?: string
+              p_start_date?: string
+            }
             Returns: Json
           }
         | {
@@ -25625,6 +26670,15 @@ export type Database = {
           whatsapp_template_id: string
         }[]
       }
+      get_incident_people_metrics: {
+        Args: {
+          p_branch_id?: string
+          p_end_date: string
+          p_site_id?: string
+          p_start_date: string
+        }
+        Returns: Json
+      }
       get_inspection_analytics: {
         Args: {
           p_end_date: string
@@ -25668,15 +26722,7 @@ export type Database = {
           p_site_id?: string
           p_start_date?: string
         }
-        Returns: {
-          dart: number
-          ltifr: number
-          month: string
-          severity_rate: number
-          total_incidents: number
-          total_manhours: number
-          trir: number
-        }[]
+        Returns: Json
       }
       get_kpi_period_comparison: {
         Args: {
@@ -25687,13 +26733,7 @@ export type Database = {
           p_previous_start: string
           p_site_id?: string
         }
-        Returns: {
-          current_value: number
-          metric_name: string
-          percent_change: number
-          previous_value: number
-          trend_direction: string
-        }[]
+        Returns: Json
       }
       get_lagging_indicators: {
         Args: {
@@ -25707,9 +26747,9 @@ export type Database = {
       get_leading_indicators: {
         Args: {
           p_branch_id?: string
-          p_end_date: string
+          p_end_date?: string
           p_site_id?: string
-          p_start_date: string
+          p_start_date?: string
         }
         Returns: Json
       }
@@ -25754,6 +26794,7 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: Json
       }
+      get_notification_summary: { Args: { p_tenant_id: string }; Returns: Json }
       get_observation_trend_analytics: {
         Args: {
           p_branch_id?: string
@@ -25796,9 +26837,9 @@ export type Database = {
       get_people_metrics: {
         Args: {
           p_branch_id?: string
-          p_end_date: string
+          p_end_date?: string
           p_site_id?: string
-          p_start_date: string
+          p_start_date?: string
         }
         Returns: Json
       }
@@ -25811,6 +26852,21 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      get_public_departments_with_approvers: {
+        Args: { p_branch_id?: string; p_tenant_id: string }
+        Returns: {
+          approver_id: string
+          approver_name: string
+          approver_role: string
+          department_id: string
+          department_name: string
+          department_name_ar: string
+        }[]
+      }
+      get_public_gate_pass_status: {
+        Args: { p_access_token: string }
+        Returns: Json
+      }
       get_rate_limit_stats: { Args: never; Returns: Json }
       get_recent_hsse_events: { Args: { p_limit?: number }; Returns: Json }
       get_residual_risk_metrics: {
@@ -25820,9 +26876,9 @@ export type Database = {
       get_response_metrics: {
         Args: {
           p_branch_id?: string
-          p_end_date: string
+          p_end_date?: string
           p_site_id?: string
-          p_start_date: string
+          p_start_date?: string
         }
         Returns: Json
       }
@@ -25889,7 +26945,13 @@ export type Database = {
         }[]
       }
       get_top_reporters: {
-        Args: { p_end_date?: string; p_limit?: number; p_start_date?: string }
+        Args: {
+          p_branch_id?: string
+          p_end_date?: string
+          p_limit?: number
+          p_site_id?: string
+          p_start_date?: string
+        }
         Returns: Json
       }
       get_trash_assets: {
@@ -26323,6 +27385,11 @@ export type Database = {
         Args: { p_badge_ids: string[] }
         Returns: undefined
       }
+      next_gate_pass_ref: {
+        Args: { p_counter_type?: string; p_tenant_id: string }
+        Returns: number
+      }
+      nextval_gate_pass_ref: { Args: never; Returns: number }
       point_in_polygon: {
         Args: { p_lat: number; p_lng: number; p_polygon: Json }
         Returns: boolean
@@ -26426,6 +27493,8 @@ export type Database = {
         Returns: undefined
       }
       seed_tenant_badges: { Args: { p_tenant_id: string }; Returns: undefined }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       site_client_approve_actions: {
         Args: { p_decision: string; p_incident_id: string; p_notes?: string }
         Returns: Json
@@ -26525,6 +27594,61 @@ export type Database = {
         }
         Returns: Json
       }
+      submit_public_gate_pass:
+        | {
+            Args: {
+              p_branch_id?: string
+              p_department_id?: string
+              p_driver_mobile?: string
+              p_driver_name?: string
+              p_end_date?: string
+              p_items?: Json
+              p_material_description?: string
+              p_notify_email?: boolean
+              p_notify_sms?: boolean
+              p_notify_whatsapp?: boolean
+              p_pass_date?: string
+              p_pass_type?: string
+              p_quantity?: string
+              p_requester_company?: string
+              p_requester_email?: string
+              p_requester_name?: string
+              p_requester_phone?: string
+              p_start_date?: string
+              p_tenant_slug: string
+              p_vehicle_plate?: string
+              p_vehicle_plate_letters?: string
+              p_vehicle_plate_numbers?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_branch_id: string
+              p_client_ip?: string
+              p_driver_mobile?: string
+              p_driver_name?: string
+              p_end_date?: string
+              p_items?: Json
+              p_material_description?: string
+              p_notify_email?: boolean
+              p_notify_sms?: boolean
+              p_notify_whatsapp?: boolean
+              p_pass_date?: string
+              p_pass_type?: string
+              p_quantity?: string
+              p_requester_company?: string
+              p_requester_email?: string
+              p_requester_name: string
+              p_requester_phone: string
+              p_start_date?: string
+              p_tenant_slug: string
+              p_vehicle_plate?: string
+              p_vehicle_plate_letters?: string
+              p_vehicle_plate_numbers?: string
+            }
+            Returns: Json
+          }
       toggle_event_category: {
         Args: {
           p_category_id: string
@@ -26603,6 +27727,9 @@ export type Database = {
         }
         Returns: Json
       }
+      validate_gate_pass_guard_access:
+        | { Args: { p_gate_pass_id: string }; Returns: Json }
+        | { Args: { p_action: string; p_gate_pass_id: string }; Returns: Json }
       validate_invitation_code: {
         Args: { p_code: string }
         Returns: {
@@ -26643,6 +27770,10 @@ export type Database = {
       }
       validate_worker_qr_access: {
         Args: { p_qr_token: string; p_site_id?: string }
+        Returns: Json
+      }
+      verify_hsse_manager_access: {
+        Args: { p_incident_id?: string; p_user_id: string }
         Returns: Json
       }
       verify_mfa_backup_code: {
@@ -26686,6 +27817,7 @@ export type Database = {
         | "contract_controller"
         | "hsse_expert"
         | "receptionist"
+        | "legal_reviewer"
       asset_condition: "excellent" | "good" | "fair" | "poor" | "critical"
       asset_criticality: "low" | "medium" | "high" | "critical"
       asset_document_type:
@@ -26776,6 +27908,11 @@ export type Database = {
         | "contractor_violation_cancelled"
         | "contractor_violation_warning"
         | "contractor_violation_terminated"
+        | "pending_no_investigation_approval"
+        | "osha_reportable"
+        | "pending_escalation_approval"
+        | "dept_rep_rejected"
+        | "pending_dept_rep_review"
       maintenance_frequency:
         | "daily"
         | "weekly"
@@ -27040,6 +28177,7 @@ export const Constants = {
         "contract_controller",
         "hsse_expert",
         "receptionist",
+        "legal_reviewer",
       ],
       asset_condition: ["excellent", "good", "fair", "poor", "critical"],
       asset_criticality: ["low", "medium", "high", "critical"],
@@ -27136,6 +28274,11 @@ export const Constants = {
         "contractor_violation_cancelled",
         "contractor_violation_warning",
         "contractor_violation_terminated",
+        "pending_no_investigation_approval",
+        "osha_reportable",
+        "pending_escalation_approval",
+        "dept_rep_rejected",
+        "pending_dept_rep_review",
       ],
       maintenance_frequency: [
         "daily",
