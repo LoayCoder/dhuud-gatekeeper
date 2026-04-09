@@ -2,53 +2,45 @@
 
 ## Problem
 
-The homepage action cards lack visual contrast in both light and dark modes. The card background (`bg-card`) is nearly identical to the page background, making cards blend together. The icon color washes (10-20% opacity) are too subtle, especially in dark mode.
+The recent color changes made the homepage cards look heavy and cluttered:
+- Thick colored left borders (`border-s-4`) are too prominent
+- Colored background tints (`dark:bg-destructive/5`, etc.) make cards look inconsistent
+- The `--card` and `--border` CSS variable changes altered the entire app's appearance
 
-From the screenshot: the dark mode cards appear as flat dark rectangles with barely visible borders, and the colored icon backgrounds don't pop enough.
+## Plan: Revert and Apply Minimal Fix
 
-## Plan
+### 1. Revert ActionCard styles (src/components/home/ActionCard.tsx)
 
-### 1. Enhance ActionCard visual distinction (src/components/home/ActionCard.tsx)
+Remove the colored left borders and background tints. Keep cards clean with just:
+- Clean `bg-card` background (no color tint)
+- No `border-s-4` — use only the standard `border border-border` 
+- Keep the existing icon color scheme (icon background + icon color) as they were originally fine
+- Restore original icon opacity levels
 
-- Add a **colored left/start border** (3-4px) to each card matching its color scheme — this is a proven HSSE pattern already used in inspections
-- Increase icon background opacity from 10-20% to 20-30% (light) and 25-40% (dark) for stronger color presence
-- Add a subtle **inner glow/gradient** on hover to reinforce the color identity
-- Use `border-border` with higher visibility in dark mode
-
-### 2. Improve dark mode card surface contrast (src/index.css)
-
-- Bump `--card` in dark mode from `220 15% 15%` to `220 15% 18%` — gives ~5% more lightness separation from the background (`220 13% 13%`)
-- Slightly increase `--border` in dark mode from `217 25% 24%` to `217 25% 28%` for more visible card edges
-
-### 3. Update color scheme styles (src/components/home/ActionCard.tsx)
-
-For each color scheme, add:
-- `border-s-4 border-s-{color}` — colored start border for instant visual identity
-- Stronger dark-mode icon backgrounds (e.g., `dark:bg-destructive/30` instead of `/20`)
-- A subtle card background tint in dark mode (e.g., `dark:bg-destructive/5`) so cards aren't all the same gray
-
-### Technical Details
-
-**ActionCard.tsx** — Updated `colorSchemeStyles` record:
+Updated styles — simple and clean:
 ```typescript
 danger: {
-  bg: 'bg-card border-s-4 border-s-destructive/70 dark:border-s-destructive dark:bg-destructive/5',
-  iconBg: 'bg-destructive/15 dark:bg-destructive/25',
+  bg: 'bg-card',
+  iconBg: 'bg-destructive/10 dark:bg-destructive/20',
   iconColor: 'text-destructive',
-  hoverBg: '...',
+  hoverBg: 'group-hover:bg-destructive/15 dark:group-hover:bg-destructive/25',
 }
-// Similar for warning, info, success, primary, default
+// Same pattern for all schemes
 ```
 
-**index.css** — Dark mode token adjustments:
-```css
-.dark {
-  --card: 220 15% 18%;        /* was 15% */
-  --border: 217 25% 28%;      /* was 24% */
-}
-```
+### 2. Revert CSS variables (src/index.css)
+
+Restore the original dark mode values:
+- `--card: 220 15% 15%` (revert from 18%)
+- `--border: 217 25% 24%` (revert from 28%)
+
+### 3. Add only a subtle card elevation difference
+
+Instead of colored borders, use a slightly more visible border in dark mode and a soft shadow — enough to distinguish cards without being heavy:
+- `border-border/60` instead of `border-border/50` in dark mode
+- Keep `shadow-sm` for light separation
 
 ### Files to modify
-- `src/components/home/ActionCard.tsx` — color scheme styles with colored borders + stronger tints
-- `src/index.css` — dark mode card/border contrast tokens
+- `src/components/home/ActionCard.tsx` — remove colored borders and tints, restore clean card style
+- `src/index.css` — revert `--card` and `--border` to original values
 
